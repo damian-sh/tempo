@@ -1,6 +1,7 @@
 """Tempo configuration: demo zones, date range, data-source switches."""
 from dataclasses import dataclass
 from typing import Optional
+import os as _os
 
 
 @dataclass(frozen=True)
@@ -28,7 +29,6 @@ LOCAL_UTC_OFFSET_HOURS = -6
 # Google Earth Engine cloud project id. Leave as None to skip GEE (POWER-only mode).
 GEE_PROJECT = _os.environ.get("TEMPO_GEE_PROJECT")  # set via env; never hardcode
 
-import os as _os
 # Cache lives outside the repo (plan rule). Override with TEMPO_CACHE.
 CACHE_DIR = _os.environ.get("TEMPO_CACHE", _os.path.expanduser("~/.cache/tempo"))
 
