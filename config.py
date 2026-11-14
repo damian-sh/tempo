@@ -26,7 +26,8 @@ END_DATE = None             # None = yesterday
 LOCAL_UTC_OFFSET_HOURS = -6
 
 # Google Earth Engine cloud project id. Leave as None to skip GEE (POWER-only mode).
-GEE_PROJECT = _os.environ.get("TEMPO_GEE_PROJECT")  # set via env; never hardcode
+import os as _os_gee
+GEE_PROJECT = _os_gee.environ.get("TEMPO_GEE_PROJECT")  # set via env; never hardcode
 
 import os as _os
 # Cache lives outside the repo (plan rule). Override with TEMPO_CACHE.

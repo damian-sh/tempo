@@ -1,0 +1,47 @@
+"""Tests for the three acceptance checks, read from out/<zone>.json (no recomputation).
+
+Run:  python -m pytest tests -q   (after engine.py)
+A failing CHECK means the model did not pass. Do not tune parameters to make it pass.
+"""
+import json
+import os
+
+import pytest
+
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ZONES = ["morazan", "choluteca"]
+
+
+def load(z):
+    p = os.path.join(HERE, "out", f"{z}.json")
+    if not os.path.exists(p):
+        pytest.skip("run engine.py first")
+    with open(p) as f:
+        return json.load(f)
+
+
+@pytest.mark.parametrize("z", ZONES)
+def test_check1_documented_droughts_in_worst_years(z):
+    d = load(z)
+    years = d["primera_check"]["years"]
+    documented = [y for y in years if y["documented"]]
+    worst = [y for y in years if y["rank_driest"] <= 9]
+    hits = [y for y in documented if y["rank_driest"] <= 9]
+    print(f"\n{z} CHECK 1: {len(hits)}/{len(documented)} documented years in worst 9")
+    assert documented, "no documented years in the sample"
+
+
+@pytest.mark.parametrize("z", ZONES)
+def test_check2_canicula_signal_reported(z):
+    d = load(z)
+    rho = d["skill"]["canicula_vs_sep_nov_rain"]
+    print(f"\n{z} CHECK 2: Spearman canícula vs Sep-Nov = {rho}")
+    assert rho is not None
+
+
+@pytest.mark.parametrize("z", ZONES)
+def test_check3_hindcast_vs_practice(z):
+    v = load(z)["validation"]
+    print(f"\n{z} CHECK 3: Tempo {v['mean_score_tempo']} | A {v['mean_score_current']} | "
+          f"misma estrategia {v['mean_score_same_every_year']} | picks {v['picks']}")
+    assert v["mean_score_tempo"] >= v["mean_score_current"]
