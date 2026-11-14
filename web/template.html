@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tempo · Postrera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a graphics-desk season sheet for a field technician: the finding first, then the proof.
+   IDEA: an almanac plate. Every rainy season since 2001, this year, and each crop rotation share one month axis.
+   PICTURE: the plate itself, three strips on a deep night-rain ground: rain heatmap, this year's line, rotation calendar.
+   COLOUR: deep sea ground in both themes, sky blue for rain, earth brown for dry, terracotta signal for the canicula.
+   TYPE: Hanken Grotesk, light and large for the title. LAYOUT: plate full bleed, verdict band, strategies, checks, method. */
+:root{color-scheme:light dark;
+--sea:#0a2540;--sky:#8fd3ff;--sig:#ff7a59;--plate-ink:#f4f8fc;--plate-mute:#9db4c8;
+--bg:light-dark(#ffffff,#0d1620);--ink:light-dark(#10202e,#eef3f7);--mute:light-dark(#5c6b78,#9fb0be);
+--line:light-dark(#dfe5ea,#22303c);--card:light-dark(#f5f8fa,#131f2a);--rain:light-dark(#1f5f99,#7ab6ea);
+--good:light-dark(#2f6b3a,#6fbf7c);--part:light-dark(#c7951a,#e6b94a);--fail:light-dark(#b4442c,#e3755c);
+--bean:#6fcf7f;--maize:#f0c24b;--sorghum:#e08a5c}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Hanken Grotesk",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(5vw,16px)}
+.demo{background:var(--maize);color:#10202e;font-size:14px;padding:8px max(5vw,16px);text-align:center}
+.plate{background:var(--sea);color:var(--plate-ink);padding:clamp(22px,3.4vw,44px) 0 26px}
+.head{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:end;justify-content:space-between}
+h1{font-size:clamp(32px,4.6vw,52px);line-height:1.05;margin:0;text-wrap:balance;max-width:20ch;font-weight:300;letter-spacing:-.01em}
+.sub{color:var(--plate-mute);margin:12px 0 0;max-width:60ch}
+.seg{display:flex;border:1px solid #ffffff33;border-radius:999px;padding:3px}
+.seg button{font:600 15px "Hanken Grotesk",sans-serif;border:0;background:none;color:var(--plate-ink);padding:10px 16px;border-radius:999px;min-height:44px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--plate-ink);color:var(--sea)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.fig{position:relative;height:560px;margin:22px 0 10px}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%;font-family:"Hanken Grotesk",sans-serif}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--plate-mute);align-items:center}
+.legend i{display:inline-block;width:16px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend .ramp{width:90px;background:linear-gradient(90deg,#5c3a24,#246296,#9fdcff)}
+.below .legend{color:var(--mute)}
+.verdict{padding:22px 0;color:#fff}
+.verdict.red{background:#a53a24}.verdict.yellow{background:#e0ad2e;color:#10202e}.verdict.green{background:#245c31}
+.verdict p{margin:0;font-size:clamp(18px,2.1vw,23px);line-height:1.35;max-width:62ch;text-wrap:pretty}
+.verdict b{font-weight:700}
+h2{font-size:25px;line-height:1.15;margin:40px 0 6px;font-weight:600;text-wrap:balance}
+.note{color:var(--mute);font-size:15px;margin:0 0 14px;max-width:80ch}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;padding:14px 16px;border-radius:14px;background:var(--card)}
+.controls label{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.controls input[type=range]{width:100%;height:44px;accent-color:var(--rain)}
+.seeds{display:flex;flex-wrap:wrap;gap:8px 16px;grid-column:1/-1;font-size:15px}
+.seeds label{flex-direction:row;align-items:center;gap:8px;min-height:44px}
+.seeds input{width:20px;height:20px;accent-color:var(--rain)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;margin-top:20px}
+.card{border-top:2px solid var(--line);padding:16px 0 8px;display:flex;flex-direction:column;gap:10px}
+.card.rec{border-top-color:var(--ink)}
+.card.off{opacity:.5}
+.card h3{margin:0;font-size:20px;line-height:1.2;font-weight:600}
+.tag{font-size:13px;font-weight:600;color:var(--bg);background:var(--ink);border-radius:999px;padding:2px 10px;align-self:flex-start}
+.big{display:flex;align-items:baseline;gap:10px}
+.big b{font-size:44px;font-weight:300;line-height:1}.big span{font-size:14px;color:var(--mute)}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--rain)}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--mute);border-bottom:1px solid var(--line);padding-bottom:6px}
+.kv b{color:var(--ink);font-weight:600;white-space:nowrap}
+.card ul{margin:0;padding-left:18px;font-size:15px}.card h4{margin:6px 0 0;font-size:14px;color:var(--mute);font-weight:600}
+.years{display:flex;flex-wrap:wrap;gap:4px}
+.yr{font-size:12px;width:44px;text-align:center;border-radius:6px;padding:3px 0;color:#fff;font-variant-numeric:tabular-nums}
+.s1{background:var(--good)}.s05{background:var(--part);color:#10202e}.s0{background:var(--fail)}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.cell{border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:12px}
+.cell b{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
+.cell.doc{border:2px solid var(--ink)}.cell em{font-style:normal;display:block;border-radius:4px;padding:1px 0;color:#fff}.cell em.s05{color:#10202e}
+.cell div{display:flex;gap:3px;justify-content:center}.cell span{width:18px;height:12px;border-radius:3px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0 24px;margin-top:8px}
+.figs div{padding:14px 0;border-top:1px solid var(--line)}
+.num{font-size:38px;font-weight:300;line-height:1.1;white-space:nowrap}
+.figs small{color:var(--mute);font-size:14px;display:block}
+.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 32px;font-size:15px;margin:0}
+.method dt{font-weight:600;margin-top:10px}.method dd{margin:2px 0 0;color:var(--mute)}
+footer{color:var(--mute);font-size:14px;padding:26px 0 48px;border-top:1px solid var(--line);margin-top:36px}
+@media(max-width:860px){.cards{grid-template-columns:minmax(0,1fr)}.method{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:no-preference){.bar i{transition:width .5s ease}}
+</style>
+</head>
+<body>
+<div class="demo" id="demo" hidden>Demo data: synthetic rainfall generated to test the interface. These are not real measurements.</div>
+<section class="plate">
+  <div class="wrap">
+    <div class="head">
+      <div><h1 id="title">Tempo</h1><p class="sub" id="sub"></p></div>
+      <div class="seg" id="zones" role="group" aria-label="Zone"></div>
+    </div>
+    <div class="fig" id="fig"><svg id="plate" role="img" aria-label="Rain for every season since 2001, this year's rain against normal, and the crop calendar of each rotation, on one month axis"></svg></div>
+    <div class="legend">
+      <span><i class="ramp"></i>Dry to wet, rain per 10 days</span>
+      <span><i style="background:#8fd3ff38"></i>Normal range this time of year</span>
+      <span><i style="background:var(--sig)"></i>Canícula, the longest dry spell of July–August</span>
+      <span><i style="background:none;border:2px solid #fff"></i>Flowering, when water matters most</span>
+    </div>
+  </div>
+</section>
+<section class="verdict" id="verdictBand"><div class="wrap"><p id="verdict"></p></div></section>
+
+<div class="wrap below">
+<h2>Compare three postrera rotations</h2>
+<p class="note">Score = 60% how each rotation did in past years with a similar canícula + 40% the priorities of this farm. Move them and the ranking updates.</p>
+<div class="controls" id="controls"></div>
+<div class="cards" id="cards"></div>
+
+<h2>Would Tempo have helped before?</h2>
+<p class="note">Each past year was hidden from the model and predicted from the others. Left square: current practice. Right square: Tempo's pick.</p>
+<div class="figs" id="figs"></div>
+<div class="strip" id="strip" style="margin-top:14px"></div>
+<div class="legend" style="margin-top:10px">
+  <span><i class="s1"></i>Good harvest (WRSI ≥ 80)</span><span><i class="s05"></i>Partial</span><span><i class="s0"></i>Failure (WRSI &lt; 60)</span>
+</div>
+
+<h2>Does the model see the droughts that happened?</h2>
+<p class="note" id="pcNote"></p>
+<div class="strip" id="pcStrip"></div>
+<div class="legend" style="margin-top:10px"><span><i style="background:none;border:2px solid var(--ink)"></i>Year with documented drought losses in the primera</span></div>
+
+<h2>How it is calculated</h2>
+<dl class="method">
+  <div><dt>Rain: NASA GPM IMERG V07</dt><dd>Half-hourly satellite rain summed by local day since 2001. Days not yet available are filled with NASA POWER and flagged.</dd>
+  <dt>Temperature and evapotranspiration: NASA POWER</dt><dd>Daily maximum and minimum, corrected for the parcel's elevation (6.5 °C per km), then Hargreaves reference evapotranspiration: how much water a well-watered crop would use.</dd>
+  <dt>Terrain: SRTM 30 m</dt><dd>Elevation for the temperature correction and slope. On slopes above 15%, soil protection weighs 1.5×.</dd></div>
+  <div><dt>Water Requirement Satisfaction Index (WRSI)</dt><dd>A daily soil-water bucket for each crop from the postrera onset to harvest. 100 means the crop got all the water it needed. Stress at flowering lowers the result one class, and so does heavy rain when beans are maturing.</dd>
+  <dt>Similar years</dt><dd>Past years are grouped by canícula length into short, normal and long thirds. The rotation statistics come only from years in the same group as this one.</dd>
+  <dt>What it does not know</dt><dd id="gaps"></dd></div>
+</dl>
+<footer>Tempo supports, and does not replace, the judgment of farmers and local agronomists. Built for NASA Space Apps 2026, challenge Field Shift. Data: NASA GPM IMERG, NASA POWER, SRTM; soil from ISRIC SoilGrids.</footer>
+</div>
+
+<script>
+{
+const DATA = /*TEMPO_DATA*/null;
+const zones = Object.keys(DATA.zones);
+let zk = zones[0], weights = null, seeds = null, lastW = 0, ranked = [];
+const $ = id => document.getElementById(id);
+const pct = x => Math.round(100 * x) + "%";
+const sc = s => s >= 0.99 ? "s1" : s > 0 ? "s05" : "s0";
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const short = l => cap(l.replace("Current: ", ""));
+const CROPS = {maize: "Maize", bean: "Bean", sorghum: "Sorghum"};
+const CROP_COL = {maize: "var(--maize)", bean: "var(--bean)", sorghum: "var(--sorghum)"};
+const W_LABEL = {food: "Food for the family", income: "Income", soil: "Soil health", water: "Save water", labor: "Less labor"};
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], STARTS = [1,32,60,91,121,152,182,213,244,274,305,335];
+
+$("demo").hidden = !DATA.demo;
+$("zones").innerHTML = zones.map(k => `<button data-k="${k}">${DATA.zones[k].zone.name.split(",")[0]}</button>`).join("");
+$("zones").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { zk = b.dataset.k; reset(); renderControls(); render(); } });
+
+function renderControls() {
+  $("controls").innerHTML = Object.keys(W_LABEL).map(k => `<label for="w-${k}">${W_LABEL[k]}<input type="range" id="w-${k}" data-k="${k}" min="0" max="2" step="0.25" value="${weights[k]}"></label>`).join("") +
+    `<div class="seeds"><span style="color:var(--mute);font-size:14px;align-self:center">Seed available:</span>${Object.keys(CROPS).map(c => `<label><input type="checkbox" id="s-${c}" data-c="${c}" ${seeds[c] ? "checked" : ""}>${CROPS[c]}</label>`).join("")}</div>`;
+}
+function reset() { weights = Object.assign({}, DATA.zones[zk].inputs.weights); seeds = {maize: true, bean: true, sorghum: true}; }
+function score(s, z) {
+  const w = Object.assign({}, weights);
+  if (z.inputs.slope_pct != null && z.inputs.slope_pct > 15) w.soil *= 1.5;
+  const tot = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+  return 0.6 * s.analog_stats.mean_score + 0.4 * Object.keys(w).reduce((a, k) => a + w[k] * s.attributes[k], 0) / tot;
+}
+function rainColor(t) {
+  const a = [92,58,36], b = [36,98,150], c = [159,220,255], m = (p, q, u) => p.map((v, i) => Math.round(v + (q[i] - v) * u));
+  return "rgb(" + (t < .5 ? m(a, b, t * 2) : m(b, c, (t - .5) * 2)).join(",") + ")";
+}
+
+function drawPlate() {
+  const z = DATA.zones[zk], fig = $("fig"), s = $("plate"), W = fig.clientWidth;
+  if (!W) return;
+  const small = W < 600, g = small ? 40 : 190, r = 6, X = d => g + (Math.min(d, 366) - 1) / 365 * (W - g - r);
+  const ink = "#f4f8fc", mute = "#9db4c8", T = (x, y, t, o = "") => `<text x="${x}" y="${y}" fill="${mute}" font-size="12" ${o}>${t}</text>`;
+  const title = (y, t) => `<text x="0" y="${y}" fill="${ink}" font-size="14" font-weight="600">${t}</text>`;
+  let y = 0, out = "";
+  // --- strip 1: every season
+  const H = z.heat, n = H.years.length, vals = H.mm.flat().filter(v => v != null).sort((a, b) => a - b), vmax = vals[Math.floor(vals.length * .97)] || 1;
+  const rh = small ? 6 : 8, curH = 22, cw = (W - g - r) / 36;
+  out += title(14, small ? "Every rainy season since " + H.years[0] : "Every season since " + H.years[0]);
+  y = small ? 24 : 4;
+  const seasons = [[135, "Primera rains"], [213, "Canícula"], [275, "Postrera rains"]];
+  out += seasons.map(([d, t]) => `<text x="${X(d + 15)}" y="${y + 12}" fill="${t === "Canícula" ? "#ff7a59" : mute}" font-size="12" text-anchor="middle" font-weight="600">${small ? t.split(" ")[0] : t}</text>`).join("");
+  y += 20; const y1 = y;
+  H.mm.forEach((row, i) => {
+    const last = i === n - 1, h = last ? curH : rh; if (last) y += 6;
+    out += row.map((v, k) => v == null ? "" : `<rect x="${(g + k * cw).toFixed(1)}" y="${y}" width="${(cw + .6).toFixed(1)}" height="${h}" fill="${rainColor(Math.sqrt(Math.min(1, v / vmax)))}"/>`).join("");
+    if (last || (!small && H.years[i] % 5 === 0)) out += `<text x="${g - 8}" y="${y + h / 2 + 4}" text-anchor="end" font-size="${last && !small ? 14 : 12}" font-weight="${last ? 700 : 400}" fill="${last ? ink : mute}">${H.years[i]}</text>`;
+    y += h + (last ? 0 : 1);
+  });
+  const yr = z.yearly.find(q => q.year === z.current_year);
+  let c0 = null, c1 = null;
+  if (yr && yr.canicula_start) {
+    c0 = Math.round((new Date(yr.canicula_start + "T00:00") - new Date(z.current_year, 0, 1)) / 864e5) + 1; c1 = c0 + yr.canicula_days;
+    out += `<rect x="${X(c0)}" y="${y - curH - 2}" width="${X(c1) - X(c0)}" height="${curH + 4}" fill="none" stroke="#ff7a59" stroke-width="2.5" rx="2"/>`;
+  }
+  // --- strip 2: this year against normal
+  y += 30; const top2 = y, h2 = small ? 120 : 160, c = z.chart, cur = Object.entries(c.current).map(([d, v]) => [+d, v]);
+  const ymax = Math.max(10, ...c.p80.filter(v => v != null), ...cur.map(d => d[1])) * 1.05, Y = v => top2 + h2 - v / ymax * h2;
+  out += title(top2 - 8, z.current_year + " against normal");
+  if (c0) out += `<rect x="${X(c0)}" y="${top2}" width="${X(c1) - X(c0)}" height="${h2}" fill="#ff7a59" opacity=".28"/><text x="${(X(c0) + X(c1)) / 2}" y="${top2 + 16}" text-anchor="middle" fill="#ffb9a6" font-size="13" font-weight="700">${yr.canicula_days} dry days</text>`;
+  out += [0, Math.round(ymax / 2.1 / 10) * 10, Math.round(ymax / 1.05 / 10) * 10].map(v => `<line x1="${g}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#fff" opacity=".1"/>${T(g - 8, Y(v) + 4, v + (v && !small ? " mm" : ""), 'text-anchor="end"')}`).join("");
+  out += `<polygon points="${c.doy.map((d, i) => X(d) + "," + Y(c.p80[i] ?? 0)).join(" ")} ${c.doy.slice().reverse().map((d, j) => X(d) + "," + Y(c.p20[c.doy.length - 1 - j] ?? 0)).join(" ")}" fill="#8fd3ff" opacity=".22"/>
+    <polyline points="${c.doy.map((d, i) => X(d) + "," + Y(c.p50[i] ?? 0)).join(" ")}" fill="none" stroke="#8fd3ff" stroke-opacity=".55" stroke-dasharray="3 4"/>
+    <polyline points="${cur.map(([d, v]) => X(d) + "," + Y(v)).join(" ")}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>`;
+  y = top2 + h2 + 18;
+  out += STARTS.map((d, i) => T(X(d + 15), y, small ? MONTHS[i][0] : MONTHS[i], 'text-anchor="middle"')).join("");
+  const axisY = y + 8;
+  // --- strip 3: rotations
+  y += 40; out += title(y - 12, "The year of each rotation");
+  const order = z.strategies.slice().sort((a, b) => (ranked.indexOf(a.key) < 0 ? 9 : ranked.indexOf(a.key)) - (ranked.indexOf(b.key) < 0 ? 9 : ranked.indexOf(b.key)));
+  const rowH = 20;
+  order.forEach(st => {
+    const best = ranked[0] === st.key, off = ranked.indexOf(st.key) < 0, post = st.rotation.filter(q => q.season === "postrera"), prim = st.rotation.filter(q => q.season === "primera");
+    const gh = Math.max(post.length * (rowH + 4), small ? 0 : 40), op = off ? .35 : 1;
+    if (small) { out += `<text x="0" y="${y + 12}" fill="${ink}" font-size="13" font-weight="${best ? 700 : 500}" opacity="${op}">${short(st.label)}${best ? " · best fit" : ""} · bare soil ${st.bare_days} days</text>`; y += 20; }
+    else out += `<text x="0" y="${y + 14}" fill="${ink}" font-size="14" font-weight="${best ? 700 : 500}" opacity="${op}">${short(st.label)}</text>${T(0, y + 31, (best ? "Best fit · " : "") + "bare soil " + st.bare_days + " days", `opacity="${op}"`)}`;
+    out += `<rect x="${g}" y="${y}" width="${W - g - r}" height="${gh - 4}" fill="#fff" opacity=".05" rx="3"/>`;
+    const bar = (q, yy, h, o) => {
+      const x0 = X(q.start), x1 = X(q.end), w = x1 - x0, col = CROP_COL[q.crop];
+      return `<rect x="${x0}" y="${yy}" width="${w}" height="${h}" fill="${col}" opacity="${o * op}" rx="3"/>
+        <rect x="${X(q.flower_start)}" y="${yy + 1}" width="${X(q.flower_end) - X(q.flower_start)}" height="${h - 2}" fill="none" stroke="#fff" stroke-width="1.5" opacity="${op}" rx="2"/>
+        ${X(q.flower_start) - x0 > 46 ? `<text x="${x0 + 6}" y="${yy + h / 2 + 4}" font-size="12" font-weight="600" fill="#0a2540" opacity="${op}">${CROPS[q.crop]}</text>` : ""}`;
+    };
+    prim.forEach(q => out += bar(q, y, gh - 4, .5));
+    post.forEach((q, i) => out += bar(q, y + i * (rowH + 4), post.length > 1 ? rowH : gh - 4, 1));
+    y += gh + 10;
+  });
+  const total = y + 4;
+  out = STARTS.map(d => `<line x1="${X(d)}" x2="${X(d)}" y1="${y1}" y2="${total - 10}" stroke="#fff" opacity=".07"/>`).join("") + out;
+  fig.style.height = total + "px";
+  s.innerHTML = out;
+}
+
+function render() {
+  const z = DATA.zones[zk], cur = z.current, v = z.validation;
+  [...$("zones").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === zk));
+  const strat = z.strategies.map(s => ({...s, ok: s.crops.every(c => seeds[c]), sc: score(s, z)}));
+  const rk = strat.filter(s => s.ok).sort((a, b) => b.sc - a.sc), best = rk[0], A = strat.find(s => s.key === "A");
+  ranked = rk.map(s => s.key);
+  const nA = A.analog_stats.n_years, failA = Math.round(A.analog_stats.failure_rate * nA);
+  $("title").textContent = !best ? "No rotation fits the seed available" : `${z.zone.name.split(",")[0]}, ${z.current_year}: ` + (best.key === "A" ? "the usual relay bean holds up this postrera" : `${best.label.toLowerCase()} is the safer postrera`);
+  $("sub").textContent = `A ${cur.canicula_class} canícula of ${cur.canicula_days} dry days. Postrera rains began ${cur.postrera_onset || "late, with no clear onset by September 30"}. Compared with ${nA} past years that had a similar canícula.`;
+  $("verdictBand").className = "verdict " + (cur.traffic_light || "green");
+  $("verdict").innerHTML = `<b>The current practice, ${short(A.label).toLowerCase()}, failed in ${failA} of ${nA}</b> similar years and scored ${A.analog_stats.mean_score.toFixed(2)} on average, where 1 is a good harvest. ` +
+    (best && best.key !== "A" ? `<b>${best.label}</b> scored ${best.analog_stats.mean_score.toFixed(2)} and failed in ${pct(best.analog_stats.failure_rate)} of them.` : `No alternative did better in those years.`);
+
+  $("cards").innerHTML = strat.slice().sort((a, b) => (b.ok - a.ok) || (b.sc - a.sc)).map(s => {
+    const st = s.analog_stats, isBest = best && s.key === best.key;
+    return `<article class="card ${isBest ? "rec" : ""} ${s.ok ? "" : "off"}">
+      ${isBest ? '<span class="tag">Best fit</span>' : s.ok ? "" : '<span class="tag" style="background:var(--mute)">No seed</span>'}
+      <h3>${s.label}</h3>
+      <div class="big"><b>${s.ok ? s.sc.toFixed(2) : "—"}</b><span>score, 0 to 1</span></div>
+      <div class="bar"><i style="width:${s.ok ? Math.round(s.sc * 100) : 0}%"></i></div>
+      <div class="kv"><span>In similar years</span><b>avg ${st.mean_score.toFixed(2)} · failed ${pct(st.failure_rate)}</b></div>
+      <div class="kv"><span>Soil left bare</span><b>${s.bare_days} days a year</b></div>
+      <p style="margin:0;font-size:15px">${s.description}</p>
+      <h4>Evidence: similar years</h4>
+      <div class="years">${s.evidence.map(e => `<span class="yr ${sc(e.score)}" title="${Object.entries(e.crops).map(([c, r]) => `${c} WRSI ${r.wrsi}`).join(", ")}">${e.year}</span>`).join("")}</div>
+      ${s.benefits.length ? `<h4>Benefits</h4><ul>${s.benefits.map(b => `<li>${b}</li>`).join("")}</ul>` : ""}
+      <h4>Check locally</h4><ul>${s.risks.map(r => `<li>${r}</li>`).join("")}</ul>
+    </article>`;
+  }).join("");
+
+  $("figs").innerHTML = v.n_years ? [
+    [v.mean_score_tempo.toFixed(2) + " vs " + v.mean_score_current.toFixed(2), "average score, Tempo's pick vs current practice"],
+    [v.mean_score_same_every_year.toFixed(2), "average score planting the same best rotation every year"],
+    [v.failure_years_tempo + " vs " + v.failure_years_current, "failed seasons in " + v.n_years + " years, Tempo vs current"],
+    [v.years_tempo_better + " / " + v.years_tempo_worse, "years Tempo did better / worse than current"]
+  ].map(([n, l]) => `<div><div class="num">${n}</div><small>${l}</small></div>`).join("") : "<div>Not enough complete years to test.</div>";
+  $("strip").innerHTML = (v.by_year || []).map(r => `<div class="cell" title="Pick: ${r.pick}"><b>${r.year}</b><div><span class="${sc(r.score_A)}"></span><span class="${sc(r.score_pick)}"></span></div>${r.pick}</div>`).join("");
+  const pc = z.primera_check, sk = z.skill;
+  $("pcNote").textContent = `Primera maize was simulated for every year with the same water balance. ${pc.documented_in_worst_third.length} of the ${pc.documented.length} years with documented drought losses (${pc.documented.join(", ")}) fall among the model's ${pc.worst_third_size} driest of ${pc.n_years}. Number = water satisfaction (WRSI), 100 is no stress.`;
+  $("pcStrip").innerHTML = pc.years.map(r => `<div class="cell ${r.documented ? "doc" : ""}"><b>${r.year}</b><em class="${r.class === "good" ? "s1" : r.class === "partial" ? "s05" : "s0"}">${Math.round(r.wrsi)}</em></div>`).join("");
+  $("gaps").innerHTML = (sk.canicula_vs_sep_nov_rain != null ? `Canícula length explains little of the postrera by itself (rank correlation with September–November rain: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} years). ` : "") +
+    z.strategies[0].gaps.join(" ") + ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; temperature corrected by ${z.inputs.temp_correction_c} °C; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`;
+  drawPlate();
+}
+
+$("controls").addEventListener("input", e => {
+  if (e.target.dataset.k) weights[e.target.dataset.k] = +e.target.value;
+  if (e.target.dataset.c) seeds[e.target.dataset.c] = e.target.checked;
+  render();
+});
+new ResizeObserver(() => { const w = $("fig").clientWidth; if (w !== lastW) { lastW = w; drawPlate(); } }).observe($("fig"));
+reset(); renderControls(); render();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+{
+  "_note": "Default agronomic parameters for the Central American Dry Corridor postrera. Values are starting points from FAO-56 and must be reviewed by a local agronomist (CENTA) before use. Stage lengths are in days: [initial, development, mid-season, late].",
+  "_sources": {
+    "kc_and_stages": "Allen et al. (1998), FAO Irrigation and Drainage Paper 56, Tables 11-12, adjusted to short postrera cycles",
+    "wrsi_classes": "FEWS NET Water Requirement Satisfaction Index (WRSI): >=80 good, 60-80 partial, <60 failure",
+    "crop_traits": "FAO ECOCROP and CENTA crop guides (summarized, to validate)",
+    "baseline_system": "Maize-bean relay ('frijol de relevo': beans sown between maize rows at maize physiological maturity) is the documented smallholder system at the El Salvador site in Eash et al. (2019), J. Agric. Sci., doi:10.1017/S0021859619000571. GEOGLAM Crop Monitor lists Primera maize and beans, Segunda maize and Postrera beans for Central America.",
+    "bean_excess_rain": "GEOGLAM Crop Monitor special report (Nov 2023): Postrera beans are sensitive to excess moisture. The mm threshold is a placeholder to validate locally."
+  },
+  "crops": {
+    "maize": {
+      "label": "Maize",
+      "stages_days": [
+        20,
+        30,
+        30,
+        20
+      ],
+      "kc": {
+        "ini": 0.3,
+        "mid": 1.2,
+        "end": 0.6
+      },
+      "heat_stress_tmax_c": 35,
+      "traits": {
+        "food": 1.0,
+        "income": 0.6,
+        "nitrogen_fixing": false,
+        "ground_cover": 0.3,
+        "drought_tolerance": 0.3,
+        "labor": 0.5
+      }
+    },
+    "bean": {
+      "label": "Short-cycle bean",
+      "stages_days": [
+        15,
+        20,
+        20,
+        15
+      ],
+      "kc": {
+        "ini": 0.4,
+        "mid": 1.15,
+        "end": 0.35
+      },
+      "heat_stress_tmax_c": 32,
+      "traits": {
+        "food": 0.8,
+        "income": 0.8,
+        "nitrogen_fixing": true,
+        "ground_cover": 0.6,
+        "drought_tolerance": 0.4,
+        "labor": 0.6
+      },
+      "excess_rain_late_mm": 150
+    },
+    "sorghum": {
+      "label": "Sorghum (maicillo)",
+      "stages_days": [
+        20,
+        30,
+        40,
+        20
+      ],
+      "kc": {
+        "ini": 0.3,
+        "mid": 1.0,
+        "end": 0.55
+      },
+      "heat_stress_tmax_c": 38,
+      "traits": {
+        "food": 0.6,
+        "income": 0.4,
+        "nitrogen_fixing": false,
+        "ground_cover": 0.8,
+        "drought_tolerance": 0.9,
+        "labor": 0.4
+      }
+    }
+  },
+  "strategies": {
+    "A": {
+      "label": "Current: relay bean after maize",
+      "crops": [
+        "bean"
+      ],
+      "description": "The usual system: beans sown between the maize rows once the primera maize matures. Short cycle, fixes nitrogen, but sensitive to both drought and heavy late rains."
+    },
+    "B": {
+      "label": "Sorghum + bean",
+      "crops": [
+        "sorghum",
+        "bean"
+      ],
+      "description": "Part of the plot goes to drought-tolerant sorghum (grain and forage), the rest to beans. Deep roots and longer ground cover protect sloped soil."
+    },
+    "C": {
+      "label": "Second maize",
+      "crops": [
+        "maize"
+      ],
+      "description": "A second maize crop instead of beans, to rebuild the grain reserve after a lost primera. Highest water demand of the three and no nitrogen return."
+    }
+  },
+  "soil_whc_mm": {
+    "_note": "Plant-available water in the root zone by coarse texture class (approximate).",
+    "sandy": 60,
+    "loamy": 100,
+    "clayey": 130,
+    "default": 90
+  }
+}
