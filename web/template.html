@@ -1,287 +1,1722 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tempo · Postrera</title>
+<title id="pageTitle">Tempo · Apoyo para la Postrera en el Corredor Seco</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
 <style>
-/* VOICE: a graphics-desk season sheet for a field technician: the finding first, then the proof.
-   IDEA: an almanac plate. Every rainy season since 2001, this year, and each crop rotation share one month axis.
-   PICTURE: the plate itself, three strips on a deep night-rain ground: rain heatmap, this year's line, rotation calendar.
-   COLOUR: deep sea ground in both themes, sky blue for rain, earth brown for dry, terracotta signal for the canicula.
-   TYPE: Hanken Grotesk, light and large for the title. LAYOUT: plate full bleed, verdict band, strategies, checks, method. */
-:root{color-scheme:light dark;
---sea:#0a2540;--sky:#8fd3ff;--sig:#ff7a59;--plate-ink:#f4f8fc;--plate-mute:#9db4c8;
---bg:light-dark(#ffffff,#0d1620);--ink:light-dark(#10202e,#eef3f7);--mute:light-dark(#5c6b78,#9fb0be);
---line:light-dark(#dfe5ea,#22303c);--card:light-dark(#f5f8fa,#131f2a);--rain:light-dark(#1f5f99,#7ab6ea);
---good:light-dark(#2f6b3a,#6fbf7c);--part:light-dark(#c7951a,#e6b94a);--fail:light-dark(#b4442c,#e3755c);
---bean:#6fcf7f;--maize:#f0c24b;--sorghum:#e08a5c}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-*{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Hanken Grotesk",system-ui,sans-serif;overflow-x:clip}
-.wrap{max-width:1240px;margin:0 auto;padding:0 max(5vw,16px)}
-.demo{background:var(--maize);color:#10202e;font-size:14px;padding:8px max(5vw,16px);text-align:center}
-.plate{background:var(--sea);color:var(--plate-ink);padding:clamp(22px,3.4vw,44px) 0 26px}
-.head{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:end;justify-content:space-between}
-h1{font-size:clamp(32px,4.6vw,52px);line-height:1.05;margin:0;text-wrap:balance;max-width:20ch;font-weight:300;letter-spacing:-.01em}
-.sub{color:var(--plate-mute);margin:12px 0 0;max-width:60ch}
-.seg{display:flex;border:1px solid #ffffff33;border-radius:999px;padding:3px}
-.seg button{font:600 15px "Hanken Grotesk",sans-serif;border:0;background:none;color:var(--plate-ink);padding:10px 16px;border-radius:999px;min-height:44px;cursor:pointer}
-.seg button[aria-pressed=true]{background:var(--plate-ink);color:var(--sea)}
-button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
-.fig{position:relative;height:560px;margin:22px 0 10px}
-.fig>svg{position:absolute;inset:0;width:100%;height:100%;font-family:"Hanken Grotesk",sans-serif}
-.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--plate-mute);align-items:center}
-.legend i{display:inline-block;width:16px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.legend .ramp{width:90px;background:linear-gradient(90deg,#5c3a24,#246296,#9fdcff)}
-.below .legend{color:var(--mute)}
-.verdict{padding:22px 0;color:#fff}
-.verdict.red{background:#a53a24}.verdict.yellow{background:#e0ad2e;color:#10202e}.verdict.green{background:#245c31}
-.verdict p{margin:0;font-size:clamp(18px,2.1vw,23px);line-height:1.35;max-width:62ch;text-wrap:pretty}
-.verdict b{font-weight:700}
-h2{font-size:25px;line-height:1.15;margin:40px 0 6px;font-weight:600;text-wrap:balance}
-.note{color:var(--mute);font-size:15px;margin:0 0 14px;max-width:80ch}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;padding:14px 16px;border-radius:14px;background:var(--card)}
-.controls label{display:flex;flex-direction:column;gap:2px;font-size:14px}
-.controls input[type=range]{width:100%;height:44px;accent-color:var(--rain)}
-.seeds{display:flex;flex-wrap:wrap;gap:8px 16px;grid-column:1/-1;font-size:15px}
-.seeds label{flex-direction:row;align-items:center;gap:8px;min-height:44px}
-.seeds input{width:20px;height:20px;accent-color:var(--rain)}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;margin-top:20px}
-.card{border-top:2px solid var(--line);padding:16px 0 8px;display:flex;flex-direction:column;gap:10px}
-.card.rec{border-top-color:var(--ink)}
-.card.off{opacity:.5}
-.card h3{margin:0;font-size:20px;line-height:1.2;font-weight:600}
-.tag{font-size:13px;font-weight:600;color:var(--bg);background:var(--ink);border-radius:999px;padding:2px 10px;align-self:flex-start}
-.big{display:flex;align-items:baseline;gap:10px}
-.big b{font-size:44px;font-weight:300;line-height:1}.big span{font-size:14px;color:var(--mute)}
-.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--rain)}
-.kv{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--mute);border-bottom:1px solid var(--line);padding-bottom:6px}
-.kv b{color:var(--ink);font-weight:600;white-space:nowrap}
-.card ul{margin:0;padding-left:18px;font-size:15px}.card h4{margin:6px 0 0;font-size:14px;color:var(--mute);font-weight:600}
-.years{display:flex;flex-wrap:wrap;gap:4px}
-.yr{font-size:12px;width:44px;text-align:center;border-radius:6px;padding:3px 0;color:#fff;font-variant-numeric:tabular-nums}
-.s1{background:var(--good)}.s05{background:var(--part);color:#10202e}.s0{background:var(--fail)}
-.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
-.cell{border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:12px}
-.cell b{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
-.cell.doc{border:2px solid var(--ink)}.cell em{font-style:normal;display:block;border-radius:4px;padding:1px 0;color:#fff}.cell em.s05{color:#10202e}
-.cell div{display:flex;gap:3px;justify-content:center}.cell span{width:18px;height:12px;border-radius:3px}
-.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0 24px;margin-top:8px}
-.figs div{padding:14px 0;border-top:1px solid var(--line)}
-.num{font-size:38px;font-weight:300;line-height:1.1;white-space:nowrap}
-.figs small{color:var(--mute);font-size:14px;display:block}
-.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 32px;font-size:15px;margin:0}
-.method dt{font-weight:600;margin-top:10px}.method dd{margin:2px 0 0;color:var(--mute)}
-footer{color:var(--mute);font-size:14px;padding:26px 0 48px;border-top:1px solid var(--line);margin-top:36px}
-@media(max-width:860px){.cards{grid-template-columns:minmax(0,1fr)}.method{grid-template-columns:minmax(0,1fr)}}
-@media(prefers-reduced-motion:no-preference){.bar i{transition:width .5s ease}}
+:root {
+  color-scheme: light dark;
+  --font-ui: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --gutter: 16px;
+  --max-w: 1200px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Palette - Sober agronomic field desk (light) */
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #f1f5f9;
+  --bg-plate: #0c1a27;
+  --plate-ink: #f1f5f9;
+  --plate-mute: #8fa5ba;
+  --plate-line: rgba(255, 255, 255, 0.12);
+
+  --ink-primary: #0f172a;
+  --ink-secondary: #334155;
+  --ink-muted: #5f7182;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --rain: #1d5b94;
+  --rain-soft: #e8f2fa;
+  --soil: #6b4e3d;
+  --canicula: #c2410c;
+  --canicula-soft: #faeee9;
+
+  /* Traffic light tokens */
+  --status-good-bg: #ecfdf5;
+  --status-good-ink: #065f46;
+  --status-good-border: #a7f3d0;
+  --status-good-dot: #10b981;
+
+  --status-warn-bg: #fffbeb;
+  --status-warn-ink: #854d0e;
+  --status-warn-border: #fde68a;
+  --status-warn-dot: #f59e0b;
+
+  --status-risk-bg: #fef2f2;
+  --status-risk-ink: #991b1b;
+  --status-risk-border: #fecaca;
+  --status-risk-dot: #ef4444;
+
+  /* Crops */
+  --crop-maize: #d97706;
+  --crop-bean: #16803d;
+  --crop-sorghum: #b45309;
+
+  /* WRSI Harvest classes */
+  --harvest-good: #16803d;
+  --harvest-part: #d97706;
+  --harvest-fail: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #0b1118;
+    --bg-surface: #121a24;
+    --bg-surface-alt: #182330;
+    --bg-plate: #071018;
+    --plate-ink: #f1f5f9;
+    --plate-mute: #8fa5ba;
+    --plate-line: rgba(255, 255, 255, 0.12);
+
+    --ink-primary: #f8fafc;
+    --ink-secondary: #cbd5e1;
+    --ink-muted: #8496a7;
+    --border-subtle: #1e2d3d;
+    --border-strong: #334457;
+
+    --rain: #60a5fa;
+    --rain-soft: #162638;
+    --soil: #a88469;
+    --canicula: #fb923c;
+    --canicula-soft: #2c1611;
+
+    --status-good-bg: #062b1e;
+    --status-good-ink: #6ee7b7;
+    --status-good-border: #134e37;
+    --status-good-dot: #34d399;
+
+    --status-warn-bg: #2e1d05;
+    --status-warn-ink: #fde047;
+    --status-warn-border: #613e09;
+    --status-warn-dot: #fbbf24;
+
+    --status-risk-bg: #2f0f0e;
+    --status-risk-ink: #fca5a5;
+    --status-risk-border: #6b1d19;
+    --status-risk-dot: #f87171;
+
+    --crop-maize: #fbbf24;
+    --crop-bean: #4ade80;
+    --crop-sorghum: #fb923c;
+
+    --harvest-good: #22c55e;
+    --harvest-part: #facc15;
+    --harvest-fail: #f87171;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--ink-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+/* Header & Controls bar */
+.top-bar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 0;
+}
+
+.top-bar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.brand-sub {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 2px 0 0;
+}
+
+.selectors-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.seg-group {
+  display: inline-flex;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg-btn {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  min-height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--ink-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.seg-btn[aria-pressed="true"] {
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.seg-btn:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--rain);
+  outline-offset: 2px;
+}
+
+/* Verdict Hero (At the top) */
+.verdict-hero {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: clamp(24px, 4vw, 44px) 0 28px;
+}
+
+.verdict-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status-pill.green {
+  background: var(--status-good-bg);
+  color: var(--status-good-ink);
+  border-color: var(--status-good-border);
+}
+
+.status-pill.yellow {
+  background: var(--status-warn-bg);
+  color: var(--status-warn-ink);
+  border-color: var(--status-warn-border);
+}
+
+.status-pill.red {
+  background: var(--status-risk-bg);
+  color: var(--status-risk-ink);
+  border-color: var(--status-risk-border);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.reading-pill {
+  background: var(--bg-surface-alt);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-strong);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.verdict-headline {
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 3.8vw, 40px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 0 0 14px;
+  color: var(--ink-primary);
+  text-wrap: balance;
+}
+
+.verdict-lead {
+  font-size: clamp(16px, 1.8vw, 18px);
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin: 0 0 20px;
+  max-width: 82ch;
+  text-wrap: pretty;
+}
+
+/* Honest hindcast alert callout */
+.hindcast-box {
+  background: var(--bg-surface-alt);
+  border-left: 4px solid var(--border-strong);
+  padding: 14px 18px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin: 20px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.hindcast-box.seasonal-reading {
+  border-left-color: var(--soil);
+  background: var(--canicula-soft);
+  color: var(--ink-primary);
+}
+
+.hindcast-box strong {
+  color: var(--ink-primary);
+}
+
+/* Diagnostics summary cards */
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 18px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.diag-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diag-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.diag-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sections shared */
+section.content-section {
+  padding: 38px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.8vw, 30px);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  color: var(--ink-primary);
+  text-wrap: balance;
+}
+
+.section-note {
+  color: var(--ink-muted);
+  font-size: 15px;
+  margin: 0 0 22px;
+  max-width: 84ch;
+}
+
+/* Priority & seed adjustment panel */
+.controls-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 28px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 20px;
+}
+
+.controls-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-secondary);
+}
+
+.controls-grid label span {
+  font-weight: 500;
+}
+
+.controls-grid input[type="range"] {
+  width: 100%;
+  height: 38px;
+  accent-color: var(--rain);
+  cursor: pointer;
+}
+
+.seeds-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding-top: 14px;
+  margin-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.seeds-title {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.seeds-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.seed-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.seed-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--rain);
+}
+
+/* Rotation Strategy Display - Asymmetric, anti-slop */
+.strategies-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Primary Featured Recommendation */
+.featured-strategy {
+  background: var(--bg-surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.featured-strategy.is-best {
+  border-color: var(--status-good-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.featured-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px 16px;
+}
+
+.featured-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+}
+
+.badge-rec {
+  background: var(--status-good-bg);
+  color: var(--status-good-ink);
+  border: 1px solid var(--status-good-border);
+}
+
+.badge-tag {
+  background: var(--bg-surface-alt);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.badge-dim {
+  background: var(--bg-surface-alt);
+  color: var(--ink-muted);
+  border: 1px dashed var(--border-strong);
+}
+
+.featured-title {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.score-banner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px 22px;
+  padding: 14px 18px;
+  background: var(--bg-surface-alt);
+  border-radius: var(--radius-md);
+}
+
+.score-num {
+  font-family: var(--font-mono);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-primary);
+}
+
+.score-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.score-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--rain);
+  transition: width 0.35s ease;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 18px;
+  font-size: 14px;
+  color: var(--ink-secondary);
+  padding: 10px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.metrics-row div strong {
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.strategy-desc {
+  font-size: 15px;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.details-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px 28px;
+}
+
+.details-col h4 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  margin: 0 0 8px;
+}
+
+.details-col ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--ink-secondary);
+}
+
+.details-col li {
+  margin-bottom: 5px;
+}
+
+/* Evidence chips */
+.years-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.yr-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+.yr-chip.s1 { background: var(--harvest-good); }
+.yr-chip.s05 { background: var(--harvest-part); color: #10202e; }
+.yr-chip.s0 { background: var(--harvest-fail); }
+
+/* Alternative options comparative grid */
+.alternatives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.alt-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alt-card.is-off {
+  opacity: 0.58;
+}
+
+.alt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.alt-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.alt-score {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.alt-card p {
+  font-size: 14px;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.alt-kvs {
+  font-size: 13px;
+  color: var(--ink-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alt-kvs span strong {
+  color: var(--ink-primary);
+}
+
+/* Almanac Plate Section */
+.plate-section {
+  background: var(--bg-plate);
+  color: var(--plate-ink);
+  padding: clamp(28px, 4vw, 44px) 0;
+}
+
+.plate-section h2 {
+  color: var(--plate-ink);
+}
+
+.plate-section .section-note {
+  color: var(--plate-mute);
+}
+
+.fig {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin: 18px 0 12px;
+}
+
+.fig > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-ui);
+}
+
+.plate-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  font-size: 13px;
+  color: var(--plate-mute);
+  align-items: center;
+  padding-top: 10px;
+}
+
+.plate-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-ramp {
+  width: 72px;
+  background: linear-gradient(90deg, #5c3a24, #246296, #9fdcff);
+}
+
+/* Validation Hindcast & Disaster checks */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px 24px;
+  margin: 18px 0;
+}
+
+.stat-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-num {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.cell {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  padding: 5px 3px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.cell b {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 3px;
+  color: var(--ink-secondary);
+}
+
+.cell.doc {
+  border: 2px solid var(--ink-primary);
+}
+
+.cell em {
+  font-style: normal;
+  display: block;
+  border-radius: 3px;
+  padding: 1px 0;
+  color: #fff;
+  font-family: var(--font-mono);
+}
+
+.cell em.s05 {
+  color: #10202e;
+}
+
+.cell div {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+
+.cell span {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.strip-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-top: 12px;
+}
+
+/* Method grid */
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px 36px;
+  margin: 0;
+}
+
+.method-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.method-item dt {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.method-item dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+/* Footer */
+footer.site-footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding: 28px 0 44px;
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .score-banner {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
 </style>
 </head>
 <body>
-<div class="demo" id="demo" hidden>Demo data: synthetic rainfall generated to test the interface. These are not real measurements.</div>
-<section class="plate">
-  <div class="wrap">
-    <div class="head">
-      <div><h1 id="title">Tempo</h1><p class="sub" id="sub"></p></div>
-      <div class="seg" id="zones" role="group" aria-label="Zone"></div>
+
+<header class="top-bar">
+  <div class="wrap top-bar-inner">
+    <div class="brand">
+      <h1 class="brand-title">Tempo</h1>
+      <span class="brand-sub" id="brandSub">Postrera · Corredor Seco</span>
     </div>
-    <div class="fig" id="fig"><svg id="plate" role="img" aria-label="Rain for every season since 2001, this year's rain against normal, and the crop calendar of each rotation, on one month axis"></svg></div>
-    <div class="legend">
-      <span><i class="ramp"></i>Dry to wet, rain per 10 days</span>
-      <span><i style="background:#8fd3ff38"></i>Normal range this time of year</span>
-      <span><i style="background:var(--sig)"></i>Canícula, the longest dry spell of July–August</span>
-      <span><i style="background:none;border:2px solid #fff"></i>Flowering, when water matters most</span>
+    <div class="selectors-group">
+      <div class="seg-group" id="zones" role="group" aria-label="Zona agrícola / Agricultural zone"></div>
+      <div class="seg-group" id="langSwitch" role="group" aria-label="Idioma / Language">
+        <button type="button" class="seg-btn" id="btnLangEs" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" class="seg-btn" id="btnLangEn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
     </div>
   </div>
-</section>
-<section class="verdict" id="verdictBand"><div class="wrap"><p id="verdict"></p></div></section>
+</header>
 
-<div class="wrap below">
-<h2>Compare three postrera rotations</h2>
-<p class="note">Score = 60% how each rotation did in past years with a similar canícula + 40% the priorities of this farm. Move them and the ranking updates.</p>
-<div class="controls" id="controls"></div>
-<div class="cards" id="cards"></div>
+<main>
+  <!-- 1) El veredicto va arriba -->
+  <section class="verdict-hero">
+    <div class="wrap">
+      <div class="verdict-status-row">
+        <span class="status-pill green" id="verdictPill"><i class="status-dot"></i><span id="verdictPillText">Favorable</span></span>
+        <span class="reading-pill" id="verdictReadingPill">Lectura de temporada</span>
+      </div>
+      <h2 class="verdict-headline" id="verdictHeadline"></h2>
+      <p class="verdict-lead" id="verdictLead"></p>
+      
+      <!-- Honest hindcast statement with 'lectura de temporada' -->
+      <div class="hindcast-box" id="verdictHindcast"></div>
 
-<h2>Would Tempo have helped before?</h2>
-<p class="note">Each past year was hidden from the model and predicted from the others. Left square: current practice. Right square: Tempo's pick.</p>
-<div class="figs" id="figs"></div>
-<div class="strip" id="strip" style="margin-top:14px"></div>
-<div class="legend" style="margin-top:10px">
-  <span><i class="s1"></i>Good harvest (WRSI ≥ 80)</span><span><i class="s05"></i>Partial</span><span><i class="s0"></i>Failure (WRSI &lt; 60)</span>
-</div>
+      <div class="diag-grid">
+        <div class="diag-item">
+          <span class="diag-label" id="lblCanicula">Canícula</span>
+          <span class="diag-value" id="valCanicula"></span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" id="lblOnset">Inicio de lluvias postrera</span>
+          <span class="diag-value" id="valOnset"></span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" id="lblAnalogs">Años análogos históricos</span>
+          <span class="diag-value" id="valAnalogs"></span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<h2>Does the model see the droughts that happened?</h2>
-<p class="note" id="pcNote"></p>
-<div class="strip" id="pcStrip"></div>
-<div class="legend" style="margin-top:10px"><span><i style="background:none;border:2px solid var(--ink)"></i>Year with documented drought losses in the primera</span></div>
+  <!-- Rotation strategies comparison & farmer adjustment -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingStrategies">Comparación de rotaciones de postrera</h2>
+      <p class="section-note" id="descStrategies">El puntaje combina 60% desempeño en años pasados con canícula similar + 40% prioridades de la finca. Ajuste los controles para recalcular la mejor opción.</p>
+      
+      <div class="controls-panel">
+        <div class="controls-grid" id="controlsGrid"></div>
+      </div>
 
-<h2>How it is calculated</h2>
-<dl class="method">
-  <div><dt>Rain: NASA GPM IMERG V07</dt><dd>Half-hourly satellite rain summed by local day since 2001. Days not yet available are filled with NASA POWER and flagged.</dd>
-  <dt>Temperature and evapotranspiration: NASA POWER</dt><dd>Daily maximum and minimum, corrected for the parcel's elevation (6.5 °C per km), then Hargreaves reference evapotranspiration: how much water a well-watered crop would use.</dd>
-  <dt>Terrain: SRTM 30 m</dt><dd>Elevation for the temperature correction and slope. On slopes above 15%, soil protection weighs 1.5×.</dd></div>
-  <div><dt>Water Requirement Satisfaction Index (WRSI)</dt><dd>A daily soil-water bucket for each crop from the postrera onset to harvest. 100 means the crop got all the water it needed. Stress at flowering lowers the result one class, and so does heavy rain when beans are maturing.</dd>
-  <dt>Similar years</dt><dd>Past years are grouped by canícula length into short, normal and long thirds. The rotation statistics come only from years in the same group as this one.</dd>
-  <dt>What it does not know</dt><dd id="gaps"></dd></div>
-</dl>
-<footer>Tempo supports, and does not replace, the judgment of farmers and local agronomists. Built for NASA Space Apps 2026, challenge Field Shift. Data: NASA GPM IMERG, NASA POWER, SRTM; soil from ISRIC SoilGrids.</footer>
-</div>
+      <!-- Asymmetric anti-slop strategy display -->
+      <div class="strategies-layout">
+        <div class="featured-strategy is-best" id="featuredCard"></div>
+        <div class="alternatives-grid" id="alternativesGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Almanac Plate: Visualizing the climate & cycles on shared axis -->
+  <section class="plate-section">
+    <div class="wrap">
+      <h2 id="headingPlate">Lámina bioclimática: historial de lluvia y ciclos</h2>
+      <p class="section-note" id="descPlate">Lluvia satelital por temporada desde 2001, trayectoria de este año contra lo habitual y calendario de cada cultivo en un solo eje mensual.</p>
+      
+      <div class="fig" id="fig">
+        <svg id="plate" role="img" aria-label="Lámina climática de lluvias y rotaciones"></svg>
+      </div>
+
+      <div class="plate-legend" id="plateLegend"></div>
+    </div>
+  </section>
+
+  <!-- Historical validation: leave-one-out hindcast -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingValidation">¿Habría ayudado Tempo en años anteriores?</h2>
+      <p class="section-note" id="descValidation">Cada año histórico fue ocultado al modelo y predicho con los demás (validación cruzada leave-one-out). Cuadro izquierdo: práctica habitual. Cuadro derecho: elección de Tempo.</p>
+      
+      <div class="stats-grid" id="figs"></div>
+      <div class="strip" id="strip"></div>
+      <div class="strip-legend" id="stripLegend"></div>
+    </div>
+  </section>
+
+  <!-- Primera drought check -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingPrimera">¿Detecta el modelo las sequías históricas registradas?</h2>
+      <p class="section-note" id="pcNote"></p>
+      
+      <div class="strip" id="pcStrip"></div>
+      <div class="strip-legend" id="pcStripLegend"></div>
+    </div>
+  </section>
+
+  <!-- Methodology & limitations -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingMethod">Metodología y supuestos del modelo</h2>
+      <dl class="method-grid" id="methodGrid"></dl>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap" id="footerText">
+    Tempo apoya, y no reemplaza, el criterio de productores y agrónomos locales. Desarrollado para NASA Space Apps 2026, reto Field Shift. Datos: NASA GPM IMERG, NASA POWER, SRTM; suelo: ISRIC SoilGrids.
+  </div>
+</footer>
 
 <script>
 {
 const DATA = /*TEMPO_DATA*/null;
-const zones = Object.keys(DATA.zones);
-let zk = zones[0], weights = null, seeds = null, lastW = 0, ranked = [];
+
+// Localization strings dictionary
+const I18N = {
+  es: {
+    pageTitle: "Tempo · Apoyo para la Postrera en el Corredor Seco",
+    brandSub: "Postrera · Corredor Seco",
+    pillGood: "Condición favorable",
+    pillWarn: "Precaución",
+    pillRisk: "Alerta de sequía",
+    readingSeasonal: "Lectura de temporada",
+    readingDynamic: "Selección dinámica",
+    lblCanicula: "Canícula",
+    lblOnset: "Inicio de lluvias postrera",
+    lblAnalogs: "Años análogos analizados",
+    headingStrategies: "Comparación de rotaciones de postrera",
+    descStrategies: "Puntaje = 60% desempeño en años pasados con canícula similar + 40% prioridades de su parcela. Mueva los controles para actualizar la jerarquía.",
+    headingPlate: "Lámina bioclimática: historial de lluvia y ciclos",
+    descPlate: "Lluvia satelital desde 2001, trayectoria del año actual contra el rango histórico y calendario de cada rotación en un único eje mensual.",
+    headingValidation: "¿Habría ayudado Tempo en años anteriores? (Hindcast)",
+    descValidation: "Cada año histórico fue ocultado al modelo y predicho a partir de los demás (validación retrospectiva leave-one-out 2001–2025). Cuadro izquierdo: práctica habitual (frijol en relevo). Cuadro derecho: elección de Tempo.",
+    headingPrimera: "¿Detecta el modelo las sequías históricas registradas?",
+    headingMethod: "Metodología y supuestos del modelo",
+    seedTitle: "Semilla disponible en finca:",
+    crops: { maize: "Maíz", bean: "Frijol", sorghum: "Maicillo (sorgo)" },
+    wLabels: {
+      food: "Alimento familiar",
+      income: "Ingreso económico",
+      soil: "Conservación de suelo",
+      water: "Ahorro de agua",
+      labor: "Menor mano de obra"
+    },
+    tagRec: "Opción recomendada",
+    tagCurrent: "Práctica habitual",
+    tagAlternative: "Alternativa",
+    tagNoSeed: "Sin semilla disponible",
+    scoreComposite: "Puntaje combinado (0 a 1)",
+    inSimilarYears: "En años similares",
+    avg: "promedio",
+    failed: "fallos",
+    bareSoil: "Suelo descubierto",
+    daysYear: "días al año",
+    benefits: "Beneficios agronómicos",
+    risks: "A verificar en campo",
+    evidence: "Evidencia en años análogos",
+    noSeedFitted: "Ninguna rotación se ajusta a la semilla disponible",
+    relayHolds: "el frijol en relevo habitual se sostiene esta postrera",
+    saferPostrera: "es la postrera más segura",
+    stripGood: "Cosecha favorable (WRSI ≥ 80)",
+    stripPart: "Parcial (60 ≤ WRSI < 80)",
+    stripFail: "Pérdida de cosecha (WRSI < 60)",
+    docDrought: "Año con pérdidas por sequía registradas en primera",
+    legendDryWet: "Seco a húmedo, lluvia por decenio (10 días)",
+    legendNormal: "Rango normal para la época (P20–P80)",
+    legendCanicula: "Canícula, período seco de julio–agosto",
+    legendFlower: "Floración, momento crítico de agua",
+    methods: [
+      { t: "Lluvia: NASA GPM IMERG V07", d: "Estimación satelital cada media hora acumulada por día local (UTC-6) desde 2001. Días pendientes se completan con NASA POWER." },
+      { t: "Temperatura y evapotranspiración: NASA POWER", d: "Máximas y mínimas diarias corregidas por elevación de parcela (6.5 °C/km), calculando demanda evapotranspirativa de referencia Hargreaves." },
+      { t: "Relieve: SRTM 30 m", d: "Elevación para corrección térmica y cálculo de pendiente. En pendientes mayores a 15%, la protección del suelo recibe peso adicional (1.5×)." },
+      { t: "Índice de Satisfacción Hídrica (WRSI)", d: "Balance diario de agua en suelo para cada cultivo desde inicio de postrera hasta cosecha. 100 indica demanda hídrica satisfecha sin estrés. Estrés en floración o lluvia excesiva en maduración castigan el índice." },
+      { t: "Años análogos (canícula similar)", d: "Los años históricos se clasifican en tercios por duración de canícula (corta, normal, larga). Las estadísticas provienen de años del mismo grupo." },
+      { t: "Límites y lo que el modelo no sabe", d: "" }
+    ],
+    footer: "Tempo apoya, y no reemplaza, el criterio de productores y agrónomos locales. Desarrollado para NASA Space Apps 2026, reto Field Shift. Datos: NASA GPM IMERG, NASA POWER, SRTM; suelo: ISRIC SoilGrids."
+  },
+  en: {
+    pageTitle: "Tempo · Postrera Decision Support in the Dry Corridor",
+    brandSub: "Postrera · Dry Corridor",
+    pillGood: "Favorable outlook",
+    pillWarn: "Caution outlook",
+    pillRisk: "Drought alert",
+    readingSeasonal: "Seasonal reading",
+    readingDynamic: "Dynamic selection",
+    lblCanicula: "Canícula",
+    lblOnset: "Postrera rains onset",
+    lblAnalogs: "Analyzed analog years",
+    headingStrategies: "Compare postrera crop rotations",
+    descStrategies: "Score = 60% performance in past years with similar canícula + 40% farm priorities. Adjust controls to re-rank options.",
+    headingPlate: "Bioclimatic plate: rainfall history and crop cycles",
+    descPlate: "Satellite rainfall since 2001, current year trajectory against normal range, and crop calendar for each rotation on a shared month axis.",
+    headingValidation: "Would Tempo have helped in past years? (Hindcast)",
+    descValidation: "Each past year was hidden from the model and predicted from the others (leave-one-out cross validation 2001–2025). Left square: current practice (relay bean). Right square: Tempo's pick.",
+    headingPrimera: "Does the model detect documented historical droughts?",
+    headingMethod: "Methodology and model assumptions",
+    seedTitle: "Available seed on farm:",
+    crops: { maize: "Maize", bean: "Bean", sorghum: "Sorghum" },
+    wLabels: {
+      food: "Food for family",
+      income: "Cash income",
+      soil: "Soil conservation",
+      water: "Water saving",
+      labor: "Less labor required"
+    },
+    tagRec: "Best fit",
+    tagCurrent: "Current practice",
+    tagAlternative: "Alternative",
+    tagNoSeed: "No seed available",
+    scoreComposite: "Combined score (0 to 1)",
+    inSimilarYears: "In similar years",
+    avg: "avg",
+    failed: "failed",
+    bareSoil: "Bare soil",
+    daysYear: "days a year",
+    benefits: "Agronomic benefits",
+    risks: "Check locally",
+    evidence: "Evidence in analog years",
+    noSeedFitted: "No rotation fits the seed available",
+    relayHolds: "the usual relay bean holds up this postrera",
+    saferPostrera: "is the safer postrera",
+    stripGood: "Good harvest (WRSI ≥ 80)",
+    stripPart: "Partial (60 ≤ WRSI < 80)",
+    stripFail: "Harvest failure (WRSI < 60)",
+    docDrought: "Year with documented drought losses in primera",
+    legendDryWet: "Dry to wet, rain per 10 days",
+    legendNormal: "Normal range this time of year (P20–P80)",
+    legendCanicula: "Canícula, the dry spell of July–August",
+    legendFlower: "Flowering, when water matters most",
+    methods: [
+      { t: "Rain: NASA GPM IMERG V07", d: "Half-hourly satellite rain summed by local day (UTC-6) since 2001. Days not yet available are filled with NASA POWER." },
+      { t: "Temperature and evapotranspiration: NASA POWER", d: "Daily max and min corrected for parcel elevation (6.5 °C per km), with Hargreaves reference evapotranspiration (water use of a well-watered crop)." },
+      { t: "Terrain: SRTM 30 m", d: "Elevation for temperature correction and slope. On slopes above 15%, soil protection weighs 1.5×." },
+      { t: "Water Requirement Satisfaction Index (WRSI)", d: "Daily soil-water bucket for each crop from postrera onset to harvest. 100 means full water demand satisfaction. Stress at flowering and heavy rain at bean maturity lower the outcome class." },
+      { t: "Similar years (canícula analogs)", d: "Past years are grouped by canícula length into short, normal and long thirds. Rotation statistics come only from years in the same group." },
+      { t: "What the model does not know", d: "" }
+    ],
+    footer: "Tempo supports, and does not replace, the judgment of farmers and local agronomists. Built for NASA Space Apps 2026, challenge Field Shift. Data: NASA GPM IMERG, NASA POWER, SRTM; soil: ISRIC SoilGrids."
+  }
+};
+
+const STRATEGY_DATA = {
+  A: {
+    es: {
+      label: "Práctica habitual: frijol en relevo",
+      short: "Frijol en relevo",
+      description: "El sistema tradicional: frijol sembrado entre los surcos de maíz cuando la primera madura. Ciclo corto y fija nitrógeno, pero sensible a sequías y a lluvias tardías excesivas.",
+      benefits: ["Fija nitrógeno para la siguiente primera.", "Mantiene el suelo cubierto.", "Menor demanda de agua que las alternativas."],
+      risks: ["El frijol es vulnerable a sequía en floración y a exceso de lluvia en maduración.", "Cobertura corta: el suelo queda expuesto desde diciembre."]
+    },
+    en: {
+      label: "Current: relay bean after maize",
+      short: "Relay bean",
+      description: "The usual system: beans sown between the maize rows once the primera maize matures. Short cycle, fixes nitrogen, but sensitive to both drought and heavy late rains.",
+      benefits: ["Fixes nitrogen for the next primera.", "Keeps more of the soil covered.", "Lower water demand than the alternatives."],
+      risks: ["Beans are hit by both drought at flowering and heavy rain at maturity.", "Short ground cover: soil is bare again by December."]
+    }
+  },
+  B: {
+    es: {
+      label: "Sorgo (maicillo) + frijol",
+      short: "Sorgo + frijol",
+      description: "Parte de la parcela se destina a sorgo tolerante a sequía (grano y forraje) y el resto a frijol. Raíces profundas y mayor cobertura protegen suelos en ladera.",
+      benefits: ["Fija nitrógeno para la siguiente primera.", "Mantiene el suelo cubierto por más tiempo.", "Distribuye el riesgo entre dos cultivos."],
+      risks: ["El sorgo tiene menor preferencia para consumo humano directo.", "Ciclo más largo: la cosecha entra en la época seca (diciembre–enero).", "Debe confirmarse disponibilidad de semilla local (maicillo)."]
+    },
+    en: {
+      label: "Sorghum + bean",
+      short: "Sorghum + bean",
+      description: "Part of the plot goes to drought-tolerant sorghum (grain and forage), the rest to beans. Deep roots and longer ground cover protect sloped soil.",
+      benefits: ["Fixes nitrogen for the next primera.", "Keeps more of the soil covered.", "Spreads risk across two crops."],
+      risks: ["Sorghum is less valued as human food than maize or beans.", "Longer cycle: sorghum harvest falls into the dry season (December-January).", "Seed of local sorghum (maicillo) varieties must be confirmed."]
+    }
+  },
+  C: {
+    es: {
+      label: "Segunda de maíz",
+      short: "Segunda de maíz",
+      description: "Una segunda siembra de maíz en lugar de frijol para reponer la reserva de grano tras una primera deficiente. Mayor consumo de agua y sin aporte de nitrógeno.",
+      benefits: ["Mayor valor calórico y seguridad alimentaria directa para la familia."],
+      risks: ["Mayor consumo de agua; siembra tardía empuja el llenado de grano a la temporada seca.", "No devuelve nitrógeno al suelo; maíz sobre maíz desgasta la fertilidad.", "Omitir el frijol elimina la principal fuente de proteína y venta rápida."]
+    },
+    en: {
+      label: "Second maize",
+      short: "Second maize",
+      description: "A second maize crop instead of beans, to rebuild the grain reserve after a lost primera. Highest water demand of the three and no nitrogen return.",
+      benefits: ["Highest food value."],
+      risks: ["Highest water demand; late planting pushes grain filling into the dry season.", "No nitrogen returned to the soil; maize after maize depletes it.", "Skipping the bean crop removes the household's main protein and cash crop."]
+    }
+  }
+};
+
+const GAPS_ES = [
+  "La precipitación proviene de una celda satelital de ~10 km (IMERG) o modelo a ~55 km (POWER), no del pluviómetro de la parcela. IMERG puede subestimar lluvia en relieve montañoso.",
+  "Los parámetros de cultivo (ciclo, Kc, uso de agua) son valores estándar FAO-56 sin calibración agronómica local.",
+  "Las proporciones de siembra combinada (0.6 / 0.4) y el umbral de exceso de lluvia en frijol (150 mm en maduración) son supuestos; no se modela rendimiento físico en quintales.",
+  "Los datos de suelo corresponden a SoilGrids a 250 m a menos que se cargue análisis de campo."
+];
+
+let lang = "es";
+try {
+  const saved = localStorage.getItem("tempo_lang");
+  if (saved === "es" || saved === "en") lang = saved;
+} catch (e) {}
+
 const $ = id => document.getElementById(id);
 const pct = x => Math.round(100 * x) + "%";
 const sc = s => s >= 0.99 ? "s1" : s > 0 ? "s05" : "s0";
-const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
-const short = l => cap(l.replace("Current: ", ""));
-const CROPS = {maize: "Maize", bean: "Bean", sorghum: "Sorghum"};
-const CROP_COL = {maize: "var(--maize)", bean: "var(--bean)", sorghum: "var(--sorghum)"};
-const W_LABEL = {food: "Food for the family", income: "Income", soil: "Soil health", water: "Save water", labor: "Less labor"};
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], STARTS = [1,32,60,91,121,152,182,213,244,274,305,335];
 
-$("demo").hidden = !DATA.demo;
-$("zones").innerHTML = zones.map(k => `<button data-k="${k}">${DATA.zones[k].zone.name.split(",")[0]}</button>`).join("");
-$("zones").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { zk = b.dataset.k; reset(); renderControls(); render(); } });
+if (!DATA || !DATA.zones) {
+  $("verdictHeadline").textContent = "Tempo · Plantilla base";
+  $("verdictLead").textContent = "Ejecute 'python build_page.py' para compilar 'web/index.html' con los datos inyectados.";
+  throw new Error("DATA not loaded");
+}
+
+const zones = Object.keys(DATA.zones);
+let zk = zones[0];
+let weights = null;
+let seeds = null;
+let lastW = 0;
+let ranked = [];
+
+const CROP_COL = { maize: "var(--crop-maize)", bean: "var(--crop-bean)", sorghum: "var(--crop-sorghum)" };
+const MONTHS_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_ES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const STARTS = [1,32,60,91,121,152,182,213,244,274,305,335];
+
+function t(k) { return I18N[lang][k] || k; }
+
+function getStratInfo(key) {
+  const s = STRATEGY_DATA[key];
+  if (s && s[lang]) return s[lang];
+  return { label: key, short: key, description: "", benefits: [], risks: [] };
+}
+
+function formatOnset(iso) {
+  if (!iso) return lang === "es" ? "Sin inicio claro al 30 de sep" : "Late, no clear onset by Sep 30";
+  const parts = iso.split("-");
+  if (parts.length !== 3) return iso;
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  if (lang === "es") {
+    const mNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    return `${d} de ${mNames[m]} de ${parts[0]}`;
+  }
+  return `${MONTHS_EN[m]} ${d}, ${parts[0]}`;
+}
+
+// Build zone switcher
+$("zones").innerHTML = zones.map(k => `<button type="button" class="seg-btn" data-k="${k}">${DATA.zones[k].zone.name.split(",")[0]}</button>`).join("");
+$("zones").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (b && b.dataset.k) {
+    zk = b.dataset.k;
+    reset();
+    renderControls();
+    render();
+  }
+});
+
+// Build language switcher listeners
+$("btnLangEs").addEventListener("click", () => switchLang("es"));
+$("btnLangEn").addEventListener("click", () => switchLang("en"));
+
+function switchLang(newLang) {
+  if (lang === newLang) return;
+  lang = newLang;
+  try { localStorage.setItem("tempo_lang", lang); } catch (e) {}
+  $("btnLangEs").setAttribute("aria-pressed", lang === "es");
+  $("btnLangEn").setAttribute("aria-pressed", lang === "en");
+  document.documentElement.lang = lang;
+  updateStaticTexts();
+  renderControls();
+  render();
+}
+
+function updateStaticTexts() {
+  $("pageTitle").textContent = t("pageTitle");
+  $("brandSub").textContent = t("brandSub");
+  $("lblCanicula").textContent = t("lblCanicula");
+  $("lblOnset").textContent = t("lblOnset");
+  $("lblAnalogs").textContent = t("lblAnalogs");
+  $("headingStrategies").textContent = t("headingStrategies");
+  $("descStrategies").textContent = t("descStrategies");
+  $("headingPlate").textContent = t("headingPlate");
+  $("descPlate").textContent = t("descPlate");
+  $("headingValidation").textContent = t("headingValidation");
+  $("descValidation").textContent = t("descValidation");
+  $("headingPrimera").textContent = t("headingPrimera");
+  $("headingMethod").textContent = t("headingMethod");
+  $("footerText").textContent = t("footer");
+}
+
+function reset() {
+  weights = Object.assign({}, DATA.zones[zk].inputs.weights);
+  seeds = { maize: true, bean: true, sorghum: true };
+}
 
 function renderControls() {
-  $("controls").innerHTML = Object.keys(W_LABEL).map(k => `<label for="w-${k}">${W_LABEL[k]}<input type="range" id="w-${k}" data-k="${k}" min="0" max="2" step="0.25" value="${weights[k]}"></label>`).join("") +
-    `<div class="seeds"><span style="color:var(--mute);font-size:14px;align-self:center">Seed available:</span>${Object.keys(CROPS).map(c => `<label><input type="checkbox" id="s-${c}" data-c="${c}" ${seeds[c] ? "checked" : ""}>${CROPS[c]}</label>`).join("")}</div>`;
+  const wL = t("wLabels");
+  const cropsL = t("crops");
+  $("controlsGrid").innerHTML = Object.keys(wL).map(k => `
+    <label for="w-${k}">
+      <span>${wL[k]}</span>
+      <input type="range" id="w-${k}" data-k="${k}" min="0" max="2" step="0.25" value="${weights[k]}">
+    </label>
+  `).join("") + `
+    <div class="seeds-row">
+      <span class="seeds-title">${t("seedTitle")}</span>
+      <div class="seeds-checkboxes">
+        ${Object.keys(cropsL).map(c => `
+          <label class="seed-label">
+            <input type="checkbox" id="s-${c}" data-c="${c}" ${seeds[c] ? "checked" : ""}>
+            <span>${cropsL[c]}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
-function reset() { weights = Object.assign({}, DATA.zones[zk].inputs.weights); seeds = {maize: true, bean: true, sorghum: true}; }
+
 function score(s, z) {
   const w = Object.assign({}, weights);
   if (z.inputs.slope_pct != null && z.inputs.slope_pct > 15) w.soil *= 1.5;
   const tot = Object.values(w).reduce((a, b) => a + b, 0) || 1;
   return 0.6 * s.analog_stats.mean_score + 0.4 * Object.keys(w).reduce((a, k) => a + w[k] * s.attributes[k], 0) / tot;
 }
-function rainColor(t) {
-  const a = [92,58,36], b = [36,98,150], c = [159,220,255], m = (p, q, u) => p.map((v, i) => Math.round(v + (q[i] - v) * u));
-  return "rgb(" + (t < .5 ? m(a, b, t * 2) : m(b, c, (t - .5) * 2)).join(",") + ")";
+
+function rainColor(valNorm) {
+  const a = [92,58,36], b = [36,98,150], c = [159,220,255];
+  const m = (p, q, u) => p.map((v, i) => Math.round(v + (q[i] - v) * u));
+  return "rgb(" + (valNorm < 0.5 ? m(a, b, valNorm * 2) : m(b, c, (valNorm - 0.5) * 2)).join(",") + ")";
 }
 
 function drawPlate() {
   const z = DATA.zones[zk], fig = $("fig"), s = $("plate"), W = fig.clientWidth;
   if (!W) return;
-  const small = W < 600, g = small ? 40 : 190, r = 6, X = d => g + (Math.min(d, 366) - 1) / 365 * (W - g - r);
-  const ink = "#f4f8fc", mute = "#9db4c8", T = (x, y, t, o = "") => `<text x="${x}" y="${y}" fill="${mute}" font-size="12" ${o}>${t}</text>`;
-  const title = (y, t) => `<text x="0" y="${y}" fill="${ink}" font-size="14" font-weight="600">${t}</text>`;
+  const small = W < 620;
+  const g = small ? 42 : 180;
+  const r = 8;
+  const X = d => g + (Math.min(d, 366) - 1) / 365 * (W - g - r);
+  const ink = "#f1f5f9", mute = "#8fa5ba";
+  const T = (x, y, txt, o = "") => `<text x="${x}" y="${y}" fill="${mute}" font-size="12" ${o}>${txt}</text>`;
+  const title = (y, txt) => `<text x="0" y="${y}" fill="${ink}" font-size="14" font-weight="600">${txt}</text>`;
   let y = 0, out = "";
-  // --- strip 1: every season
-  const H = z.heat, n = H.years.length, vals = H.mm.flat().filter(v => v != null).sort((a, b) => a - b), vmax = vals[Math.floor(vals.length * .97)] || 1;
+
+  // Strip 1: Historical rainfall seasons heatmap
+  const H = z.heat, n = H.years.length;
+  const vals = H.mm.flat().filter(v => v != null).sort((a, b) => a - b);
+  const vmax = vals[Math.floor(vals.length * 0.97)] || 1;
   const rh = small ? 6 : 8, curH = 22, cw = (W - g - r) / 36;
-  out += title(14, small ? "Every rainy season since " + H.years[0] : "Every season since " + H.years[0]);
+  const sTitle = lang === "es"
+    ? (small ? "Temporadas desde " + H.years[0] : "Lluvias por temporada desde " + H.years[0])
+    : (small ? "Seasons since " + H.years[0] : "Every season since " + H.years[0]);
+  out += title(14, sTitle);
   y = small ? 24 : 4;
-  const seasons = [[135, "Primera rains"], [213, "Canícula"], [275, "Postrera rains"]];
-  out += seasons.map(([d, t]) => `<text x="${X(d + 15)}" y="${y + 12}" fill="${t === "Canícula" ? "#ff7a59" : mute}" font-size="12" text-anchor="middle" font-weight="600">${small ? t.split(" ")[0] : t}</text>`).join("");
-  y += 20; const y1 = y;
+
+  const seasons = [
+    [135, lang === "es" ? "Lluvias primera" : "Primera rains"],
+    [213, "Canícula"],
+    [275, lang === "es" ? "Lluvias postrera" : "Postrera rains"]
+  ];
+  out += seasons.map(([d, txt]) => `<text x="${X(d + 15)}" y="${y + 12}" fill="${txt === "Canícula" ? "#ff7a59" : mute}" font-size="12" text-anchor="middle" font-weight="600">${small ? txt.split(" ")[0] : txt}</text>`).join("");
+  y += 20;
+  const y1 = y;
+
   H.mm.forEach((row, i) => {
-    const last = i === n - 1, h = last ? curH : rh; if (last) y += 6;
-    out += row.map((v, k) => v == null ? "" : `<rect x="${(g + k * cw).toFixed(1)}" y="${y}" width="${(cw + .6).toFixed(1)}" height="${h}" fill="${rainColor(Math.sqrt(Math.min(1, v / vmax)))}"/>`).join("");
-    if (last || (!small && H.years[i] % 5 === 0)) out += `<text x="${g - 8}" y="${y + h / 2 + 4}" text-anchor="end" font-size="${last && !small ? 14 : 12}" font-weight="${last ? 700 : 400}" fill="${last ? ink : mute}">${H.years[i]}</text>`;
+    const last = i === n - 1, h = last ? curH : rh;
+    if (last) y += 6;
+    out += row.map((v, k) => v == null ? "" : `<rect x="${(g + k * cw).toFixed(1)}" y="${y}" width="${(cw + 0.6).toFixed(1)}" height="${h}" fill="${rainColor(Math.sqrt(Math.min(1, v / vmax)))}"/>`).join("");
+    if (last || (!small && H.years[i] % 5 === 0)) {
+      out += `<text x="${g - 8}" y="${y + h / 2 + 4}" text-anchor="end" font-size="${last && !small ? 14 : 12}" font-weight="${last ? 700 : 400}" fill="${last ? ink : mute}">${H.years[i]}</text>`;
+    }
     y += h + (last ? 0 : 1);
   });
+
   const yr = z.yearly.find(q => q.year === z.current_year);
   let c0 = null, c1 = null;
   if (yr && yr.canicula_start) {
-    c0 = Math.round((new Date(yr.canicula_start + "T00:00") - new Date(z.current_year, 0, 1)) / 864e5) + 1; c1 = c0 + yr.canicula_days;
+    c0 = Math.round((new Date(yr.canicula_start + "T00:00") - new Date(z.current_year, 0, 1)) / 864e5) + 1;
+    c1 = c0 + yr.canicula_days;
     out += `<rect x="${X(c0)}" y="${y - curH - 2}" width="${X(c1) - X(c0)}" height="${curH + 4}" fill="none" stroke="#ff7a59" stroke-width="2.5" rx="2"/>`;
   }
-  // --- strip 2: this year against normal
-  y += 30; const top2 = y, h2 = small ? 120 : 160, c = z.chart, cur = Object.entries(c.current).map(([d, v]) => [+d, v]);
-  const ymax = Math.max(10, ...c.p80.filter(v => v != null), ...cur.map(d => d[1])) * 1.05, Y = v => top2 + h2 - v / ymax * h2;
-  out += title(top2 - 8, z.current_year + " against normal");
-  if (c0) out += `<rect x="${X(c0)}" y="${top2}" width="${X(c1) - X(c0)}" height="${h2}" fill="#ff7a59" opacity=".28"/><text x="${(X(c0) + X(c1)) / 2}" y="${top2 + 16}" text-anchor="middle" fill="#ffb9a6" font-size="13" font-weight="700">${yr.canicula_days} dry days</text>`;
-  out += [0, Math.round(ymax / 2.1 / 10) * 10, Math.round(ymax / 1.05 / 10) * 10].map(v => `<line x1="${g}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#fff" opacity=".1"/>${T(g - 8, Y(v) + 4, v + (v && !small ? " mm" : ""), 'text-anchor="end"')}`).join("");
+
+  // Strip 2: Current year against normal envelope
+  y += 30;
+  const top2 = y, h2 = small ? 120 : 160, c = z.chart;
+  const cur = Object.entries(c.current).map(([d, v]) => [+d, v]);
+  const ymax = Math.max(10, ...c.p80.filter(v => v != null), ...cur.map(d => d[1])) * 1.05;
+  const Y = v => top2 + h2 - v / ymax * h2;
+
+  const compTitle = lang === "es"
+    ? `${z.current_year} vs rango histórico normal`
+    : `${z.current_year} against normal range`;
+  out += title(top2 - 8, compTitle);
+
+  if (c0) {
+    const dryLabel = lang === "es" ? `${yr.canicula_days} días secos` : `${yr.canicula_days} dry days`;
+    out += `<rect x="${X(c0)}" y="${top2}" width="${X(c1) - X(c0)}" height="${h2}" fill="#ff7a59" opacity=".28"/><text x="${(X(c0) + X(c1)) / 2}" y="${top2 + 16}" text-anchor="middle" fill="#ffb9a6" font-size="13" font-weight="700">${dryLabel}</text>`;
+  }
+
+  out += [0, Math.round(ymax / 2.1 / 10) * 10, Math.round(ymax / 1.05 / 10) * 10].map(v =>
+    `<line x1="${g}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#fff" opacity=".1"/>${T(g - 8, Y(v) + 4, v + (v && !small ? " mm" : ""), 'text-anchor="end"')}`
+  ).join("");
+
   out += `<polygon points="${c.doy.map((d, i) => X(d) + "," + Y(c.p80[i] ?? 0)).join(" ")} ${c.doy.slice().reverse().map((d, j) => X(d) + "," + Y(c.p20[c.doy.length - 1 - j] ?? 0)).join(" ")}" fill="#8fd3ff" opacity=".22"/>
     <polyline points="${c.doy.map((d, i) => X(d) + "," + Y(c.p50[i] ?? 0)).join(" ")}" fill="none" stroke="#8fd3ff" stroke-opacity=".55" stroke-dasharray="3 4"/>
     <polyline points="${cur.map(([d, v]) => X(d) + "," + Y(v)).join(" ")}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>`;
+
   y = top2 + h2 + 18;
-  out += STARTS.map((d, i) => T(X(d + 15), y, small ? MONTHS[i][0] : MONTHS[i], 'text-anchor="middle"')).join("");
-  const axisY = y + 8;
-  // --- strip 3: rotations
-  y += 40; out += title(y - 12, "The year of each rotation");
+  const monthsArr = lang === "es" ? MONTHS_ES : MONTHS_EN;
+  out += STARTS.map((d, i) => T(X(d + 15), y, small ? monthsArr[i][0] : monthsArr[i], 'text-anchor="middle"')).join("");
+
+  // Strip 3: Rotation crop calendars
+  y += 40;
+  out += title(y - 12, lang === "es" ? "Calendario agrícola de rotaciones" : "The year of each rotation");
   const order = z.strategies.slice().sort((a, b) => (ranked.indexOf(a.key) < 0 ? 9 : ranked.indexOf(a.key)) - (ranked.indexOf(b.key) < 0 ? 9 : ranked.indexOf(b.key)));
   const rowH = 20;
+
   order.forEach(st => {
-    const best = ranked[0] === st.key, off = ranked.indexOf(st.key) < 0, post = st.rotation.filter(q => q.season === "postrera"), prim = st.rotation.filter(q => q.season === "primera");
-    const gh = Math.max(post.length * (rowH + 4), small ? 0 : 40), op = off ? .35 : 1;
-    if (small) { out += `<text x="0" y="${y + 12}" fill="${ink}" font-size="13" font-weight="${best ? 700 : 500}" opacity="${op}">${short(st.label)}${best ? " · best fit" : ""} · bare soil ${st.bare_days} days</text>`; y += 20; }
-    else out += `<text x="0" y="${y + 14}" fill="${ink}" font-size="14" font-weight="${best ? 700 : 500}" opacity="${op}">${short(st.label)}</text>${T(0, y + 31, (best ? "Best fit · " : "") + "bare soil " + st.bare_days + " days", `opacity="${op}"`)}`;
+    const isBest = ranked[0] === st.key;
+    const isOff = ranked.indexOf(st.key) < 0;
+    const post = st.rotation.filter(q => q.season === "postrera");
+    const prim = st.rotation.filter(q => q.season === "primera");
+    const gh = Math.max(post.length * (rowH + 4), small ? 0 : 40);
+    const op = isOff ? 0.35 : 1;
+    const sInfo = getStratInfo(st.key);
+    const bareLabel = lang === "es" ? `${st.bare_days} d expuesto` : `${st.bare_days} d bare`;
+
+    if (small) {
+      out += `<text x="0" y="${y + 12}" fill="${ink}" font-size="12" font-weight="${isBest ? 600 : 400}" opacity="${op}">${sInfo.short}${isBest ? (lang === "es" ? " · recomendada" : " · best fit") : ""} · ${bareLabel}</text>`;
+      y += 18;
+    } else {
+      out += `<text x="0" y="${y + 14}" fill="${ink}" font-size="14" font-weight="${isBest ? 600 : 400}" opacity="${op}">${sInfo.short}</text>${T(0, y + 31, (isBest ? (lang === "es" ? "Mejor opción · " : "Best fit · ") : "") + (lang === "es" ? "suelo expuesto " : "bare soil ") + st.bare_days + " d", `opacity="${op}"`)}`;
+    }
+
     out += `<rect x="${g}" y="${y}" width="${W - g - r}" height="${gh - 4}" fill="#fff" opacity=".05" rx="3"/>`;
-    const bar = (q, yy, h, o) => {
-      const x0 = X(q.start), x1 = X(q.end), w = x1 - x0, col = CROP_COL[q.crop];
+    const drawBar = (q, yy, h, o) => {
+      const x0 = X(q.start), x1 = X(q.end), w = x1 - x0;
+      const col = CROP_COL[q.crop];
+      const cropName = t("crops")[q.crop] || q.crop;
       return `<rect x="${x0}" y="${yy}" width="${w}" height="${h}" fill="${col}" opacity="${o * op}" rx="3"/>
         <rect x="${X(q.flower_start)}" y="${yy + 1}" width="${X(q.flower_end) - X(q.flower_start)}" height="${h - 2}" fill="none" stroke="#fff" stroke-width="1.5" opacity="${op}" rx="2"/>
-        ${X(q.flower_start) - x0 > 46 ? `<text x="${x0 + 6}" y="${yy + h / 2 + 4}" font-size="12" font-weight="600" fill="#0a2540" opacity="${op}">${CROPS[q.crop]}</text>` : ""}`;
+        ${X(q.flower_start) - x0 > 44 ? `<text x="${x0 + 6}" y="${yy + h / 2 + 4}" font-size="12" font-weight="600" fill="#0c1a27" opacity="${op}">${cropName}</text>` : ""}`;
     };
-    prim.forEach(q => out += bar(q, y, gh - 4, .5));
-    post.forEach((q, i) => out += bar(q, y + i * (rowH + 4), post.length > 1 ? rowH : gh - 4, 1));
+
+    prim.forEach(q => out += drawBar(q, y, gh - 4, 0.5));
+    post.forEach((q, i) => out += drawBar(q, y + i * (rowH + 4), post.length > 1 ? rowH : gh - 4, 1));
     y += gh + 10;
   });
+
   const total = y + 4;
   out = STARTS.map(d => `<line x1="${X(d)}" x2="${X(d)}" y1="${y1}" y2="${total - 10}" stroke="#fff" opacity=".07"/>`).join("") + out;
   fig.style.height = total + "px";
   s.innerHTML = out;
+
+  // Build plate legend
+  $("plateLegend").innerHTML = `
+    <span class="plate-legend-item"><i class="legend-swatch legend-ramp"></i><span>${t("legendDryWet")}</span></span>
+    <span class="plate-legend-item"><i class="legend-swatch" style="background:#8fd3ff38"></i><span>${t("legendNormal")}</span></span>
+    <span class="plate-legend-item"><i class="legend-swatch" style="background:var(--canicula)"></i><span>${t("legendCanicula")}</span></span>
+    <span class="plate-legend-item"><i class="legend-swatch" style="background:none;border:1.5px solid #fff"></i><span>${t("legendFlower")}</span></span>
+  `;
 }
 
 function render() {
-  const z = DATA.zones[zk], cur = z.current, v = z.validation;
-  [...$("zones").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === zk));
-  const strat = z.strategies.map(s => ({...s, ok: s.crops.every(c => seeds[c]), sc: score(s, z)}));
-  const rk = strat.filter(s => s.ok).sort((a, b) => b.sc - a.sc), best = rk[0], A = strat.find(s => s.key === "A");
-  ranked = rk.map(s => s.key);
-  const nA = A.analog_stats.n_years, failA = Math.round(A.analog_stats.failure_rate * nA);
-  $("title").textContent = !best ? "No rotation fits the seed available" : `${z.zone.name.split(",")[0]}, ${z.current_year}: ` + (best.key === "A" ? "the usual relay bean holds up this postrera" : `${best.label.toLowerCase()} is the safer postrera`);
-  $("sub").textContent = `A ${cur.canicula_class} canícula of ${cur.canicula_days} dry days. Postrera rains began ${cur.postrera_onset || "late, with no clear onset by September 30"}. Compared with ${nA} past years that had a similar canícula.`;
-  $("verdictBand").className = "verdict " + (cur.traffic_light || "green");
-  $("verdict").innerHTML = `<b>The current practice, ${short(A.label).toLowerCase()}, failed in ${failA} of ${nA}</b> similar years and scored ${A.analog_stats.mean_score.toFixed(2)} on average, where 1 is a good harvest. ` +
-    (best && best.key !== "A" ? `<b>${best.label}</b> scored ${best.analog_stats.mean_score.toFixed(2)} and failed in ${pct(best.analog_stats.failure_rate)} of them.` : `No alternative did better in those years.`);
+  const z = DATA.zones[zk];
+  const cur = z.current;
+  const v = z.validation;
+  const sk = z.skill;
 
-  $("cards").innerHTML = strat.slice().sort((a, b) => (b.ok - a.ok) || (b.sc - a.sc)).map(s => {
-    const st = s.analog_stats, isBest = best && s.key === best.key;
-    return `<article class="card ${isBest ? "rec" : ""} ${s.ok ? "" : "off"}">
-      ${isBest ? '<span class="tag">Best fit</span>' : s.ok ? "" : '<span class="tag" style="background:var(--mute)">No seed</span>'}
-      <h3>${s.label}</h3>
-      <div class="big"><b>${s.ok ? s.sc.toFixed(2) : "—"}</b><span>score, 0 to 1</span></div>
-      <div class="bar"><i style="width:${s.ok ? Math.round(s.sc * 100) : 0}%"></i></div>
-      <div class="kv"><span>In similar years</span><b>avg ${st.mean_score.toFixed(2)} · failed ${pct(st.failure_rate)}</b></div>
-      <div class="kv"><span>Soil left bare</span><b>${s.bare_days} days a year</b></div>
-      <p style="margin:0;font-size:15px">${s.description}</p>
-      <h4>Evidence: similar years</h4>
-      <div class="years">${s.evidence.map(e => `<span class="yr ${sc(e.score)}" title="${Object.entries(e.crops).map(([c, r]) => `${c} WRSI ${r.wrsi}`).join(", ")}">${e.year}</span>`).join("")}</div>
-      ${s.benefits.length ? `<h4>Benefits</h4><ul>${s.benefits.map(b => `<li>${b}</li>`).join("")}</ul>` : ""}
-      <h4>Check locally</h4><ul>${s.risks.map(r => `<li>${r}</li>`).join("")}</ul>
-    </article>`;
+  [...$("zones").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === zk));
+
+  // Score strategies
+  const strat = z.strategies.map(s => ({
+    ...s,
+    ok: s.crops.every(c => seeds[c]),
+    sc: score(s, z)
+  }));
+  const rk = strat.filter(s => s.ok).sort((a, b) => b.sc - a.sc);
+  const best = rk[0];
+  const A = strat.find(s => s.key === "A");
+  ranked = rk.map(s => s.key);
+
+  const nA = A.analog_stats.n_years;
+  const failA = Math.round(A.analog_stats.failure_rate * nA);
+  const sInfoA = getStratInfo("A");
+  const sInfoBest = best ? getStratInfo(best.key) : null;
+
+  // 1) EL VEREDICTO VA ARRIBA, CON TEXTO HONESTO DEL HINDCAST
+  // Check if Tempo does not distinguish from always-C (second maize)
+  const isAlwaysC = !v.n_years || (v.mean_score_tempo <= v.mean_score_same_every_year) || ((v.picks && (v.picks["C"] || 0) >= (v.n_years - 1)));
+
+  // Traffic light pill
+  const lightClass = cur.traffic_light || "green";
+  const pillLabel = lightClass === "green" ? t("pillGood") : lightClass === "yellow" ? t("pillWarn") : t("pillRisk");
+  $("verdictPill").className = "status-pill " + lightClass;
+  $("verdictPillText").textContent = pillLabel;
+  $("verdictReadingPill").textContent = isAlwaysC ? t("readingSeasonal") : t("readingDynamic");
+
+  // Headline
+  if (!best) {
+    $("verdictHeadline").textContent = t("noSeedFitted");
+  } else {
+    const zoneName = z.zone.name.split(",")[0];
+    if (best.key === "A") {
+      $("verdictHeadline").textContent = `${zoneName}, ${z.current_year}: ` + t("relayHolds");
+    } else {
+      $("verdictHeadline").textContent = `${zoneName}, ${z.current_year}: ${sInfoBest.label.toLowerCase()} ` + t("saferPostrera");
+    }
+  }
+
+  // Lead finding comparison
+  if (lang === "es") {
+    let lead = `La práctica habitual (${sInfoA.short.toLowerCase()}) falló en ${failA} de ${nA} años con canícula similar (puntaje promedio de ${A.analog_stats.mean_score.toFixed(2)} sobre 1.00). `;
+    if (best && best.key !== "A") {
+      lead += `La rotación recomendada (<b>${sInfoBest.label}</b>) promedió ${best.analog_stats.mean_score.toFixed(2)} y falló en ${pct(best.analog_stats.failure_rate)} de dichos años.`;
+    } else {
+      lead += `Ninguna rotación alternativa superó a la práctica habitual en esos años.`;
+    }
+    $("verdictLead").innerHTML = lead;
+  } else {
+    let lead = `Current practice (${sInfoA.short.toLowerCase()}) failed in ${failA} of ${nA} similar years (average score ${A.analog_stats.mean_score.toFixed(2)} out of 1.00). `;
+    if (best && best.key !== "A") {
+      lead += `The recommended rotation (<b>${sInfoBest.label}</b>) averaged ${best.analog_stats.mean_score.toFixed(2)} with ${pct(best.analog_stats.failure_rate)} historical failures.`;
+    } else {
+      lead += `No alternative rotation performed better in those years.`;
+    }
+    $("verdictLead").innerHTML = lead;
+  }
+
+  // Honest Hindcast Box: displays 'lectura de temporada' if Tempo does not distinguish from always-C
+  const hindcastEl = $("verdictHindcast");
+  if (isAlwaysC) {
+    hindcastEl.className = "hindcast-box seasonal-reading";
+    if (lang === "es") {
+      hindcastEl.innerHTML = `<strong>Lectura de temporada:</strong> En la validación retrospectiva (hindcast 2001–2025), una regla fija de sembrar siempre segunda de maíz (estrategia C) obtiene un puntaje igual o superior a la selección dinámica (${(v.mean_score_same_every_year || 0).toFixed(2)} vs ${(v.mean_score_tempo || 0).toFixed(2)}). Como la duración de la canícula correlaciona débilmente con la lluvia de postrera (Spearman ${sk.canicula_vs_sep_nov_rain ?? "0.0"}), este resultado se entrega como <strong>lectura de temporada</strong> basada en la climatología de la zona y no como predicción prescriptiva.`;
+    } else {
+      hindcastEl.innerHTML = `<strong>Seasonal reading:</strong> In the retrospective hindcast (2001–2025), simply planting second maize (strategy C) every single year scores equal to or higher than dynamic selection (${(v.mean_score_same_every_year || 0).toFixed(2)} vs ${(v.mean_score_tempo || 0).toFixed(2)}). Because canícula duration correlates weakly with postrera rainfall (Spearman correlation ${sk.canicula_vs_sep_nov_rain ?? "0.0"}), this result is a <strong>seasonal reading</strong> reflecting local climate normals rather than a prescriptive forecast.`;
+    }
+  } else {
+    hindcastEl.className = "hindcast-box";
+    if (lang === "es") {
+      hindcastEl.innerHTML = `<strong>Validación retrospectiva:</strong> En el hindcast histórico (2001–2025), la selección dinámica promedió ${(v.mean_score_tempo || 0).toFixed(2)} frente a ${(v.mean_score_current || 0).toFixed(2)} de la práctica habitual, superándola en ${v.years_tempo_better || 0} de ${v.n_years || 0} años.`;
+    } else {
+      hindcastEl.innerHTML = `<strong>Retrospective validation:</strong> In the 2001–2025 hindcast, dynamic selection averaged ${(v.mean_score_tempo || 0).toFixed(2)} vs ${(v.mean_score_current || 0).toFixed(2)} for current practice, outperforming it in ${v.years_tempo_better || 0} of ${v.n_years || 0} years.`;
+    }
+  }
+
+  // Diagnostics row
+  const caniculaClassMap = { short: lang === "es" ? "corta" : "short", normal: "normal", long: lang === "es" ? "larga" : "long" };
+  const cClassText = caniculaClassMap[cur.canicula_class] || cur.canicula_class;
+  const daysText = lang === "es" ? "días secos" : "dry days";
+  $("valCanicula").textContent = `${cur.canicula_days} ${daysText} (${cClassText})`;
+  $("valOnset").textContent = formatOnset(cur.postrera_onset);
+  $("valAnalogs").textContent = `${nA} ${lang === "es" ? "años (2001–2025)" : "years (2001–2025)"}`;
+
+  // 6) ASYMMETRIC ANTI-SLOP STRATEGY DISPLAY
+  const sortedStrat = strat.slice().sort((a, b) => (b.ok - a.ok) || (b.sc - a.sc));
+  const feat = sortedStrat[0];
+  const alts = sortedStrat.slice(1);
+
+  if (feat) {
+    const fInfo = getStratInfo(feat.key);
+    const fStats = feat.analog_stats;
+    const isBestFit = best && feat.key === best.key;
+    $("featuredCard").innerHTML = `
+      <div class="featured-header">
+        <div class="featured-badges">
+          ${isBestFit ? `<span class="badge badge-rec">${t("tagRec")}</span>` : ""}
+          <span class="badge badge-tag">${feat.key === "A" ? t("tagCurrent") : t("tagAlternative")}</span>
+          ${feat.ok ? "" : `<span class="badge badge-dim">${t("tagNoSeed")}</span>`}
+        </div>
+      </div>
+      <h3 class="featured-title">${fInfo.label}</h3>
+      <p class="strategy-desc">${fInfo.description}</p>
+      
+      <div class="score-banner">
+        <div class="score-num">${feat.ok ? feat.sc.toFixed(2) : "—"}</div>
+        <div class="score-details">
+          <span class="score-label">${t("scoreComposite")} · 60% ${t("inSimilarYears").toLowerCase()} + 40% ${lang === "es" ? "prioridades" : "priorities"}</span>
+          <div class="progress-track"><div class="progress-bar" style="width:${feat.ok ? Math.round(feat.sc * 100) : 0}%"></div></div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div>${t("inSimilarYears")}: <strong>${t("avg")} ${fStats.mean_score.toFixed(2)} · ${pct(fStats.failure_rate)} ${t("failed")}</strong></div>
+        <div>${t("bareSoil")}: <strong>${feat.bare_days} ${t("daysYear")}</strong></div>
+        <div>${lang === "es" ? "Aporte de nitrógeno" : "Nitrogen fixation"}: <strong>${feat.key === "C" ? (lang === "es" ? "No aporta" : "None") : (lang === "es" ? "Fijación activa" : "Fixes N2")}</strong></div>
+      </div>
+
+      <div class="details-columns">
+        <div class="details-col">
+          <h4>${t("evidence")}</h4>
+          <div class="years-chips">
+            ${feat.evidence.map(e => `<span class="yr-chip ${sc(e.score)}" title="Año ${e.year} · WRSI ${Object.entries(e.crops).map(([c, r]) => `${c} ${r.wrsi}`).join(", ")}">${e.year}</span>`).join("")}
+          </div>
+          ${fInfo.benefits && fInfo.benefits.length ? `<h4 style="margin-top:14px">${t("benefits")}</h4><ul>${fInfo.benefits.map(b => `<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>
+        <div class="details-col">
+          <h4>${t("risks")}</h4>
+          <ul>${fInfo.risks.map(r => `<li>${r}</li>`).join("")}</ul>
+        </div>
+      </div>
+    `;
+  }
+
+  $("alternativesGrid").innerHTML = alts.map(s => {
+    const sInfo = getStratInfo(s.key);
+    const sStats = s.analog_stats;
+    return `
+      <article class="alt-card ${s.ok ? "" : "is-off"}">
+        <div class="alt-header">
+          <h3>${sInfo.label}</h3>
+          <span class="alt-score">${s.ok ? s.sc.toFixed(2) : "—"}</span>
+        </div>
+        <div class="progress-track"><div class="progress-bar" style="width:${s.ok ? Math.round(s.sc * 100) : 0}%"></div></div>
+        <p>${sInfo.description}</p>
+        <div class="alt-kvs">
+          <span>${t("inSimilarYears")}: <strong>${t("avg")} ${sStats.mean_score.toFixed(2)} · ${pct(sStats.failure_rate)} ${t("failed")}</strong></span>
+          <span>${t("bareSoil")}: <strong>${s.bare_days} ${t("daysYear")}</strong></span>
+        </div>
+        <div class="years-chips" style="margin-top:6px">
+          ${s.evidence.map(e => `<span class="yr-chip ${sc(e.score)}">${e.year}</span>`).join("")}
+        </div>
+      </article>
+    `;
   }).join("");
 
+  // Validation stat figures
   $("figs").innerHTML = v.n_years ? [
-    [v.mean_score_tempo.toFixed(2) + " vs " + v.mean_score_current.toFixed(2), "average score, Tempo's pick vs current practice"],
-    [v.mean_score_same_every_year.toFixed(2), "average score planting the same best rotation every year"],
-    [v.failure_years_tempo + " vs " + v.failure_years_current, "failed seasons in " + v.n_years + " years, Tempo vs current"],
-    [v.years_tempo_better + " / " + v.years_tempo_worse, "years Tempo did better / worse than current"]
-  ].map(([n, l]) => `<div><div class="num">${n}</div><small>${l}</small></div>`).join("") : "<div>Not enough complete years to test.</div>";
-  $("strip").innerHTML = (v.by_year || []).map(r => `<div class="cell" title="Pick: ${r.pick}"><b>${r.year}</b><div><span class="${sc(r.score_A)}"></span><span class="${sc(r.score_pick)}"></span></div>${r.pick}</div>`).join("");
-  const pc = z.primera_check, sk = z.skill;
-  $("pcNote").textContent = `Primera maize was simulated for every year with the same water balance. ${pc.documented_in_worst_third.length} of the ${pc.documented.length} years with documented drought losses (${pc.documented.join(", ")}) fall among the model's ${pc.worst_third_size} driest of ${pc.n_years}. Number = water satisfaction (WRSI), 100 is no stress.`;
-  $("pcStrip").innerHTML = pc.years.map(r => `<div class="cell ${r.documented ? "doc" : ""}"><b>${r.year}</b><em class="${r.class === "good" ? "s1" : r.class === "partial" ? "s05" : "s0"}">${Math.round(r.wrsi)}</em></div>`).join("");
-  $("gaps").innerHTML = (sk.canicula_vs_sep_nov_rain != null ? `Canícula length explains little of the postrera by itself (rank correlation with September–November rain: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} years). ` : "") +
-    z.strategies[0].gaps.join(" ") + ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; temperature corrected by ${z.inputs.temp_correction_c} °C; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`;
+    [v.mean_score_tempo.toFixed(2) + " vs " + v.mean_score_current.toFixed(2), lang === "es" ? "Puntaje promedio: Tempo vs práctica habitual" : "Average score: Tempo vs current practice"],
+    [v.mean_score_same_every_year.toFixed(2), lang === "es" ? "Puntaje sembrando siempre la misma rotación (C)" : "Average score planting same rotation every year (C)"],
+    [v.failure_years_tempo + " vs " + v.failure_years_current, lang === "es" ? `Años con pérdida de cosecha (de ${v.n_years} años)` : `Failed seasons in ${v.n_years} years: Tempo vs current`],
+    [v.years_tempo_better + " / " + v.years_tempo_worse, lang === "es" ? "Años en que Tempo superó / empeoró a la práctica" : "Years Tempo did better / worse than current"]
+  ].map(([num, lbl]) => `
+    <div class="stat-item">
+      <div class="stat-num">${num}</div>
+      <div class="stat-label">${lbl}</div>
+    </div>
+  `).join("") : `<div class="stat-item"><div class="stat-label">${lang === "es" ? "Sin suficientes años para validar." : "Not enough years to test."}</div></div>`;
+
+  $("strip").innerHTML = (v.by_year || []).map(r => `
+    <div class="cell" title="${lang === "es" ? "Año" : "Year"} ${r.year} · Canícula ${r.canicula_class} · ${lang === "es" ? "Elección" : "Pick"}: ${r.pick}">
+      <b>${r.year}</b>
+      <div><span class="${sc(r.score_A)}"></span><span class="${sc(r.score_pick)}"></span></div>
+      ${r.pick}
+    </div>
+  `).join("");
+
+  $("stripLegend").innerHTML = `
+    <span><i class="legend-swatch" style="background:var(--harvest-good)"></i> ${t("stripGood")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-part)"></i> ${t("stripPart")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-fail)"></i> ${t("stripFail")}</span>
+  `;
+
+  // Primera drought validation check
+  const pc = z.primera_check;
+  if (lang === "es") {
+    $("pcNote").textContent = `El maíz de primera fue simulado para cada año bajo el mismo balance hídrico. ${pc.documented_in_worst_third.length} de los ${pc.documented.length} años con pérdidas por sequía registradas (${pc.documented.join(", ")}) coinciden con los ${pc.worst_third_size} años más secos según el modelo (de ${pc.n_years} analizados). Número = Satisfacción hídrica (WRSI, 100 = sin estrés).`;
+  } else {
+    $("pcNote").textContent = `Primera maize was simulated for every year with the same water balance. ${pc.documented_in_worst_third.length} of the ${pc.documented.length} years with documented drought losses (${pc.documented.join(", ")}) fall among the model's ${pc.worst_third_size} driest of ${pc.n_years}. Number = water satisfaction (WRSI, 100 is no stress).`;
+  }
+
+  $("pcStrip").innerHTML = pc.years.map(r => `
+    <div class="cell ${r.documented ? "doc" : ""}" title="${lang === "es" ? "Año" : "Year"} ${r.year}${r.documented ? (lang === "es" ? " (sequía registrada)" : " (documented drought)") : ""}">
+      <b>${r.year}</b>
+      <em class="${r.class === "good" ? "s1" : r.class === "partial" ? "s05" : "s0"}">${Math.round(r.wrsi)}</em>
+    </div>
+  `).join("");
+
+  $("pcStripLegend").innerHTML = `
+    <span><i class="legend-swatch" style="background:none;border:2px solid var(--ink-primary)"></i> ${t("docDrought")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-good)"></i> ${t("stripGood")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-part)"></i> ${t("stripPart")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-fail)"></i> ${t("stripFail")}</span>
+  `;
+
+  // Methodology & gaps
+  const methodsList = t("methods");
+  const gapsDesc = (sk.canicula_vs_sep_nov_rain != null ? (lang === "es"
+    ? `La duración de la canícula por sí sola explica muy poco de la lluvia de postrera (correlación de Spearman con lluvia sep–nov: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} años). `
+    : `Canícula length explains little of the postrera by itself (rank correlation with September–November rain: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} years). `) : "") +
+    (lang === "es" ? GAPS_ES.join(" ") : z.strategies[0].gaps.join(" ")) +
+    (lang === "es"
+      ? ` Lluvia de IMERG en ${pct(z.inputs.share_days_imerg)} de los días; temperatura corregida por ${z.inputs.temp_correction_c} °C; suelo tratado como ${z.inputs.texture_class} (${z.inputs.whc_mm} mm de agua disponible)${z.inputs.slope_pct != null ? `; pendiente ${z.inputs.slope_pct}%` : ""}.`
+      : ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; temperature corrected by ${z.inputs.temp_correction_c} °C; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`);
+
+  $("methodGrid").innerHTML = methodsList.map((m, idx) => `
+    <div class="method-item">
+      <dt>${m.t}</dt>
+      <dd>${idx === methodsList.length - 1 ? gapsDesc : m.d}</dd>
+    </div>
+  `).join("");
+
   drawPlate();
 }
 
-$("controls").addEventListener("input", e => {
+$("controlsGrid").addEventListener("input", e => {
   if (e.target.dataset.k) weights[e.target.dataset.k] = +e.target.value;
   if (e.target.dataset.c) seeds[e.target.dataset.c] = e.target.checked;
   render();
 });
-new ResizeObserver(() => { const w = $("fig").clientWidth; if (w !== lastW) { lastW = w; drawPlate(); } }).observe($("fig"));
-reset(); renderControls(); render();
+
+new ResizeObserver(() => {
+  const w = $("fig").clientWidth;
+  if (w !== lastW) {
+    lastW = w;
+    drawPlate();
+  }
+}).observe($("fig"));
+
+reset();
+updateStaticTexts();
+renderControls();
+render();
 }
 </script>
 </body>

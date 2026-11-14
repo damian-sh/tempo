@@ -1,287 +1,1722 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tempo · Postrera</title>
+<title id="pageTitle">Tempo · Apoyo para la Postrera en el Corredor Seco</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
 <style>
-/* VOICE: a graphics-desk season sheet for a field technician: the finding first, then the proof.
-   IDEA: an almanac plate. Every rainy season since 2001, this year, and each crop rotation share one month axis.
-   PICTURE: the plate itself, three strips on a deep night-rain ground: rain heatmap, this year's line, rotation calendar.
-   COLOUR: deep sea ground in both themes, sky blue for rain, earth brown for dry, terracotta signal for the canicula.
-   TYPE: Hanken Grotesk, light and large for the title. LAYOUT: plate full bleed, verdict band, strategies, checks, method. */
-:root{color-scheme:light dark;
---sea:#0a2540;--sky:#8fd3ff;--sig:#ff7a59;--plate-ink:#f4f8fc;--plate-mute:#9db4c8;
---bg:light-dark(#ffffff,#0d1620);--ink:light-dark(#10202e,#eef3f7);--mute:light-dark(#5c6b78,#9fb0be);
---line:light-dark(#dfe5ea,#22303c);--card:light-dark(#f5f8fa,#131f2a);--rain:light-dark(#1f5f99,#7ab6ea);
---good:light-dark(#2f6b3a,#6fbf7c);--part:light-dark(#c7951a,#e6b94a);--fail:light-dark(#b4442c,#e3755c);
---bean:#6fcf7f;--maize:#f0c24b;--sorghum:#e08a5c}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-*{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Hanken Grotesk",system-ui,sans-serif;overflow-x:clip}
-.wrap{max-width:1240px;margin:0 auto;padding:0 max(5vw,16px)}
-.demo{background:var(--maize);color:#10202e;font-size:14px;padding:8px max(5vw,16px);text-align:center}
-.plate{background:var(--sea);color:var(--plate-ink);padding:clamp(22px,3.4vw,44px) 0 26px}
-.head{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:end;justify-content:space-between}
-h1{font-size:clamp(32px,4.6vw,52px);line-height:1.05;margin:0;text-wrap:balance;max-width:20ch;font-weight:300;letter-spacing:-.01em}
-.sub{color:var(--plate-mute);margin:12px 0 0;max-width:60ch}
-.seg{display:flex;border:1px solid #ffffff33;border-radius:999px;padding:3px}
-.seg button{font:600 15px "Hanken Grotesk",sans-serif;border:0;background:none;color:var(--plate-ink);padding:10px 16px;border-radius:999px;min-height:44px;cursor:pointer}
-.seg button[aria-pressed=true]{background:var(--plate-ink);color:var(--sea)}
-button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
-.fig{position:relative;height:560px;margin:22px 0 10px}
-.fig>svg{position:absolute;inset:0;width:100%;height:100%;font-family:"Hanken Grotesk",sans-serif}
-.legend{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--plate-mute);align-items:center}
-.legend i{display:inline-block;width:16px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.legend .ramp{width:90px;background:linear-gradient(90deg,#5c3a24,#246296,#9fdcff)}
-.below .legend{color:var(--mute)}
-.verdict{padding:22px 0;color:#fff}
-.verdict.red{background:#a53a24}.verdict.yellow{background:#e0ad2e;color:#10202e}.verdict.green{background:#245c31}
-.verdict p{margin:0;font-size:clamp(18px,2.1vw,23px);line-height:1.35;max-width:62ch;text-wrap:pretty}
-.verdict b{font-weight:700}
-h2{font-size:25px;line-height:1.15;margin:40px 0 6px;font-weight:600;text-wrap:balance}
-.note{color:var(--mute);font-size:15px;margin:0 0 14px;max-width:80ch}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;padding:14px 16px;border-radius:14px;background:var(--card)}
-.controls label{display:flex;flex-direction:column;gap:2px;font-size:14px}
-.controls input[type=range]{width:100%;height:44px;accent-color:var(--rain)}
-.seeds{display:flex;flex-wrap:wrap;gap:8px 16px;grid-column:1/-1;font-size:15px}
-.seeds label{flex-direction:row;align-items:center;gap:8px;min-height:44px}
-.seeds input{width:20px;height:20px;accent-color:var(--rain)}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;margin-top:20px}
-.card{border-top:2px solid var(--line);padding:16px 0 8px;display:flex;flex-direction:column;gap:10px}
-.card.rec{border-top-color:var(--ink)}
-.card.off{opacity:.5}
-.card h3{margin:0;font-size:20px;line-height:1.2;font-weight:600}
-.tag{font-size:13px;font-weight:600;color:var(--bg);background:var(--ink);border-radius:999px;padding:2px 10px;align-self:flex-start}
-.big{display:flex;align-items:baseline;gap:10px}
-.big b{font-size:44px;font-weight:300;line-height:1}.big span{font-size:14px;color:var(--mute)}
-.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--rain)}
-.kv{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--mute);border-bottom:1px solid var(--line);padding-bottom:6px}
-.kv b{color:var(--ink);font-weight:600;white-space:nowrap}
-.card ul{margin:0;padding-left:18px;font-size:15px}.card h4{margin:6px 0 0;font-size:14px;color:var(--mute);font-weight:600}
-.years{display:flex;flex-wrap:wrap;gap:4px}
-.yr{font-size:12px;width:44px;text-align:center;border-radius:6px;padding:3px 0;color:#fff;font-variant-numeric:tabular-nums}
-.s1{background:var(--good)}.s05{background:var(--part);color:#10202e}.s0{background:var(--fail)}
-.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
-.cell{border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:12px}
-.cell b{display:block;font-weight:600;font-size:13px;margin-bottom:4px}
-.cell.doc{border:2px solid var(--ink)}.cell em{font-style:normal;display:block;border-radius:4px;padding:1px 0;color:#fff}.cell em.s05{color:#10202e}
-.cell div{display:flex;gap:3px;justify-content:center}.cell span{width:18px;height:12px;border-radius:3px}
-.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0 24px;margin-top:8px}
-.figs div{padding:14px 0;border-top:1px solid var(--line)}
-.num{font-size:38px;font-weight:300;line-height:1.1;white-space:nowrap}
-.figs small{color:var(--mute);font-size:14px;display:block}
-.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 32px;font-size:15px;margin:0}
-.method dt{font-weight:600;margin-top:10px}.method dd{margin:2px 0 0;color:var(--mute)}
-footer{color:var(--mute);font-size:14px;padding:26px 0 48px;border-top:1px solid var(--line);margin-top:36px}
-@media(max-width:860px){.cards{grid-template-columns:minmax(0,1fr)}.method{grid-template-columns:minmax(0,1fr)}}
-@media(prefers-reduced-motion:no-preference){.bar i{transition:width .5s ease}}
+:root {
+  color-scheme: light dark;
+  --font-ui: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --gutter: 16px;
+  --max-w: 1200px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Palette - Sober agronomic field desk (light) */
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #f1f5f9;
+  --bg-plate: #0c1a27;
+  --plate-ink: #f1f5f9;
+  --plate-mute: #8fa5ba;
+  --plate-line: rgba(255, 255, 255, 0.12);
+
+  --ink-primary: #0f172a;
+  --ink-secondary: #334155;
+  --ink-muted: #5f7182;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --rain: #1d5b94;
+  --rain-soft: #e8f2fa;
+  --soil: #6b4e3d;
+  --canicula: #c2410c;
+  --canicula-soft: #faeee9;
+
+  /* Traffic light tokens */
+  --status-good-bg: #ecfdf5;
+  --status-good-ink: #065f46;
+  --status-good-border: #a7f3d0;
+  --status-good-dot: #10b981;
+
+  --status-warn-bg: #fffbeb;
+  --status-warn-ink: #854d0e;
+  --status-warn-border: #fde68a;
+  --status-warn-dot: #f59e0b;
+
+  --status-risk-bg: #fef2f2;
+  --status-risk-ink: #991b1b;
+  --status-risk-border: #fecaca;
+  --status-risk-dot: #ef4444;
+
+  /* Crops */
+  --crop-maize: #d97706;
+  --crop-bean: #16803d;
+  --crop-sorghum: #b45309;
+
+  /* WRSI Harvest classes */
+  --harvest-good: #16803d;
+  --harvest-part: #d97706;
+  --harvest-fail: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #0b1118;
+    --bg-surface: #121a24;
+    --bg-surface-alt: #182330;
+    --bg-plate: #071018;
+    --plate-ink: #f1f5f9;
+    --plate-mute: #8fa5ba;
+    --plate-line: rgba(255, 255, 255, 0.12);
+
+    --ink-primary: #f8fafc;
+    --ink-secondary: #cbd5e1;
+    --ink-muted: #8496a7;
+    --border-subtle: #1e2d3d;
+    --border-strong: #334457;
+
+    --rain: #60a5fa;
+    --rain-soft: #162638;
+    --soil: #a88469;
+    --canicula: #fb923c;
+    --canicula-soft: #2c1611;
+
+    --status-good-bg: #062b1e;
+    --status-good-ink: #6ee7b7;
+    --status-good-border: #134e37;
+    --status-good-dot: #34d399;
+
+    --status-warn-bg: #2e1d05;
+    --status-warn-ink: #fde047;
+    --status-warn-border: #613e09;
+    --status-warn-dot: #fbbf24;
+
+    --status-risk-bg: #2f0f0e;
+    --status-risk-ink: #fca5a5;
+    --status-risk-border: #6b1d19;
+    --status-risk-dot: #f87171;
+
+    --crop-maize: #fbbf24;
+    --crop-bean: #4ade80;
+    --crop-sorghum: #fb923c;
+
+    --harvest-good: #22c55e;
+    --harvest-part: #facc15;
+    --harvest-fail: #f87171;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--ink-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+/* Header & Controls bar */
+.top-bar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 0;
+}
+
+.top-bar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.brand-sub {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 2px 0 0;
+}
+
+.selectors-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.seg-group {
+  display: inline-flex;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg-btn {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  min-height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--ink-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.seg-btn[aria-pressed="true"] {
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.seg-btn:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--rain);
+  outline-offset: 2px;
+}
+
+/* Verdict Hero (At the top) */
+.verdict-hero {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: clamp(24px, 4vw, 44px) 0 28px;
+}
+
+.verdict-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status-pill.green {
+  background: var(--status-good-bg);
+  color: var(--status-good-ink);
+  border-color: var(--status-good-border);
+}
+
+.status-pill.yellow {
+  background: var(--status-warn-bg);
+  color: var(--status-warn-ink);
+  border-color: var(--status-warn-border);
+}
+
+.status-pill.red {
+  background: var(--status-risk-bg);
+  color: var(--status-risk-ink);
+  border-color: var(--status-risk-border);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.reading-pill {
+  background: var(--bg-surface-alt);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-strong);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.verdict-headline {
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 3.8vw, 40px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 0 0 14px;
+  color: var(--ink-primary);
+  text-wrap: balance;
+}
+
+.verdict-lead {
+  font-size: clamp(16px, 1.8vw, 18px);
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin: 0 0 20px;
+  max-width: 82ch;
+  text-wrap: pretty;
+}
+
+/* Honest hindcast alert callout */
+.hindcast-box {
+  background: var(--bg-surface-alt);
+  border-left: 4px solid var(--border-strong);
+  padding: 14px 18px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin: 20px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+.hindcast-box.seasonal-reading {
+  border-left-color: var(--soil);
+  background: var(--canicula-soft);
+  color: var(--ink-primary);
+}
+
+.hindcast-box strong {
+  color: var(--ink-primary);
+}
+
+/* Diagnostics summary cards */
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 18px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.diag-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diag-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.diag-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sections shared */
+section.content-section {
+  padding: 38px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 2.8vw, 30px);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  color: var(--ink-primary);
+  text-wrap: balance;
+}
+
+.section-note {
+  color: var(--ink-muted);
+  font-size: 15px;
+  margin: 0 0 22px;
+  max-width: 84ch;
+}
+
+/* Priority & seed adjustment panel */
+.controls-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 28px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 20px;
+}
+
+.controls-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-secondary);
+}
+
+.controls-grid label span {
+  font-weight: 500;
+}
+
+.controls-grid input[type="range"] {
+  width: 100%;
+  height: 38px;
+  accent-color: var(--rain);
+  cursor: pointer;
+}
+
+.seeds-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding-top: 14px;
+  margin-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.seeds-title {
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.seeds-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.seed-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.seed-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--rain);
+}
+
+/* Rotation Strategy Display - Asymmetric, anti-slop */
+.strategies-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Primary Featured Recommendation */
+.featured-strategy {
+  background: var(--bg-surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.featured-strategy.is-best {
+  border-color: var(--status-good-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.featured-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px 16px;
+}
+
+.featured-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+}
+
+.badge-rec {
+  background: var(--status-good-bg);
+  color: var(--status-good-ink);
+  border: 1px solid var(--status-good-border);
+}
+
+.badge-tag {
+  background: var(--bg-surface-alt);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.badge-dim {
+  background: var(--bg-surface-alt);
+  color: var(--ink-muted);
+  border: 1px dashed var(--border-strong);
+}
+
+.featured-title {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.score-banner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px 22px;
+  padding: 14px 18px;
+  background: var(--bg-surface-alt);
+  border-radius: var(--radius-md);
+}
+
+.score-num {
+  font-family: var(--font-mono);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-primary);
+}
+
+.score-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.score-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--rain);
+  transition: width 0.35s ease;
+}
+
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 18px;
+  font-size: 14px;
+  color: var(--ink-secondary);
+  padding: 10px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.metrics-row div strong {
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.strategy-desc {
+  font-size: 15px;
+  color: var(--ink-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.details-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px 28px;
+}
+
+.details-col h4 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+  margin: 0 0 8px;
+}
+
+.details-col ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--ink-secondary);
+}
+
+.details-col li {
+  margin-bottom: 5px;
+}
+
+/* Evidence chips */
+.years-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.yr-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+.yr-chip.s1 { background: var(--harvest-good); }
+.yr-chip.s05 { background: var(--harvest-part); color: #10202e; }
+.yr-chip.s0 { background: var(--harvest-fail); }
+
+/* Alternative options comparative grid */
+.alternatives-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.alt-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alt-card.is-off {
+  opacity: 0.58;
+}
+
+.alt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.alt-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink-primary);
+}
+
+.alt-score {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.alt-card p {
+  font-size: 14px;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.alt-kvs {
+  font-size: 13px;
+  color: var(--ink-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alt-kvs span strong {
+  color: var(--ink-primary);
+}
+
+/* Almanac Plate Section */
+.plate-section {
+  background: var(--bg-plate);
+  color: var(--plate-ink);
+  padding: clamp(28px, 4vw, 44px) 0;
+}
+
+.plate-section h2 {
+  color: var(--plate-ink);
+}
+
+.plate-section .section-note {
+  color: var(--plate-mute);
+}
+
+.fig {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin: 18px 0 12px;
+}
+
+.fig > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-ui);
+}
+
+.plate-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  font-size: 13px;
+  color: var(--plate-mute);
+  align-items: center;
+  padding-top: 10px;
+}
+
+.plate-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-ramp {
+  width: 72px;
+  background: linear-gradient(90deg, #5c3a24, #246296, #9fdcff);
+}
+
+/* Validation Hindcast & Disaster checks */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px 24px;
+  margin: 18px 0;
+}
+
+.stat-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-num {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.cell {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  padding: 5px 3px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.cell b {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 3px;
+  color: var(--ink-secondary);
+}
+
+.cell.doc {
+  border: 2px solid var(--ink-primary);
+}
+
+.cell em {
+  font-style: normal;
+  display: block;
+  border-radius: 3px;
+  padding: 1px 0;
+  color: #fff;
+  font-family: var(--font-mono);
+}
+
+.cell em.s05 {
+  color: #10202e;
+}
+
+.cell div {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+
+.cell span {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.strip-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-top: 12px;
+}
+
+/* Method grid */
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px 36px;
+  margin: 0;
+}
+
+.method-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.method-item dt {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.method-item dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+/* Footer */
+footer.site-footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding: 28px 0 44px;
+  font-size: 14px;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .score-banner {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
 </style>
 </head>
 <body>
-<div class="demo" id="demo" hidden>Demo data: synthetic rainfall generated to test the interface. These are not real measurements.</div>
-<section class="plate">
-  <div class="wrap">
-    <div class="head">
-      <div><h1 id="title">Tempo</h1><p class="sub" id="sub"></p></div>
-      <div class="seg" id="zones" role="group" aria-label="Zone"></div>
+
+<header class="top-bar">
+  <div class="wrap top-bar-inner">
+    <div class="brand">
+      <h1 class="brand-title">Tempo</h1>
+      <span class="brand-sub" id="brandSub">Postrera · Corredor Seco</span>
     </div>
-    <div class="fig" id="fig"><svg id="plate" role="img" aria-label="Rain for every season since 2001, this year's rain against normal, and the crop calendar of each rotation, on one month axis"></svg></div>
-    <div class="legend">
-      <span><i class="ramp"></i>Dry to wet, rain per 10 days</span>
-      <span><i style="background:#8fd3ff38"></i>Normal range this time of year</span>
-      <span><i style="background:var(--sig)"></i>Canícula, the longest dry spell of July–August</span>
-      <span><i style="background:none;border:2px solid #fff"></i>Flowering, when water matters most</span>
+    <div class="selectors-group">
+      <div class="seg-group" id="zones" role="group" aria-label="Zona agrícola / Agricultural zone"></div>
+      <div class="seg-group" id="langSwitch" role="group" aria-label="Idioma / Language">
+        <button type="button" class="seg-btn" id="btnLangEs" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" class="seg-btn" id="btnLangEn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
     </div>
   </div>
-</section>
-<section class="verdict" id="verdictBand"><div class="wrap"><p id="verdict"></p></div></section>
+</header>
 
-<div class="wrap below">
-<h2>Compare three postrera rotations</h2>
-<p class="note">Score = 60% how each rotation did in past years with a similar canícula + 40% the priorities of this farm. Move them and the ranking updates.</p>
-<div class="controls" id="controls"></div>
-<div class="cards" id="cards"></div>
+<main>
+  <!-- 1) El veredicto va arriba -->
+  <section class="verdict-hero">
+    <div class="wrap">
+      <div class="verdict-status-row">
+        <span class="status-pill green" id="verdictPill"><i class="status-dot"></i><span id="verdictPillText">Favorable</span></span>
+        <span class="reading-pill" id="verdictReadingPill">Lectura de temporada</span>
+      </div>
+      <h2 class="verdict-headline" id="verdictHeadline"></h2>
+      <p class="verdict-lead" id="verdictLead"></p>
+      
+      <!-- Honest hindcast statement with 'lectura de temporada' -->
+      <div class="hindcast-box" id="verdictHindcast"></div>
 
-<h2>Would Tempo have helped before?</h2>
-<p class="note">Each past year was hidden from the model and predicted from the others. Left square: current practice. Right square: Tempo's pick.</p>
-<div class="figs" id="figs"></div>
-<div class="strip" id="strip" style="margin-top:14px"></div>
-<div class="legend" style="margin-top:10px">
-  <span><i class="s1"></i>Good harvest (WRSI ≥ 80)</span><span><i class="s05"></i>Partial</span><span><i class="s0"></i>Failure (WRSI &lt; 60)</span>
-</div>
+      <div class="diag-grid">
+        <div class="diag-item">
+          <span class="diag-label" id="lblCanicula">Canícula</span>
+          <span class="diag-value" id="valCanicula"></span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" id="lblOnset">Inicio de lluvias postrera</span>
+          <span class="diag-value" id="valOnset"></span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" id="lblAnalogs">Años análogos históricos</span>
+          <span class="diag-value" id="valAnalogs"></span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<h2>Does the model see the droughts that happened?</h2>
-<p class="note" id="pcNote"></p>
-<div class="strip" id="pcStrip"></div>
-<div class="legend" style="margin-top:10px"><span><i style="background:none;border:2px solid var(--ink)"></i>Year with documented drought losses in the primera</span></div>
+  <!-- Rotation strategies comparison & farmer adjustment -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingStrategies">Comparación de rotaciones de postrera</h2>
+      <p class="section-note" id="descStrategies">El puntaje combina 60% desempeño en años pasados con canícula similar + 40% prioridades de la finca. Ajuste los controles para recalcular la mejor opción.</p>
+      
+      <div class="controls-panel">
+        <div class="controls-grid" id="controlsGrid"></div>
+      </div>
 
-<h2>How it is calculated</h2>
-<dl class="method">
-  <div><dt>Rain: NASA GPM IMERG V07</dt><dd>Half-hourly satellite rain summed by local day since 2001. Days not yet available are filled with NASA POWER and flagged.</dd>
-  <dt>Temperature and evapotranspiration: NASA POWER</dt><dd>Daily maximum and minimum, corrected for the parcel's elevation (6.5 °C per km), then Hargreaves reference evapotranspiration: how much water a well-watered crop would use.</dd>
-  <dt>Terrain: SRTM 30 m</dt><dd>Elevation for the temperature correction and slope. On slopes above 15%, soil protection weighs 1.5×.</dd></div>
-  <div><dt>Water Requirement Satisfaction Index (WRSI)</dt><dd>A daily soil-water bucket for each crop from the postrera onset to harvest. 100 means the crop got all the water it needed. Stress at flowering lowers the result one class, and so does heavy rain when beans are maturing.</dd>
-  <dt>Similar years</dt><dd>Past years are grouped by canícula length into short, normal and long thirds. The rotation statistics come only from years in the same group as this one.</dd>
-  <dt>What it does not know</dt><dd id="gaps"></dd></div>
-</dl>
-<footer>Tempo supports, and does not replace, the judgment of farmers and local agronomists. Built for NASA Space Apps 2026, challenge Field Shift. Data: NASA GPM IMERG, NASA POWER, SRTM; soil from ISRIC SoilGrids.</footer>
-</div>
+      <!-- Asymmetric anti-slop strategy display -->
+      <div class="strategies-layout">
+        <div class="featured-strategy is-best" id="featuredCard"></div>
+        <div class="alternatives-grid" id="alternativesGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Almanac Plate: Visualizing the climate & cycles on shared axis -->
+  <section class="plate-section">
+    <div class="wrap">
+      <h2 id="headingPlate">Lámina bioclimática: historial de lluvia y ciclos</h2>
+      <p class="section-note" id="descPlate">Lluvia satelital por temporada desde 2001, trayectoria de este año contra lo habitual y calendario de cada cultivo en un solo eje mensual.</p>
+      
+      <div class="fig" id="fig">
+        <svg id="plate" role="img" aria-label="Lámina climática de lluvias y rotaciones"></svg>
+      </div>
+
+      <div class="plate-legend" id="plateLegend"></div>
+    </div>
+  </section>
+
+  <!-- Historical validation: leave-one-out hindcast -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingValidation">¿Habría ayudado Tempo en años anteriores?</h2>
+      <p class="section-note" id="descValidation">Cada año histórico fue ocultado al modelo y predicho con los demás (validación cruzada leave-one-out). Cuadro izquierdo: práctica habitual. Cuadro derecho: elección de Tempo.</p>
+      
+      <div class="stats-grid" id="figs"></div>
+      <div class="strip" id="strip"></div>
+      <div class="strip-legend" id="stripLegend"></div>
+    </div>
+  </section>
+
+  <!-- Primera drought check -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingPrimera">¿Detecta el modelo las sequías históricas registradas?</h2>
+      <p class="section-note" id="pcNote"></p>
+      
+      <div class="strip" id="pcStrip"></div>
+      <div class="strip-legend" id="pcStripLegend"></div>
+    </div>
+  </section>
+
+  <!-- Methodology & limitations -->
+  <section class="content-section">
+    <div class="wrap">
+      <h2 id="headingMethod">Metodología y supuestos del modelo</h2>
+      <dl class="method-grid" id="methodGrid"></dl>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap" id="footerText">
+    Tempo apoya, y no reemplaza, el criterio de productores y agrónomos locales. Desarrollado para NASA Space Apps 2026, reto Field Shift. Datos: NASA GPM IMERG, NASA POWER, SRTM; suelo: ISRIC SoilGrids.
+  </div>
+</footer>
 
 <script>
 {
 const DATA = {"demo":false,"zones":{"morazan":{"zone":{"key":"morazan","name":"San Francisco Gotera, Morazan, El Salvador","lat":13.7,"lon":-88.13,"parcel_elevation_m":null},"current_year":2026,"current":{"canicula_days":6,"canicula_class":"normal","postrera_onset":"2026-08-27","analog_years":[2001,2003,2007,2008,2009,2011,2012,2013,2019,2021,2022,2025],"traffic_light":"green","recommended":"C"},"strategies":[{"key":"A","label":"Current: relay bean after maize","description":"The usual system: beans sown between the maize rows once the primera maize matures. Short cycle, fixes nitrogen, but sensitive to both drought and heavy late rains.","crops":["bean"],"available":true,"score":0.685,"analog_stats":{"n_years":12,"mean_score":0.62,"failure_rate":0.0,"good_rate":0.25},"all_years_stats":{"n_years":25,"mean_score":0.78,"failure_rate":0.0,"good_rate":0.56},"attributes":{"food":0.8,"income":0.8,"soil":0.76,"water":1.0,"labor":0.4,"nitrogen_fixing":true},"why":"In 12 past years with a normal can\u00edcula like 2026, this strategy scored 0.62 on average (1 = good harvest, 0 = failure) and failed in 0% of them.","evidence":[{"year":2001,"score":0.5,"crops":{"bean":{"wrsi":99.7,"class":"partial"}}},{"year":2003,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2007,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2008,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2009,"score":1.0,"crops":{"bean":{"wrsi":100.0,"class":"good"}}},{"year":2011,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2012,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2013,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2019,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2021,"score":1.0,"crops":{"bean":{"wrsi":100.0,"class":"good"}}},{"year":2022,"score":1.0,"crops":{"bean":{"wrsi":100.0,"class":"good"}}},{"year":2025,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}}],"benefits":["Fixes nitrogen for the next primera.","Keeps more of the soil covered.","Lower water demand than the alternatives."],"gaps":["Rainfall is a ~10 km satellite cell (IMERG) or a ~55 km model cell (POWER), not the parcel. IMERG is known to miss part of the rain in mountain terrain.","Crop parameters (cycle, water use) are FAO-56 defaults not yet validated by a local agronomist.","Mixed-plot land shares (0.6 / 0.4) and the bean excess-rain threshold (150 mm at maturity) are assumptions; yields are not modeled.","Soil data is SoilGrids at 250 m unless the technician enters field data."],"risks":["Beans are hit by both drought at flowering and heavy rain at maturity.","Short ground cover: soil is bare again by December."],"rotation":[{"crop":"maize","season":"primera","start":107,"end":207,"flower_start":157,"flower_end":187},{"crop":"bean","season":"postrera","start":239,"end":309,"flower_start":274,"flower_end":294}],"bare_days":195},{"key":"B","label":"Sorghum + bean","description":"Part of the plot goes to drought-tolerant sorghum (grain and forage), the rest to beans. Deep roots and longer ground cover protect sloped soil.","crops":["sorghum","bean"],"available":true,"score":0.772,"analog_stats":{"n_years":12,"mean_score":0.85,"failure_rate":0.0,"good_rate":0.25},"all_years_stats":{"n_years":25,"mean_score":0.9,"failure_rate":0.0,"good_rate":0.52},"attributes":{"food":0.68,"income":0.56,"soil":0.83,"water":0.52,"labor":0.52,"nitrogen_fixing":true},"why":"In 12 past years with a normal can\u00edcula like 2026, this strategy scored 0.85 on average (1 = good harvest, 0 = failure) and failed in 0% of them.","evidence":[{"year":2001,"score":0.8,"crops":{"sorghum":{"wrsi":84.9,"class":"good"},"bean":{"wrsi":99.7,"class":"partial"}}},{"year":2003,"score":0.8,"crops":{"sorghum":{"wrsi":100.0,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2007,"score":0.8,"crops":{"sorghum":{"wrsi":97.5,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2008,"score":0.8,"crops":{"sorghum":{"wrsi":90.7,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2009,"score":1.0,"crops":{"sorghum":{"wrsi":97.9,"class":"good"},"bean":{"wrsi":100.0,"class":"good"}}},{"year":2011,"score":0.8,"crops":{"sorghum":{"wrsi":97.3,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2012,"score":0.8,"crops":{"sorghum":{"wrsi":83.6,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2013,"score":0.8,"crops":{"sorghum":{"wrsi":99.5,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2019,"score":0.8,"crops":{"sorghum":{"wrsi":97.8,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2021,"score":1.0,"crops":{"sorghum":{"wrsi":94.5,"class":"good"},"bean":{"wrsi":100.0,"class":"good"}}},{"year":2022,"score":1.0,"crops":{"sorghum":{"wrsi":96.5,"class":"good"},"bean":{"wrsi":100.0,"class":"good"}}},{"year":2025,"score":0.8,"crops":{"sorghum":{"wrsi":90.8,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}}],"benefits":["Fixes nitrogen for the next primera.","Keeps more of the soil covered.","Spreads risk across two crops."],"gaps":["Rainfall is a ~10 km satellite cell (IMERG) or a ~55 km model cell (POWER), not the parcel. IMERG is known to miss part of the rain in mountain terrain.","Crop parameters (cycle, water use) are FAO-56 defaults not yet validated by a local agronomist.","Mixed-plot land shares (0.6 / 0.4) and the bean excess-rain threshold (150 mm at maturity) are assumptions; yields are not modeled.","Soil data is SoilGrids at 250 m unless the technician enters field data."],"risks":["Sorghum is less valued as human food than maize or beans.","Longer cycle: sorghum harvest falls into the dry season (December-January).","Seed of local sorghum (maicillo) varieties must be confirmed."],"rotation":[{"crop":"maize","season":"primera","start":107,"end":207,"flower_start":157,"flower_end":187},{"crop":"sorghum","season":"postrera","start":239,"end":349,"flower_start":289,"flower_end":329},{"crop":"bean","season":"postrera","start":239,"end":309,"flower_start":274,"flower_end":294}],"bare_days":155},{"key":"C","label":"Second maize","description":"A second maize crop instead of beans, to rebuild the grain reserve after a lost primera. Highest water demand of the three and no nitrogen return.","crops":["maize"],"available":true,"score":0.808,"analog_stats":{"n_years":12,"mean_score":1.0,"failure_rate":0.0,"good_rate":1.0},"all_years_stats":{"n_years":25,"mean_score":1.0,"failure_rate":0.0,"good_rate":1.0},"attributes":{"food":1.0,"income":0.6,"soil":0.18,"water":0.0,"labor":0.5,"nitrogen_fixing":false},"why":"In 12 past years with a normal can\u00edcula like 2026, this strategy scored 1.0 on average (1 = good harvest, 0 = failure) and failed in 0% of them.","evidence":[{"year":2001,"score":1.0,"crops":{"maize":{"wrsi":90.3,"class":"good"}}},{"year":2003,"score":1.0,"crops":{"maize":{"wrsi":100.0,"class":"good"}}},{"year":2007,"score":1.0,"crops":{"maize":{"wrsi":97.0,"class":"good"}}},{"year":2008,"score":1.0,"crops":{"maize":{"wrsi":94.3,"class":"good"}}},{"year":2009,"score":1.0,"crops":{"maize":{"wrsi":100.0,"class":"good"}}},{"year":2011,"score":1.0,"crops":{"maize":{"wrsi":95.1,"class":"good"}}},{"year":2012,"score":1.0,"crops":{"maize":{"wrsi":89.4,"class":"good"}}},{"year":2013,"score":1.0,"crops":{"maize":{"wrsi":100.0,"class":"good"}}},{"year":2019,"score":1.0,"crops":{"maize":{"wrsi":98.9,"class":"good"}}},{"year":2021,"score":1.0,"crops":{"maize":{"wrsi":98.9,"class":"good"}}},{"year":2022,"score":1.0,"crops":{"maize":{"wrsi":96.5,"class":"good"}}},{"year":2025,"score":1.0,"crops":{"maize":{"wrsi":94.1,"class":"good"}}}],"benefits":["Highest food value."],"gaps":["Rainfall is a ~10 km satellite cell (IMERG) or a ~55 km model cell (POWER), not the parcel. IMERG is known to miss part of the rain in mountain terrain.","Crop parameters (cycle, water use) are FAO-56 defaults not yet validated by a local agronomist.","Mixed-plot land shares (0.6 / 0.4) and the bean excess-rain threshold (150 mm at maturity) are assumptions; yields are not modeled.","Soil data is SoilGrids at 250 m unless the technician enters field data."],"risks":["Highest water demand; late planting pushes grain filling into the dry season.","No nitrogen returned to the soil; maize after maize depletes it.","Skipping the bean crop removes the household's main protein and cash crop."],"rotation":[{"crop":"maize","season":"primera","start":107,"end":207,"flower_start":157,"flower_end":187},{"crop":"maize","season":"postrera","start":239,"end":339,"flower_start":289,"flower_end":319}],"bare_days":165}],"validation":{"n_years":25,"mean_score_tempo":0.98,"mean_score_current":0.78,"mean_score_same_every_year":1.0,"mean_score_best_possible":1.0,"failure_years_tempo":0,"failure_years_current":0,"years_tempo_better":10,"years_tempo_worse":0,"picks":{"C":24,"A":1},"by_year":[{"year":2001,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2002,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2003,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2004,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2005,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2006,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2007,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2008,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2009,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2010,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2011,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2012,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2013,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2014,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2015,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2016,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2017,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2018,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2019,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2020,"canicula_class":"short","pick":"A","score_pick":0.5,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2021,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2022,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2023,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2024,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2025,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0}]},"skill":{"n_years":26,"canicula_vs_sep_nov_rain":0.04,"canicula_vs_score":{"A":-0.28,"B":-0.41,"C":null}},"primera_check":{"years":[{"year":2001,"wrsi":99.7,"wrsi_flowering":100.0,"class":"good","rank_driest":14,"documented":false},{"year":2002,"wrsi":91.4,"wrsi_flowering":100.0,"class":"good","rank_driest":7,"documented":false},{"year":2003,"wrsi":99.8,"wrsi_flowering":100.0,"class":"good","rank_driest":15,"documented":false},{"year":2004,"wrsi":99.9,"wrsi_flowering":100.0,"class":"good","rank_driest":16,"documented":false},{"year":2005,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2006,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2007,"wrsi":93.8,"wrsi_flowering":95.6,"class":"good","rank_driest":8,"documented":false},{"year":2008,"wrsi":97.6,"wrsi_flowering":100.0,"class":"good","rank_driest":9,"documented":false},{"year":2009,"wrsi":99.3,"wrsi_flowering":98.9,"class":"good","rank_driest":12,"documented":false},{"year":2010,"wrsi":99.9,"wrsi_flowering":100.0,"class":"good","rank_driest":16,"documented":false},{"year":2011,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2012,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2013,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2014,"wrsi":79.3,"wrsi_flowering":89.7,"class":"partial","rank_driest":3,"documented":true},{"year":2015,"wrsi":78.8,"wrsi_flowering":68.2,"class":"partial","rank_driest":2,"documented":true},{"year":2016,"wrsi":99.0,"wrsi_flowering":100.0,"class":"good","rank_driest":11,"documented":false},{"year":2017,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2018,"wrsi":70.1,"wrsi_flowering":69.7,"class":"partial","rank_driest":1,"documented":true},{"year":2019,"wrsi":89.0,"wrsi_flowering":83.8,"class":"good","rank_driest":6,"documented":false},{"year":2020,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2021,"wrsi":98.6,"wrsi_flowering":99.0,"class":"good","rank_driest":10,"documented":false},{"year":2022,"wrsi":99.9,"wrsi_flowering":100.0,"class":"good","rank_driest":16,"documented":false},{"year":2023,"wrsi":88.3,"wrsi_flowering":79.2,"class":"good","rank_driest":5,"documented":false},{"year":2024,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2025,"wrsi":99.5,"wrsi_flowering":100.0,"class":"good","rank_driest":13,"documented":false},{"year":2026,"wrsi":79.6,"wrsi_flowering":86.8,"class":"partial","rank_driest":4,"documented":true}],"n_years":26,"worst_third_size":9,"documented":[2014,2015,2018,2026],"documented_in_worst_third":[2014,2015,2018,2026]},"yearly":[{"year":2001,"primera_onset":"2001-05-15","primera_false_onset":false,"canicula_days":6,"canicula_start":"2001-07-03","rain_jul_aug_mm":422.8,"postrera_onset":"2001-08-17","rain_sep_nov_mm":458.4},{"year":2002,"primera_onset":"2002-04-09","primera_false_onset":true,"canicula_days":5,"canicula_start":"2002-07-22","rain_jul_aug_mm":429.8,"postrera_onset":"2002-08-15","rain_sep_nov_mm":533.6},{"year":2003,"primera_onset":"2003-04-28","primera_false_onset":false,"canicula_days":7,"canicula_start":"2003-07-18","rain_jul_aug_mm":475.9,"postrera_onset":"2003-08-15","rain_sep_nov_mm":642.1},{"year":2004,"primera_onset":"2004-04-07","primera_false_onset":true,"canicula_days":5,"canicula_start":"2004-08-06","rain_jul_aug_mm":359.6,"postrera_onset":"2004-08-19","rain_sep_nov_mm":555.6},{"year":2005,"primera_onset":"2005-05-01","primera_false_onset":false,"canicula_days":3,"canicula_start":"2005-07-26","rain_jul_aug_mm":438.3,"postrera_onset":"2005-08-15","rain_sep_nov_mm":668.4},{"year":2006,"primera_onset":"2006-04-19","primera_false_onset":true,"canicula_days":5,"canicula_start":"2006-07-01","rain_jul_aug_mm":500.1,"postrera_onset":"2006-08-15","rain_sep_nov_mm":506.2},{"year":2007,"primera_onset":"2007-04-17","primera_false_onset":true,"canicula_days":8,"canicula_start":"2007-07-02","rain_jul_aug_mm":507.2,"postrera_onset":"2007-08-15","rain_sep_nov_mm":743.2},{"year":2008,"primera_onset":"2008-04-05","primera_false_onset":true,"canicula_days":6,"canicula_start":"2008-07-23","rain_jul_aug_mm":657.6,"postrera_onset":"2008-08-15","rain_sep_nov_mm":723.3},{"year":2009,"primera_onset":"2009-05-11","primera_false_onset":false,"canicula_days":6,"canicula_start":"2009-08-20","rain_jul_aug_mm":310.2,"postrera_onset":"2009-08-15","rain_sep_nov_mm":543.0},{"year":2010,"primera_onset":"2010-04-24","primera_false_onset":true,"canicula_days":1,"canicula_start":"2010-07-04","rain_jul_aug_mm":681.1,"postrera_onset":"2010-08-15","rain_sep_nov_mm":497.9},{"year":2011,"primera_onset":"2011-05-07","primera_false_onset":false,"canicula_days":6,"canicula_start":"2011-07-21","rain_jul_aug_mm":578.6,"postrera_onset":"2011-08-15","rain_sep_nov_mm":659.2},{"year":2012,"primera_onset":"2012-04-14","primera_false_onset":true,"canicula_days":8,"canicula_start":"2012-07-23","rain_jul_aug_mm":546.8,"postrera_onset":"2012-08-15","rain_sep_nov_mm":515.9},{"year":2013,"primera_onset":"2013-04-19","primera_false_onset":false,"canicula_days":8,"canicula_start":"2013-07-21","rain_jul_aug_mm":394.2,"postrera_onset":"2013-08-15","rain_sep_nov_mm":633.6},{"year":2014,"primera_onset":"2014-04-29","primera_false_onset":false,"canicula_days":10,"canicula_start":"2014-07-04","rain_jul_aug_mm":361.5,"postrera_onset":"2014-08-15","rain_sep_nov_mm":654.7},{"year":2015,"primera_onset":"2015-04-27","primera_false_onset":true,"canicula_days":12,"canicula_start":"2015-08-15","rain_jul_aug_mm":237.6,"postrera_onset":"2015-08-27","rain_sep_nov_mm":723.3},{"year":2016,"primera_onset":"2016-04-22","primera_false_onset":true,"canicula_days":4,"canicula_start":"2016-07-02","rain_jul_aug_mm":295.9,"postrera_onset":"2016-08-24","rain_sep_nov_mm":573.0},{"year":2017,"primera_onset":"2017-04-28","primera_false_onset":false,"canicula_days":4,"canicula_start":"2017-07-24","rain_jul_aug_mm":501.7,"postrera_onset":"2017-08-15","rain_sep_nov_mm":503.8},{"year":2018,"primera_onset":"2018-04-25","primera_false_onset":false,"canicula_days":11,"canicula_start":"2018-07-01","rain_jul_aug_mm":210.1,"postrera_onset":"2018-08-20","rain_sep_nov_mm":503.2},{"year":2019,"primera_onset":"2019-05-11","primera_false_onset":false,"canicula_days":7,"canicula_start":"2019-08-08","rain_jul_aug_mm":284.7,"postrera_onset":"2019-08-15","rain_sep_nov_mm":654.8},{"year":2020,"primera_onset":"2020-05-06","primera_false_onset":false,"canicula_days":4,"canicula_start":"2020-07-29","rain_jul_aug_mm":453.2,"postrera_onset":"2020-08-15","rain_sep_nov_mm":793.3},{"year":2021,"primera_onset":"2021-04-17","primera_false_onset":true,"canicula_days":7,"canicula_start":"2021-07-17","rain_jul_aug_mm":484.0,"postrera_onset":"2021-08-15","rain_sep_nov_mm":408.5},{"year":2022,"primera_onset":"2022-04-14","primera_false_onset":false,"canicula_days":8,"canicula_start":"2022-07-14","rain_jul_aug_mm":451.8,"postrera_onset":"2022-08-16","rain_sep_nov_mm":607.6},{"year":2023,"primera_onset":"2023-05-26","primera_false_onset":false,"canicula_days":12,"canicula_start":"2023-07-16","rain_jul_aug_mm":316.3,"postrera_onset":"2023-08-17","rain_sep_nov_mm":506.1},{"year":2024,"primera_onset":"2024-04-18","primera_false_onset":true,"canicula_days":4,"canicula_start":"2024-07-11","rain_jul_aug_mm":448.6,"postrera_onset":"2024-08-21","rain_sep_nov_mm":741.7},{"year":2025,"primera_onset":"2025-04-28","primera_false_onset":false,"canicula_days":8,"canicula_start":"2025-07-14","rain_jul_aug_mm":519.6,"postrera_onset":"2025-08-15","rain_sep_nov_mm":769.3},{"year":2026,"primera_onset":"2026-04-17","primera_false_onset":true,"canicula_days":6,"canicula_start":"2026-07-15","rain_jul_aug_mm":172.1,"postrera_onset":"2026-08-27","rain_sep_nov_mm":null}],"chart":{"doy":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366],"p20":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.3,0.3,0.4,0.7,0.4,0.4,0.3,0.5,0.1,0.1,0.1,0.3,0.7,1.7,5.9,6.0,5.2,6.3,8.5,11.1,11.2,11.3,12.8,11.9,12.1,13.5,12.7,12.1,11.1,10.5,11.1,9.5,11.1,10.9,13.8,19.7,24.5,22.6,25.6,25.2,28.4,24.6,27.1,29.2,37.1,44.6,45.9,53.8,53.5,48.3,41.2,46.5,50.6,51.6,46.3,44.8,48.6,53.2,58.0,54.3,55.4,53.3,44.1,46.4,46.3,42.7,33.6,35.8,36.7,41.6,37.0,36.0,36.0,33.5,28.3,38.8,41.3,41.2,36.8,25.2,33.3,49.4,34.8,35.1,38.4,36.7,44.9,40.6,43.7,43.1,40.1,35.6,35.5,23.2,23.9,29.1,24.6,30.9,25.6,18.9,34.8,22.9,25.4,24.8,19.2,20.2,24.8,28.8,28.3,31.7,38.8,42.4,41.8,48.0,39.4,39.1,34.4,36.0,36.2,49.4,48.2,46.8,50.0,50.5,53.1,51.9,48.6,55.3,47.3,47.5,50.9,54.6,56.2,53.4,42.5,48.8,51.6,62.7,67.6,57.9,51.8,56.7,64.6,62.4,61.4,54.1,53.4,43.1,47.5,48.5,45.8,43.7,51.2,53.2,60.4,59.8,50.2,55.1,62.6,61.8,76.4,71.4,70.2,76.2,70.3,67.6,78.3,79.7,79.8,76.8,66.6,64.4,54.3,51.4,51.5,52.8,54.6,51.9,55.0,51.1,51.5,59.3,58.0,56.4,50.3,42.5,36.3,43.9,44.3,36.6,39.3,53.0,39.4,38.2,37.2,35.1,31.9,22.9,13.3,13.1,21.7,20.0,16.1,19.2,14.6,5.8,3.8,3.8,3.0,2.7,1.8,0.3,0.3,1.0,1.1,1.0,1.5,1.5,1.5,1.5,1.6,0.2,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"p50":[0.0,0.0,0.0,0.0,0.0,0.0,0.4,0.5,0.2,0.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.9,0.9,0.9,1.0,1.0,1.0,1.3,0.9,0.1,1.1,0.3,0.3,0.3,0.3,0.3,1.6,1.6,1.6,3.4,5.1,3.4,2.6,3.7,3.4,3.8,3.7,3.7,4.1,4.2,4.2,4.2,3.8,4.4,5.8,6.0,5.6,5.8,11.0,12.2,14.8,20.7,24.6,24.6,20.3,18.3,27.8,29.4,29.5,29.7,31.0,30.4,30.8,29.0,30.8,32.7,30.9,26.4,23.0,23.0,26.3,26.3,35.6,45.1,43.2,47.7,52.2,63.6,62.6,64.2,63.7,69.0,68.1,77.0,100.2,86.8,82.7,78.0,87.4,90.3,91.6,88.0,83.2,68.0,73.0,85.3,73.7,80.7,81.7,75.9,75.9,74.5,77.8,74.0,70.4,73.8,60.5,86.2,67.5,65.9,70.1,70.4,70.7,72.2,73.4,69.6,73.5,75.3,71.3,68.1,63.4,69.6,61.6,61.6,55.8,64.2,59.6,74.9,57.2,58.4,57.1,54.0,53.7,53.4,47.5,47.2,53.5,43.7,53.4,48.3,52.9,52.3,52.3,53.0,50.9,47.0,48.9,48.9,54.3,57.5,56.7,62.0,64.1,65.8,57.3,66.1,62.8,65.8,70.9,60.9,60.1,71.0,74.9,84.5,83.3,81.6,80.6,80.6,81.4,87.6,82.2,79.4,81.7,84.0,85.6,86.4,82.4,79.4,82.1,69.2,72.6,76.4,96.6,97.1,92.2,98.4,91.5,84.0,87.6,85.2,78.2,81.0,79.6,85.4,98.4,81.5,94.2,93.2,100.2,93.0,93.5,91.3,103.0,92.4,94.5,102.0,105.1,106.9,102.6,103.1,100.0,101.1,82.8,78.4,86.1,82.0,87.0,84.9,80.1,90.3,99.5,97.7,105.1,105.8,101.3,106.0,103.9,99.1,93.4,84.6,87.9,62.5,61.6,58.7,48.5,63.6,55.1,49.8,48.2,47.0,35.1,42.4,35.3,41.8,37.8,37.1,24.7,18.2,18.2,18.2,14.1,6.3,9.3,11.6,9.3,9.2,9.2,5.3,5.3,5.3,7.8,7.8,2.4,2.4,0.7,0.5,0.4,0.3,0.3,0.3,0.2,0.3,0.2,0.3,1.1,0.5,0.4,0.5,0.0,0.6,0.6,0.6,0.3,0.0,0.3,0.3,0.3,0.4,0.9,0.4,0.4,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0],"p80":[1.5,1.6,1.6,1.6,1.7,1.6,1.9,2.6,2.5,2.5,1.6,2.0,1.9,1.5,2.0,1.9,1.9,0.9,1.3,0.9,0.9,1.1,1.8,1.8,1.0,1.0,0.4,0.5,0.5,0.4,0.4,0.1,0.4,0.0,0.1,0.1,0.4,0.1,0.1,0.1,0.1,0.1,0.3,0.3,0.2,1.2,1.2,1.2,1.2,1.3,1.2,1.2,0.5,1.7,2.2,2.6,2.6,4.0,3.0,1.7,1.7,1.8,1.8,3.1,3.1,3.6,3.1,1.3,2.4,3.0,4.0,3.4,4.0,4.2,9.7,5.5,8.7,10.5,10.0,9.5,9.5,11.1,11.1,11.1,7.6,7.7,7.5,5.4,7.3,8.0,8.5,7.4,7.5,8.7,12.3,12.3,11.4,12.0,13.6,13.3,15.5,15.5,17.5,15.1,15.1,15.1,15.6,17.5,16.5,8.7,14.8,22.1,31.0,31.8,32.8,33.5,38.4,34.2,39.3,43.2,37.1,39.5,42.8,47.8,45.6,54.1,57.6,55.9,49.6,57.3,57.0,52.5,50.5,53.4,54.9,53.6,67.2,77.3,81.9,82.8,81.9,84.5,97.6,96.9,97.7,101.7,118.0,115.2,115.1,117.4,118.6,122.0,107.8,108.1,122.4,126.9,119.0,118.7,119.7,115.2,96.4,103.4,110.6,107.8,107.7,115.6,111.7,120.1,121.9,126.4,119.9,116.6,114.6,116.3,115.6,123.6,110.6,114.2,133.2,122.7,120.8,109.8,106.6,100.2,110.1,96.6,104.3,94.7,86.1,96.6,77.6,89.8,91.7,92.5,107.8,101.3,94.0,83.2,87.7,108.6,93.8,84.2,87.1,83.9,70.2,66.3,76.0,82.2,78.1,78.8,81.5,89.1,79.4,87.3,97.0,94.4,102.2,98.0,88.7,86.9,85.6,92.4,86.2,100.9,86.2,92.3,87.7,97.8,99.2,108.4,122.8,126.9,115.0,119.5,123.3,131.5,135.7,118.7,108.8,112.6,116.8,113.7,110.3,104.8,103.6,112.5,126.4,125.3,126.7,126.9,121.7,116.1,111.9,112.4,109.7,120.9,117.1,109.0,109.5,119.6,124.4,125.9,128.5,134.2,148.2,140.1,134.9,131.8,128.5,129.6,116.0,122.9,132.7,140.0,126.0,126.5,138.1,149.6,145.0,139.5,139.6,151.0,117.2,122.6,127.9,137.4,132.3,144.9,137.9,139.2,141.6,145.4,155.5,157.6,143.2,143.0,144.4,132.7,111.1,88.1,86.1,88.1,82.1,87.1,93.4,84.1,90.0,92.6,92.1,94.4,95.0,66.9,63.3,55.7,58.3,48.3,44.3,44.1,40.3,36.5,28.7,37.3,36.4,29.3,27.9,28.8,29.0,29.5,29.2,29.2,28.6,29.1,16.5,8.1,6.0,6.0,6.4,6.5,4.6,4.4,7.8,8.3,8.5,8.5,7.7,8.5,8.5,8.5,5.3,5.5,3.9,3.1,2.7,5.2,5.2,2.8,2.3,2.3,2.3,2.6,2.3,1.6,1.4,1.4,1.4,1.5],"current":{"1":0.0,"2":0.0,"3":0.0,"4":0.0,"5":0.0,"6":0.0,"7":0.0,"8":0.0,"9":0.0,"10":0.0,"11":0.0,"12":0.0,"13":0.0,"14":0.0,"15":0.0,"16":0.0,"17":0.0,"18":0.0,"19":0.0,"20":0.0,"21":0.0,"22":0.0,"23":0.0,"24":0.0,"25":0.0,"26":0.0,"27":0.0,"28":0.0,"29":0.0,"30":0.0,"31":0.0,"32":0.0,"33":0.0,"34":0.0,"35":0.0,"36":0.0,"37":0.0,"38":0.0,"39":0.0,"40":0.0,"41":0.0,"42":0.0,"43":0.0,"44":0.0,"45":0.0,"46":0.0,"47":0.0,"48":0.0,"49":0.0,"50":0.0,"51":0.0,"52":0.0,"53":0.0,"54":0.0,"55":0.0,"56":0.0,"57":0.0,"58":0.0,"59":0.0,"60":0.0,"61":0.0,"62":0.0,"63":0.0,"64":0.0,"65":2.3,"66":2.3,"67":4.5,"68":4.5,"69":4.5,"70":4.5,"71":4.5,"72":4.7,"73":4.7,"74":4.7,"75":2.4,"76":6.5,"77":4.4,"78":5.4,"79":7.0,"80":7.0,"81":7.0,"82":6.8,"83":6.8,"84":6.8,"85":6.8,"86":5.7,"87":9.0,"88":8.0,"89":6.6,"90":6.6,"91":7.1,"92":7.7,"93":10.8,"94":13.6,"95":13.6,"96":19.3,"97":18.5,"98":22.5,"99":22.5,"100":22.5,"101":22.0,"102":21.3,"103":18.2,"104":15.4,"105":15.4,"106":6.6,"107":4.2,"108":0.2,"109":20.3,"110":21.5,"111":25.9,"112":31.9,"113":38.4,"114":41.5,"115":42.0,"116":47.7,"117":47.7,"118":47.6,"119":27.4,"120":26.2,"121":21.8,"122":18.2,"123":25.4,"124":22.3,"125":22.5,"126":16.8,"127":16.8,"128":16.8,"129":16.8,"130":16.8,"131":16.8,"132":14.5,"133":0.7,"134":1.7,"135":1.8,"136":1.8,"137":1.8,"138":1.8,"139":1.8,"140":1.8,"141":2.4,"142":2.5,"143":6.9,"144":6.7,"145":7.5,"146":10.5,"147":14.0,"148":35.0,"149":39.9,"150":40.2,"151":43.8,"152":44.1,"153":40.3,"154":41.6,"155":41.3,"156":45.1,"157":51.8,"158":41.4,"159":37.4,"160":37.4,"161":37.1,"162":45.3,"163":45.7,"164":43.6,"165":49.0,"166":45.8,"167":49.3,"168":55.6,"169":55.0,"170":59.7,"171":62.1,"172":76.9,"173":79.8,"174":83.1,"175":76.4,"176":72.7,"177":59.0,"178":42.2,"179":41.9,"180":36.8,"181":30.5,"182":7.1,"183":3.2,"184":1.3,"185":1.3,"186":3.1,"187":3.2,"188":3.2,"189":5.9,"190":5.9,"191":15.8,"192":35.5,"193":37.0,"194":37.1,"195":39.0,"196":37.3,"197":37.3,"198":37.3,"199":35.3,"200":35.6,"201":25.8,"202":7.8,"203":6.4,"204":6.0,"205":4.1,"206":6.6,"207":16.8,"208":18.1,"209":20.5,"210":22.2,"211":22.2,"212":20.5,"213":20.4,"214":20.7,"215":37.5,"216":46.2,"217":42.4,"218":43.6,"219":40.5,"220":38.6,"221":38.6,"222":38.6,"223":46.6,"224":45.5,"225":28.6,"226":17.4,"227":10.9,"228":9.6,"229":10.0,"230":10.0,"231":10.3,"232":10.9,"233":2.9,"234":10.8,"235":10.8,"236":10.8,"237":11.9,"238":11.0,"239":10.7,"240":10.5,"241":13.3,"242":13.0,"243":58.8,"244":51.1,"245":75.5,"246":76.0,"247":76.2,"248":78.5,"249":78.4,"250":78.4,"251":76.4,"252":76.1,"253":30.3,"254":40.1,"255":27.1,"256":26.7,"257":33.8,"258":33.4,"259":34.9,"260":50.0,"261":51.3,"262":70.1,"263":99.3,"264":117.0,"265":106.9,"266":110.6,"267":116.7,"268":116.6,"269":120.7,"270":105.5,"271":106.6,"272":106.7,"273":103.2,"274":75.5,"275":87.2,"276":122.1,"277":112.3,"278":115.3,"279":112.4,"280":136.3,"281":135.3,"282":153.5,"283":144.0,"284":151.7,"285":138.5,"286":107.9,"287":106.6,"288":108.4,"289":109.0,"290":112.9,"291":127.2,"292":95.3,"293":81.5,"294":88.8,"295":89.8,"296":82.1,"297":78.6,"298":71.6,"299":68.4,"300":40.6,"301":23.9,"302":18.8,"303":16.3,"304":1.3,"305":0.4,"306":0.1,"307":0.6,"308":32.2,"309":52.7,"310":52.8,"311":66.9,"312":72.0,"313":72.0,"314":72.0,"315":72.7}},"heat":{"years":[2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],"mm":[[3.3,0.0,0.4,0.0,0.0,2.3,0.1,1.4,2.9,4.8,0.8,1.4,18.0,49.3,99.9,94.3,17.1,4.4,96.0,40.7,59.0,92.2,18.2,126.1,61.8,68.1,77.4,35.4,138.9,75.7,7.6,0.7,2.4,0.1,0.0,1.8],[0.9,0.0,0.0,4.2,0.0,0.4,0.0,0.0,0.0,7.9,23.6,0.1,0.5,51.6,184.5,102.7,106.3,66.6,50.4,67.7,78.6,40.0,90.5,49.3,126.3,76.8,68.8,127.6,50.9,36.0,82.1,18.5,0.0,1.6,0.5,0.0],[2.2,0.1,0.0,0.0,0.0,0.4,0.0,0.8,46.9,2.6,0.9,14.5,56.9,56.1,88.8,56.1,119.0,194.4,40.0,123.1,16.0,41.6,86.6,116.8,91.8,91.2,143.4,88.8,135.4,50.8,43.7,40.6,8.3,0.0,1.8,2.3],[1.4,0.0,2.0,0.0,1.2,11.3,0.0,0.0,14.8,11.8,39.5,15.6,11.2,88.0,140.0,70.0,49.6,35.9,108.9,40.3,79.5,32.3,21.4,72.4,106.8,72.4,88.8,131.0,94.3,40.9,49.3,1.2,0.7,1.3,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,4.1,14.6,6.3,0.9,5.8,25.0,61.1,153.6,32.9,56.4,32.8,159.5,61.6,81.1,50.9,39.4,118.0,108.8,136.6,102.3,102.4,137.4,129.6,34.1,20.0,0.4,9.2,0.4,0.3,10.7],[2.3,0.0,0.3,6.7,0.0,1.3,0.0,0.0,11.2,9.1,3.0,35.6,45.0,45.1,38.1,68.8,137.8,64.8,124.2,107.7,23.8,51.6,108.0,38.5,105.6,105.9,52.4,58.4,47.7,103.8,41.8,17.8,8.3,21.1,2.4,1.4],[0.0,0.0,0.3,0.0,0.0,0.0,0.6,9.2,7.2,5.1,8.0,49.8,39.9,2.4,106.1,51.0,62.4,24.2,5.9,81.9,76.7,70.4,124.5,133.4,93.3,121.4,69.2,138.8,140.3,132.8,27.7,2.3,31.5,3.6,0.0,0.0],[1.1,0.0,0.0,0.0,3.4,4.1,0.0,4.1,0.3,47.2,3.2,0.4,25.7,11.9,175.9,114.9,41.9,33.4,168.7,130.7,53.5,165.1,41.7,68.4,86.7,89.1,150.1,156.9,142.2,137.4,1.0,6.2,7.6,0.5,0.0,1.5],[0.4,14.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,0.0,4.2,16.5,80.9,110.3,37.1,171.1,117.9,92.2,3.4,67.7,54.6,60.5,42.6,37.4,48.4,126.2,61.3,25.0,37.6,195.0,25.3,0.3,0.0,0.0,48.2],[0.0,0.0,0.0,0.4,0.3,0.0,0.0,10.5,0.3,12.9,2.7,90.1,20.3,24.0,213.1,61.7,125.6,118.4,67.0,132.8,80.6,178.2,96.0,111.7,103.3,105.0,162.8,46.0,5.3,52.5,19.8,0.0,26.0,2.6,0.0,0.0],[0.0,0.0,2.7,0.0,1.3,15.5,11.4,1.6,2.3,0.1,6.2,44.0,18.1,48.2,89.0,74.1,80.8,122.6,99.3,141.4,53.0,84.3,114.8,86.8,16.8,121.0,70.6,176.2,147.2,42.5,16.4,39.4,32.2,0.0,0.3,0.0],[0.6,0.0,0.0,17.3,1.0,0.0,0.0,5.7,12.3,47.0,36.5,21.3,12.3,112.0,91.7,51.9,89.1,22.5,63.7,91.5,15.7,45.8,75.2,163.6,142.3,75.9,113.6,69.1,129.5,78.1,0.0,2.9,0.0,0.1,20.8,0.0],[0.0,0.0,0.6,0.0,0.0,0.3,2.8,0.0,0.0,0.0,4.4,27.5,34.7,9.7,113.9,12.6,58.0,85.5,72.5,112.2,3.6,14.1,92.6,108.3,77.8,47.5,156.7,50.3,104.4,76.3,101.8,46.8,0.0,0.3,9.1,2.8],[1.4,0.0,0.0,0.0,2.3,0.0,14.8,0.1,0.0,0.0,0.4,6.4,92.2,40.1,53.3,74.8,62.7,72.2,34.5,2.7,19.2,112.2,99.4,84.0,129.5,119.2,104.0,16.5,135.2,68.9,42.2,0.2,50.9,1.1,3.5,12.3],[0.0,2.1,0.0,0.0,0.0,0.0,0.0,0.9,22.3,0.0,4.5,20.7,29.0,2.3,29.9,135.8,46.0,17.2,37.6,54.3,2.8,22.0,55.0,2.1,136.8,56.6,107.6,51.8,199.9,80.5,92.5,32.8,28.7,0.0,0.0,1.4],[0.0,0.0,0.0,0.0,0.0,0.0,13.8,0.0,0.3,0.0,0.3,37.6,33.3,33.9,33.3,126.4,74.0,68.7,32.2,24.8,48.8,70.8,61.6,30.2,97.0,68.5,83.3,33.9,113.7,140.7,52.6,11.6,0.5,10.6,10.9,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.6,0.3,15.1,0.0,24.6,83.4,69.2,45.6,40.6,138.7,100.1,55.5,42.2,60.1,98.5,100.0,83.5,97.1,67.2,119.6,142.4,51.3,58.7,26.9,2.3,0.1,0.0,18.1,0.8],[0.0,0.9,0.0,0.0,0.0,1.5,0.0,0.0,0.0,17.1,6.0,43.0,36.1,149.3,71.0,116.1,62.0,4.5,0.7,19.5,43.0,39.3,52.7,42.4,51.6,15.4,91.5,220.6,103.3,27.9,4.2,1.1,0.0,0.0,0.0,0.0],[24.3,0.0,1.7,0.0,0.0,0.0,0.0,0.1,1.1,0.4,5.8,17.0,8.6,82.2,131.6,47.6,29.4,68.6,38.6,39.0,26.3,70.2,53.2,30.6,101.2,142.2,74.4,112.9,133.0,64.3,20.6,40.1,0.2,0.0,9.3,2.0],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.4,0.3,0.0,9.5,84.9,77.0,177.1,46.4,29.3,51.8,31.8,116.0,81.9,63.3,93.9,59.8,86.1,59.3,107.3,105.8,113.0,169.9,22.4,92.8,17.2,0.0,0.0],[4.8,1.9,0.0,0.0,15.9,0.0,0.0,17.8,0.0,0.0,11.3,62.2,29.2,1.5,19.9,68.0,79.7,130.5,66.6,53.4,37.7,65.8,123.4,116.1,85.1,85.4,50.0,65.1,37.0,53.2,52.4,1.6,0.1,0.0,0.0,0.1],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,13.5,0.0,19.0,27.1,31.8,103.0,17.8,59.3,60.6,100.5,106.7,43.4,43.4,72.7,76.3,84.5,97.4,110.9,163.3,99.4,76.2,86.0,35.2,37.1,1.1,2.8,29.8,0.0,4.4],[3.8,0.9,0.0,0.0,0.0,0.0,4.0,19.4,0.0,0.0,0.1,15.5,8.1,21.1,66.5,41.0,47.9,73.4,74.1,19.1,19.0,59.3,44.2,100.5,40.1,21.2,92.4,68.4,59.6,46.0,142.6,35.8,0.0,0.0,0.0,1.7],[0.0,0.0,0.0,0.0,3.8,0.0,0.0,1.7,0.0,8.0,4.7,56.9,15.6,15.2,46.5,35.9,129.4,141.8,107.3,20.5,114.8,85.6,71.4,51.2,107.2,61.4,169.7,78.4,21.0,26.7,113.5,106.1,88.6,7.6,0.0,11.0],[16.1,14.3,0.0,0.4,1.4,8.8,0.0,0.0,1.6,3.7,4.0,27.7,58.7,14.3,22.1,152.1,151.6,123.0,54.9,62.2,135.3,26.9,110.0,80.9,129.3,149.5,72.3,161.3,193.0,84.2,7.1,23.0,0.8,0.1,4.6,2.6],[0.0,0.0,0.0,0.0,0.0,0.0,4.5,7.0,6.6,22.5,21.5,26.2,16.8,1.8,40.2,37.4,59.7,36.8,5.9,35.6,22.2,38.6,10.0,10.5,78.4,50.0,105.5,136.3,112.9,40.6,52.8,null,null,null,null,null]]},"postrera_planting":{"date":"2026-08-27","late_default":false},"inputs":{"texture_class":"default","whc_mm":90,"slope_pct":26.5,"weights":{"food":1.0,"income":0.5,"soil":0.5,"water":0.5,"labor":0.3},"seeds":null,"temp_correction_c":-0.57,"share_days_imerg":0.999,"soil":{"error":"Request failed after 4 tries: https://rest.isric.org/soilgrids/v2.0/properties/query\nHTTP 503: <html>\r\n<head><title>503 Service Temporarily Unavailable<\/title><\/head>\r\n<body>\r\n<center><h1>503 Service Temporarily Unavailable<\/h1><\/center>\r\n<hr><center>nginx<\/center>\r\n<\/body>\r\n<\/html>\r\n"},"terrain":{"elevation_m":395,"slope_deg":14.85,"slope_pct":26.5,"source":"SRTM GL1 v003 (USGS/SRTMGL1_003) via Google Earth Engine"},"sources":{"power":"NASA POWER daily, community AG, params ['T2M', 'T2M_MAX', 'T2M_MIN', 'RH2M', 'ALLSKY_SFC_SW_DWN', 'PRECTOTCORR']","imerg":"GPM IMERG V07 half-hourly (NASA/GPM_L3/IMERG_V07), summed by local day"}}},"choluteca":{"zone":{"key":"choluteca","name":"Choluteca, Honduras","lat":13.3,"lon":-87.19,"parcel_elevation_m":null},"current_year":2026,"current":{"canicula_days":13,"canicula_class":"long","postrera_onset":"2026-08-30","analog_years":[2001,2009,2014,2018,2019,2021,2023,2025],"traffic_light":"green","recommended":"C"},"strategies":[{"key":"A","label":"Current: relay bean after maize","description":"The usual system: beans sown between the maize rows once the primera maize matures. Short cycle, fixes nitrogen, but sensitive to both drought and heavy late rains.","crops":["bean"],"available":true,"score":0.686,"analog_stats":{"n_years":8,"mean_score":0.62,"failure_rate":0.0,"good_rate":0.25},"all_years_stats":{"n_years":25,"mean_score":0.7,"failure_rate":0.0,"good_rate":0.4},"attributes":{"food":0.8,"income":0.8,"soil":0.76,"water":1.0,"labor":0.4,"nitrogen_fixing":true},"why":"In 8 past years with a long can\u00edcula like 2026, this strategy scored 0.62 on average (1 = good harvest, 0 = failure) and failed in 0% of them.","evidence":[{"year":2001,"score":0.5,"crops":{"bean":{"wrsi":99.9,"class":"partial"}}},{"year":2009,"score":1.0,"crops":{"bean":{"wrsi":100.0,"class":"good"}}},{"year":2014,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2018,"score":1.0,"crops":{"bean":{"wrsi":99.9,"class":"good"}}},{"year":2019,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2021,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2023,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2025,"score":0.5,"crops":{"bean":{"wrsi":100.0,"class":"partial"}}}],"benefits":["Fixes nitrogen for the next primera.","Keeps more of the soil covered.","Lower water demand than the alternatives."],"gaps":["Rainfall is a ~10 km satellite cell (IMERG) or a ~55 km model cell (POWER), not the parcel. IMERG is known to miss part of the rain in mountain terrain.","Crop parameters (cycle, water use) are FAO-56 defaults not yet validated by a local agronomist.","Mixed-plot land shares (0.6 / 0.4) and the bean excess-rain threshold (150 mm at maturity) are assumptions; yields are not modeled.","Soil data is SoilGrids at 250 m unless the technician enters field data."],"risks":["Beans are hit by both drought at flowering and heavy rain at maturity.","Short ground cover: soil is bare again by December."],"rotation":[{"crop":"maize","season":"primera","start":111,"end":211,"flower_start":161,"flower_end":191},{"crop":"bean","season":"postrera","start":242,"end":312,"flower_start":277,"flower_end":297}],"bare_days":195},{"key":"B","label":"Sorghum + bean","description":"Part of the plot goes to drought-tolerant sorghum (grain and forage), the rest to beans. Deep roots and longer ground cover protect sloped soil.","crops":["sorghum","bean"],"available":true,"score":0.742,"analog_stats":{"n_years":8,"mean_score":0.81,"failure_rate":0.0,"good_rate":0.12},"all_years_stats":{"n_years":25,"mean_score":0.87,"failure_rate":0.0,"good_rate":0.36},"attributes":{"food":0.68,"income":0.56,"soil":0.83,"water":0.52,"labor":0.52,"nitrogen_fixing":true},"why":"In 8 past years with a long can\u00edcula like 2026, this strategy scored 0.81 on average (1 = good harvest, 0 = failure) and failed in 0% of them.","evidence":[{"year":2001,"score":0.8,"crops":{"sorghum":{"wrsi":89.6,"class":"good"},"bean":{"wrsi":99.9,"class":"partial"}}},{"year":2009,"score":1.0,"crops":{"sorghum":{"wrsi":96.1,"class":"good"},"bean":{"wrsi":100.0,"class":"good"}}},{"year":2014,"score":0.8,"crops":{"sorghum":{"wrsi":99.5,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2018,"score":0.7,"crops":{"sorghum":{"wrsi":78.6,"class":"partial"},"bean":{"wrsi":99.9,"class":"good"}}},{"year":2019,"score":0.8,"crops":{"sorghum":{"wrsi":97.9,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2021,"score":0.8,"crops":{"sorghum":{"wrsi":95.0,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2023,"score":0.8,"crops":{"sorghum":{"wrsi":98.1,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}},{"year":2025,"score":0.8,"crops":{"sorghum":{"wrsi":100.0,"class":"good"},"bean":{"wrsi":100.0,"class":"partial"}}}],"benefits":["Fixes nitrogen for the next primera.","Keeps more of the soil covered.","Spreads risk across two crops."],"gaps":["Rainfall is a ~10 km satellite cell (IMERG) or a ~55 km model cell (POWER), not the parcel. IMERG is known to miss part of the rain in mountain terrain.","Crop parameters (cycle, water use) are FAO-56 defaults not yet validated by a local agronomist.","Mixed-plot land shares (0.6 / 0.4) and the bean excess-rain threshold (150 mm at maturity) are assumptions; yields are not modeled.","Soil data is SoilGrids at 250 m unless the technician enters field data."],"risks":["Sorghum is less valued as human food than maize or beans.","Longer cycle: sorghum harvest falls into the dry season (December-January).","Seed of local sorghum (maicillo) varieties must be confirmed."],"rotation":[{"crop":"maize","season":"primera","start":111,"end":211,"flower_start":161,"flower_end":191},{"crop":"sorghum","season":"postrera","start":242,"end":352,"flower_start":292,"flower_end":332},{"crop":"bean","season":"postrera","start":242,"end":312,"flower_start":277,"flower_end":297}],"bare_days":155},{"key":"C","label":"Second maize","description":"A second maize crop instead of beans, to rebuild the grain reserve after a lost primera. Highest water demand of the three and no nitrogen return.","crops":["maize"],"available":true,"score":0.784,"analog_stats":{"n_years":8,"mean_score":0.94,"failure_rate":0.0,"good_rate":0.88},"all_years_stats":{"n_years":25,"mean_score":0.98,"failure_rate":0.0,"good_rate":0.96},"attributes":{"food":1.0,"income":0.6,"soil":0.18,"water":0.0,"labor":0.5,"nitrogen_fixing":false},"why":"In 8 past years with a long can\u00edcula like 2026, this strategy scored 0.94 on average (1 = good harvest, 0 = failure) and failed in 0% of them.","evidence":[{"year":2001,"score":1.0,"crops":{"maize":{"wrsi":94.4,"class":"good"}}},{"year":2009,"score":1.0,"crops":{"maize":{"wrsi":98.6,"class":"good"}}},{"year":2014,"score":1.0,"crops":{"maize":{"wrsi":99.4,"class":"good"}}},{"year":2018,"score":0.5,"crops":{"maize":{"wrsi":79.0,"class":"partial"}}},{"year":2019,"score":1.0,"crops":{"maize":{"wrsi":99.0,"class":"good"}}},{"year":2021,"score":1.0,"crops":{"maize":{"wrsi":99.3,"class":"good"}}},{"year":2023,"score":1.0,"crops":{"maize":{"wrsi":100.0,"class":"good"}}},{"year":2025,"score":1.0,"crops":{"maize":{"wrsi":100.0,"class":"good"}}}],"benefits":["Highest food value."],"gaps":["Rainfall is a ~10 km satellite cell (IMERG) or a ~55 km model cell (POWER), not the parcel. IMERG is known to miss part of the rain in mountain terrain.","Crop parameters (cycle, water use) are FAO-56 defaults not yet validated by a local agronomist.","Mixed-plot land shares (0.6 / 0.4) and the bean excess-rain threshold (150 mm at maturity) are assumptions; yields are not modeled.","Soil data is SoilGrids at 250 m unless the technician enters field data."],"risks":["Highest water demand; late planting pushes grain filling into the dry season.","No nitrogen returned to the soil; maize after maize depletes it.","Skipping the bean crop removes the household's main protein and cash crop."],"rotation":[{"crop":"maize","season":"primera","start":111,"end":211,"flower_start":161,"flower_end":191},{"crop":"maize","season":"postrera","start":242,"end":342,"flower_start":292,"flower_end":322}],"bare_days":165}],"validation":{"n_years":25,"mean_score_tempo":0.98,"mean_score_current":0.7,"mean_score_same_every_year":0.98,"mean_score_best_possible":1.0,"failure_years_tempo":0,"failure_years_current":0,"years_tempo_better":15,"years_tempo_worse":1,"picks":{"C":25},"by_year":[{"year":2001,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2002,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2003,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2004,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2005,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2006,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2007,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2008,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2009,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2010,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2011,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2012,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2013,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2014,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2015,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2016,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2017,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2018,"canicula_class":"long","pick":"C","score_pick":0.5,"score_A":1.0,"clim_pick":"C","score_clim":0.5,"best_possible":1.0},{"year":2019,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2020,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2021,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2022,"canicula_class":"normal","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2023,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2024,"canicula_class":"short","pick":"C","score_pick":1.0,"score_A":1.0,"clim_pick":"C","score_clim":1.0,"best_possible":1.0},{"year":2025,"canicula_class":"long","pick":"C","score_pick":1.0,"score_A":0.5,"clim_pick":"C","score_clim":1.0,"best_possible":1.0}]},"skill":{"n_years":26,"canicula_vs_sep_nov_rain":-0.18,"canicula_vs_score":{"A":-0.08,"B":-0.37,"C":-0.34}},"primera_check":{"years":[{"year":2001,"wrsi":68.9,"wrsi_flowering":56.5,"class":"failure","rank_driest":4,"documented":false},{"year":2002,"wrsi":89.4,"wrsi_flowering":100.0,"class":"good","rank_driest":12,"documented":false},{"year":2003,"wrsi":79.6,"wrsi_flowering":79.7,"class":"partial","rank_driest":7,"documented":false},{"year":2004,"wrsi":95.2,"wrsi_flowering":90.7,"class":"good","rank_driest":17,"documented":false},{"year":2005,"wrsi":91.8,"wrsi_flowering":100.0,"class":"good","rank_driest":14,"documented":false},{"year":2006,"wrsi":99.4,"wrsi_flowering":99.8,"class":"good","rank_driest":23,"documented":false},{"year":2007,"wrsi":83.9,"wrsi_flowering":80.5,"class":"good","rank_driest":9,"documented":false},{"year":2008,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":24,"documented":false},{"year":2009,"wrsi":94.0,"wrsi_flowering":95.9,"class":"good","rank_driest":15,"documented":false},{"year":2010,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":24,"documented":false},{"year":2011,"wrsi":100.0,"wrsi_flowering":100.0,"class":"good","rank_driest":24,"documented":false},{"year":2012,"wrsi":95.8,"wrsi_flowering":100.0,"class":"good","rank_driest":18,"documented":false},{"year":2013,"wrsi":94.9,"wrsi_flowering":99.9,"class":"good","rank_driest":16,"documented":false},{"year":2014,"wrsi":68.3,"wrsi_flowering":76.8,"class":"partial","rank_driest":2,"documented":true},{"year":2015,"wrsi":68.4,"wrsi_flowering":54.0,"class":"failure","rank_driest":3,"documented":true},{"year":2016,"wrsi":83.3,"wrsi_flowering":93.4,"class":"good","rank_driest":8,"documented":false},{"year":2017,"wrsi":96.0,"wrsi_flowering":100.0,"class":"good","rank_driest":19,"documented":false},{"year":2018,"wrsi":72.3,"wrsi_flowering":81.1,"class":"partial","rank_driest":6,"documented":true},{"year":2019,"wrsi":61.6,"wrsi_flowering":47.1,"class":"failure","rank_driest":1,"documented":false},{"year":2020,"wrsi":87.0,"wrsi_flowering":71.5,"class":"good","rank_driest":10,"documented":false},{"year":2021,"wrsi":88.5,"wrsi_flowering":88.1,"class":"good","rank_driest":11,"documented":false},{"year":2022,"wrsi":96.9,"wrsi_flowering":100.0,"class":"good","rank_driest":21,"documented":false},{"year":2023,"wrsi":96.7,"wrsi_flowering":100.0,"class":"good","rank_driest":20,"documented":false},{"year":2024,"wrsi":98.5,"wrsi_flowering":96.5,"class":"good","rank_driest":22,"documented":false},{"year":2025,"wrsi":90.8,"wrsi_flowering":99.8,"class":"good","rank_driest":13,"documented":false},{"year":2026,"wrsi":69.9,"wrsi_flowering":80.4,"class":"partial","rank_driest":5,"documented":true}],"n_years":26,"worst_third_size":9,"documented":[2014,2015,2018,2026],"documented_in_worst_third":[2014,2015,2018,2026]},"yearly":[{"year":2001,"primera_onset":"2001-05-15","primera_false_onset":false,"canicula_days":8,"canicula_start":"2001-08-06","rain_jul_aug_mm":279.4,"postrera_onset":"2001-08-17","rain_sep_nov_mm":530.9},{"year":2002,"primera_onset":"2002-04-10","primera_false_onset":true,"canicula_days":5,"canicula_start":"2002-07-08","rain_jul_aug_mm":226.1,"postrera_onset":"2002-08-22","rain_sep_nov_mm":627.0},{"year":2003,"primera_onset":"2003-05-17","primera_false_onset":false,"canicula_days":7,"canicula_start":"2003-07-18","rain_jul_aug_mm":300.0,"postrera_onset":"2003-08-15","rain_sep_nov_mm":719.6},{"year":2004,"primera_onset":"2004-04-24","primera_false_onset":true,"canicula_days":5,"canicula_start":"2004-08-06","rain_jul_aug_mm":367.5,"postrera_onset":"2004-08-20","rain_sep_nov_mm":730.6},{"year":2005,"primera_onset":"2005-04-01","primera_false_onset":true,"canicula_days":3,"canicula_start":"2005-07-26","rain_jul_aug_mm":432.7,"postrera_onset":"2005-08-15","rain_sep_nov_mm":635.9},{"year":2006,"primera_onset":"2006-04-22","primera_false_onset":true,"canicula_days":5,"canicula_start":"2006-07-11","rain_jul_aug_mm":350.2,"postrera_onset":"2006-08-15","rain_sep_nov_mm":630.7},{"year":2007,"primera_onset":"2007-04-22","primera_false_onset":false,"canicula_days":7,"canicula_start":"2007-07-03","rain_jul_aug_mm":534.6,"postrera_onset":"2007-08-15","rain_sep_nov_mm":962.1},{"year":2008,"primera_onset":"2008-05-17","primera_false_onset":false,"canicula_days":4,"canicula_start":"2008-07-25","rain_jul_aug_mm":613.2,"postrera_onset":"2008-08-15","rain_sep_nov_mm":923.8},{"year":2009,"primera_onset":"2009-05-04","primera_false_onset":false,"canicula_days":8,"canicula_start":"2009-07-13","rain_jul_aug_mm":237.1,"postrera_onset":"2009-08-15","rain_sep_nov_mm":540.9},{"year":2010,"primera_onset":"2010-04-24","primera_false_onset":true,"canicula_days":1,"canicula_start":"2010-07-07","rain_jul_aug_mm":831.9,"postrera_onset":"2010-08-15","rain_sep_nov_mm":845.0},{"year":2011,"primera_onset":"2011-05-08","primera_false_onset":false,"canicula_days":4,"canicula_start":"2011-08-15","rain_jul_aug_mm":689.5,"postrera_onset":"2011-08-16","rain_sep_nov_mm":817.6},{"year":2012,"primera_onset":"2012-04-14","primera_false_onset":true,"canicula_days":6,"canicula_start":"2012-07-23","rain_jul_aug_mm":457.7,"postrera_onset":"2012-08-15","rain_sep_nov_mm":583.6},{"year":2013,"primera_onset":"2013-04-29","primera_false_onset":true,"canicula_days":4,"canicula_start":"2013-07-05","rain_jul_aug_mm":316.8,"postrera_onset":"2013-08-15","rain_sep_nov_mm":707.6},{"year":2014,"primera_onset":"2014-04-28","primera_false_onset":false,"canicula_days":13,"canicula_start":"2014-07-04","rain_jul_aug_mm":277.0,"postrera_onset":"2014-08-15","rain_sep_nov_mm":950.7},{"year":2015,"primera_onset":"2015-04-27","primera_false_onset":true,"canicula_days":7,"canicula_start":"2015-07-01","rain_jul_aug_mm":126.8,"postrera_onset":"2015-08-29","rain_sep_nov_mm":653.8},{"year":2016,"primera_onset":"2016-04-22","primera_false_onset":true,"canicula_days":6,"canicula_start":"2016-07-02","rain_jul_aug_mm":320.4,"postrera_onset":"2016-08-23","rain_sep_nov_mm":724.6},{"year":2017,"primera_onset":"2017-04-15","primera_false_onset":false,"canicula_days":6,"canicula_start":"2017-07-22","rain_jul_aug_mm":375.7,"postrera_onset":"2017-08-19","rain_sep_nov_mm":626.9},{"year":2018,"primera_onset":"2018-04-24","primera_false_onset":false,"canicula_days":15,"canicula_start":"2018-07-13","rain_jul_aug_mm":102.3,"postrera_onset":"2018-08-28","rain_sep_nov_mm":761.9},{"year":2019,"primera_onset":"2019-05-13","primera_false_onset":false,"canicula_days":10,"canicula_start":"2019-07-26","rain_jul_aug_mm":165.2,"postrera_onset":"2019-08-15","rain_sep_nov_mm":692.8},{"year":2020,"primera_onset":"2020-05-07","primera_false_onset":false,"canicula_days":5,"canicula_start":"2020-08-10","rain_jul_aug_mm":365.3,"postrera_onset":"2020-08-15","rain_sep_nov_mm":1088.7},{"year":2021,"primera_onset":"2021-04-15","primera_false_onset":true,"canicula_days":13,"canicula_start":"2021-07-14","rain_jul_aug_mm":494.7,"postrera_onset":"2021-08-15","rain_sep_nov_mm":527.4},{"year":2022,"primera_onset":"2022-04-18","primera_false_onset":false,"canicula_days":7,"canicula_start":"2022-07-14","rain_jul_aug_mm":410.2,"postrera_onset":"2022-08-15","rain_sep_nov_mm":921.6},{"year":2023,"primera_onset":"2023-04-22","primera_false_onset":true,"canicula_days":9,"canicula_start":"2023-08-03","rain_jul_aug_mm":299.3,"postrera_onset":"2023-08-20","rain_sep_nov_mm":657.4},{"year":2024,"primera_onset":"2024-04-01","primera_false_onset":true,"canicula_days":5,"canicula_start":"2024-07-12","rain_jul_aug_mm":348.6,"postrera_onset":"2024-08-26","rain_sep_nov_mm":965.5},{"year":2025,"primera_onset":"2025-05-01","primera_false_onset":true,"canicula_days":11,"canicula_start":"2025-07-14","rain_jul_aug_mm":315.4,"postrera_onset":"2025-08-15","rain_sep_nov_mm":821.4},{"year":2026,"primera_onset":"2026-04-21","primera_false_onset":true,"canicula_days":13,"canicula_start":"2026-08-18","rain_jul_aug_mm":74.3,"postrera_onset":"2026-08-30","rain_sep_nov_mm":null}],"chart":{"doy":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366],"p20":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.2,0.2,0.2,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.3,0.2,0.7,1.1,1.3,2.0,2.0,3.1,3.9,6.6,6.3,6.4,6.7,9.2,7.6,7.8,8.1,7.6,11.2,11.9,12.2,11.9,9.1,7.9,11.5,13.5,16.0,26.3,32.0,46.6,43.0,45.5,46.0,59.1,55.0,54.5,61.0,53.7,64.2,55.8,64.0,62.3,69.4,74.8,86.8,93.2,82.3,80.8,75.3,72.3,85.1,75.6,68.2,67.7,74.6,54.2,60.5,60.5,49.3,64.9,63.3,60.0,47.8,41.2,33.1,25.3,23.6,21.7,21.8,19.8,22.0,21.7,21.5,19.9,21.6,16.2,17.8,19.7,19.9,20.7,24.3,26.4,23.6,16.2,16.0,14.5,9.3,11.0,13.9,12.0,12.0,10.1,9.7,10.5,10.3,10.2,15.3,15.6,15.4,15.4,15.5,19.8,19.6,15.3,16.6,14.8,14.9,17.4,19.5,19.7,17.4,16.5,18.0,21.0,22.7,23.5,23.3,23.0,27.2,31.3,36.9,30.2,34.6,35.0,29.4,34.6,43.9,40.6,44.8,35.6,39.0,45.7,47.9,44.5,48.1,56.0,46.5,57.4,62.1,59.8,59.5,52.1,57.7,53.6,61.8,57.0,65.3,70.4,86.8,83.0,81.2,82.1,81.9,85.7,88.3,80.2,78.5,81.4,81.7,77.3,81.1,81.3,79.6,75.7,71.8,68.0,63.4,58.7,48.4,49.2,62.2,62.4,64.1,67.5,72.6,73.0,64.7,64.2,54.3,60.4,59.4,68.5,71.4,61.9,71.0,63.2,63.8,56.7,50.2,49.8,44.0,47.6,43.1,41.7,34.2,32.2,30.8,25.6,20.2,12.1,11.8,7.9,5.0,5.7,2.9,4.1,5.2,4.5,2.6,2.6,2.6,3.1,3.2,3.2,1.8,1.9,1.9,1.2,1.2,1.2,0.8,0.8,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.1,0.0,0.0,0.2,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"p50":[0.1,0.4,0.5,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.1,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,1.8,2.4,2.4,0.7,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,1.2,2.8,2.2,2.8,2.8,2.8,4.2,4.7,2.2,2.2,1.4,1.0,0.8,0.6,1.2,2.6,1.4,3.0,8.7,10.6,3.0,6.1,9.8,11.9,16.5,25.8,25.2,21.3,24.2,17.2,17.9,22.3,24.0,24.0,24.5,34.0,20.6,29.9,35.7,32.8,32.7,25.9,32.8,46.5,59.0,65.5,69.4,77.4,83.1,79.5,79.6,89.2,91.5,108.0,109.3,114.9,105.1,126.6,116.7,106.4,114.0,114.5,118.1,105.0,111.9,107.3,98.3,107.5,104.4,101.0,97.6,114.5,99.7,107.3,116.1,116.2,109.8,102.7,91.5,89.1,88.3,78.9,61.9,64.0,61.9,52.5,53.4,56.2,49.1,44.8,61.3,62.9,61.6,60.5,48.5,47.2,58.7,53.5,45.2,40.6,47.4,35.5,36.4,33.9,28.4,34.3,36.2,27.9,27.3,34.0,36.0,36.0,29.2,37.8,29.7,31.4,39.3,35.7,28.4,33.0,34.6,43.0,51.5,46.6,49.5,47.9,41.7,45.0,48.2,44.9,50.1,45.7,48.0,51.1,50.9,51.6,58.0,64.9,70.3,68.8,71.5,68.8,72.1,77.4,77.8,77.1,95.7,76.8,80.1,85.6,88.5,82.8,74.2,82.7,89.1,109.3,111.4,113.2,116.6,109.1,105.3,98.4,108.9,108.5,100.7,101.1,104.6,106.0,113.6,107.5,114.7,121.6,119.6,121.0,113.0,111.2,122.2,116.2,106.7,103.6,101.7,108.3,110.6,112.4,112.2,117.2,102.8,94.3,106.1,105.0,116.3,108.9,109.4,115.1,118.7,100.5,98.8,105.8,128.7,121.6,109.6,122.7,130.1,121.2,116.4,98.2,87.1,80.9,81.4,72.0,68.3,66.1,62.3,56.8,51.9,51.6,45.7,34.3,31.8,31.7,31.2,29.3,27.4,17.2,11.5,13.2,11.2,14.5,14.5,18.4,12.5,13.4,11.4,9.9,8.4,8.0,7.2,5.7,4.4,2.7,2.5,1.9,1.2,1.2,1.0,0.6,1.0,1.2,1.2,1.1,1.4,1.2,2.2,1.2,3.4,1.8,1.0,0.6,0.6,0.4,0.1,0.2,0.1,0.1,0.1,0.6,0.7,0.9,2.2,2.4,2.2,0.0,0.0],"p80":[6.0,6.0,5.7,4.6,4.6,2.6,2.6,2.7,2.0,1.2,0.8,0.8,0.0,0.6,0.9,1.8,1.0,1.3,2.5,2.5,2.5,1.8,1.8,2.1,1.5,1.9,0.6,0.9,1.6,2.3,2.5,2.5,2.5,2.5,2.5,2.1,3.3,2.6,2.6,1.1,1.1,1.1,1.1,4.1,1.2,1.3,1.6,1.6,0.3,0.8,0.8,0.8,0.8,0.9,1.0,1.4,5.7,5.7,5.7,5.3,5.3,5.3,5.3,3.0,1.8,1.7,1.2,1.3,2.0,2.1,2.1,1.3,1.3,2.8,4.3,4.1,5.3,8.6,8.8,7.9,7.9,12.4,12.4,12.4,11.3,11.3,7.9,10.1,10.1,9.8,9.8,9.9,9.4,9.4,15.8,14.5,14.7,17.9,16.2,16.2,16.3,11.5,15.2,20.2,16.6,10.0,10.6,9.8,17.1,21.0,20.8,22.2,24.2,24.3,24.3,32.1,49.3,54.1,47.8,42.5,55.0,53.6,61.9,63.5,63.0,75.0,74.4,76.4,59.4,64.6,58.0,65.4,69.3,72.1,82.8,80.2,86.7,99.0,107.4,103.8,112.3,111.5,131.2,139.6,146.2,133.0,141.4,141.9,149.8,158.3,170.2,158.3,176.4,182.7,178.3,156.8,157.0,183.7,152.5,145.6,137.7,143.8,157.8,159.7,167.1,161.2,159.0,165.7,160.7,140.4,142.7,139.7,112.1,121.9,121.1,114.9,122.4,118.1,121.5,121.9,120.8,117.7,112.3,103.3,104.4,96.8,98.3,97.6,89.4,87.3,91.9,92.3,91.5,93.0,94.5,86.8,68.9,60.2,54.5,54.1,52.7,55.4,62.5,59.4,55.7,58.9,65.4,68.4,68.7,78.5,72.8,77.1,66.6,64.4,71.4,81.6,93.0,99.6,96.0,95.7,95.8,100.3,92.1,92.7,87.8,87.7,81.0,78.6,75.3,78.5,84.2,90.0,91.7,94.7,98.8,103.8,109.7,107.9,113.3,121.8,123.9,123.0,130.7,131.3,137.4,127.0,134.8,138.6,140.3,144.8,141.1,137.4,130.4,131.1,133.5,141.6,140.1,147.1,135.0,132.9,132.6,139.3,150.6,156.6,174.6,176.2,183.0,189.8,177.8,163.3,152.4,149.0,167.6,158.4,149.7,144.0,155.0,158.9,154.4,158.9,166.8,162.9,156.1,158.0,165.0,160.8,158.5,162.0,165.9,174.4,186.5,187.6,201.8,199.4,166.4,156.8,136.5,137.7,130.5,122.3,123.9,98.5,98.5,87.6,91.6,90.4,92.5,92.8,86.7,87.5,86.8,75.6,75.0,74.0,71.9,70.1,66.2,45.7,40.0,42.7,36.8,37.2,35.4,38.0,38.7,38.8,39.3,37.4,32.9,19.1,28.6,16.6,12.9,12.1,12.3,12.3,6.9,11.0,4.7,10.3,10.1,10.1,10.8,8.9,8.7,8.7,8.8,12.2,14.7,11.9,6.6,6.6,5.7,8.2,12.8,12.6,9.5,6.4,6.8,7.5,9.0,9.0,9.0,10.6,4.1,4.6],"current":{"1":0.0,"2":0.0,"3":0.0,"4":0.0,"5":0.0,"6":0.0,"7":0.0,"8":0.0,"9":0.0,"10":0.0,"11":0.0,"12":0.0,"13":0.0,"14":0.0,"15":0.0,"16":0.0,"17":0.0,"18":0.0,"19":0.0,"20":0.0,"21":0.0,"22":0.0,"23":0.0,"24":0.0,"25":0.0,"26":0.0,"27":0.0,"28":0.0,"29":0.0,"30":0.0,"31":0.0,"32":0.0,"33":0.0,"34":0.0,"35":0.0,"36":0.0,"37":0.0,"38":0.0,"39":0.0,"40":0.0,"41":0.0,"42":0.0,"43":0.0,"44":0.0,"45":0.0,"46":0.0,"47":0.0,"48":0.0,"49":0.0,"50":0.0,"51":0.0,"52":0.0,"53":0.0,"54":0.0,"55":0.0,"56":0.0,"57":0.0,"58":0.0,"59":0.0,"60":0.0,"61":0.0,"62":0.0,"63":0.0,"64":0.0,"65":0.0,"66":0.0,"67":0.0,"68":0.0,"69":0.0,"70":0.0,"71":0.0,"72":0.0,"73":0.0,"74":0.0,"75":0.0,"76":9.8,"77":10.0,"78":10.4,"79":10.4,"80":10.7,"81":10.7,"82":10.7,"83":10.7,"84":11.5,"85":11.5,"86":1.7,"87":1.6,"88":1.1,"89":1.1,"90":0.8,"91":1.6,"92":1.8,"93":13.7,"94":12.9,"95":12.9,"96":12.9,"97":13.1,"98":13.1,"99":13.1,"100":13.1,"101":12.3,"102":12.0,"103":1.0,"104":1.0,"105":1.0,"106":1.0,"107":0.9,"108":1.3,"109":5.4,"110":5.4,"111":11.1,"112":15.7,"113":24.8,"114":27.5,"115":30.8,"116":40.6,"117":40.6,"118":40.2,"119":36.0,"120":36.0,"121":30.4,"122":27.1,"123":23.0,"124":20.3,"125":17.0,"126":7.2,"127":7.2,"128":7.2,"129":7.2,"130":7.2,"131":7.1,"132":5.9,"133":0.0,"134":0.0,"135":0.0,"136":0.0,"137":0.0,"138":0.0,"139":0.0,"140":0.0,"141":0.0,"142":0.0,"143":0.8,"144":0.9,"145":1.2,"146":5.1,"147":19.8,"148":23.5,"149":63.5,"150":67.3,"151":75.3,"152":75.5,"153":75.6,"154":80.1,"155":105.6,"156":107.1,"157":95.4,"158":110.9,"159":74.9,"160":72.0,"161":67.4,"162":67.8,"163":76.7,"164":72.1,"165":47.6,"166":46.9,"167":61.9,"168":58.9,"169":68.8,"170":77.9,"171":83.2,"172":100.7,"173":92.7,"174":92.9,"175":92.2,"176":87.4,"177":69.6,"178":53.3,"179":39.4,"180":29.5,"181":20.8,"182":2.8,"183":1.4,"184":1.1,"185":0.6,"186":9.6,"187":9.5,"188":9.5,"189":9.5,"190":9.6,"191":13.1,"192":15.3,"193":14.9,"194":15.5,"195":16.7,"196":7.8,"197":8.1,"198":8.1,"199":8.1,"200":8.1,"201":4.6,"202":4.4,"203":4.4,"204":4.0,"205":6.0,"206":9.8,"207":9.6,"208":9.6,"209":9.5,"210":12.4,"211":12.4,"212":10.3,"213":10.3,"214":11.6,"215":19.4,"216":20.9,"217":23.4,"218":23.6,"219":23.6,"220":20.6,"221":20.6,"222":20.6,"223":20.6,"224":19.3,"225":8.2,"226":2.7,"227":0.2,"228":0.0,"229":1.2,"230":1.2,"231":1.5,"232":1.5,"233":1.5,"234":1.6,"235":1.6,"236":1.6,"237":2.0,"238":2.1,"239":1.6,"240":1.6,"241":1.4,"242":1.4,"243":22.0,"244":22.1,"245":26.2,"246":26.7,"247":26.5,"248":29.8,"249":29.9,"250":30.2,"251":30.2,"252":30.2,"253":9.5,"254":9.5,"255":6.2,"256":5.7,"257":8.3,"258":5.9,"259":5.2,"260":6.6,"261":8.5,"262":12.8,"263":44.9,"264":67.1,"265":67.2,"266":71.1,"267":91.6,"268":91.4,"269":109.4,"270":108.7,"271":124.1,"272":145.3,"273":129.6,"274":108.0,"275":111.8,"276":156.3,"277":150.0,"278":156.6,"279":157.0,"280":163.2,"281":161.3,"282":136.0,"283":130.5,"284":132.5,"285":133.5,"286":86.7,"287":70.1,"288":74.8,"289":56.3,"290":61.1,"291":57.8,"292":66.3,"293":57.7,"294":55.0,"295":49.7,"296":58.2,"297":57.9,"298":45.7,"299":45.7,"300":33.7,"301":24.2,"302":15.4,"303":13.2,"304":13.0,"305":13.1,"306":3.0,"307":3.0,"308":12.2,"309":34.5,"310":35.5,"311":50.6,"312":84.6,"313":95.4,"314":95.4,"315":95.0}},"heat":{"years":[2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],"mm":[[1.1,0.0,5.4,0.0,0.0,5.5,0.0,7.0,0.0,8.2,0.4,0.0,11.5,53.6,149.3,59.2,19.2,4.0,25.3,45.8,45.4,50.1,3.9,107.8,89.0,115.9,68.2,58.8,78.6,95.7,25.8,0.1,7.7,0.0,0.1,27.5],[0.0,5.4,0.0,0.1,0.0,0.7,0.0,0.0,0.0,4.2,21.3,2.7,0.0,100.7,246.2,203.8,109.8,19.9,67.9,11.5,30.2,7.8,22.7,61.0,113.2,89.9,128.2,85.3,87.2,35.0,82.2,29.3,1.9,0.0,5.3,6.8],[0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,37.1,2.2,6.7,8.1,15.3,28.7,227.8,159.8,166.7,145.6,38.1,52.4,6.0,11.9,62.6,55.2,145.2,130.9,80.0,98.0,149.2,82.3,45.7,47.6,13.8,0.8,15.2,0.1],[0.6,0.0,0.0,0.0,0.6,28.5,0.0,0.0,10.2,6.1,21.0,25.8,35.6,70.1,155.2,89.2,61.2,22.2,82.2,36.6,58.8,88.7,17.2,54.4,92.6,132.9,99.0,132.5,179.6,90.5,29.6,4.3,1.7,1.0,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.4,5.6,17.4,20.4,37.2,0.0,2.1,20.6,119.9,52.4,184.2,70.2,91.1,65.5,92.1,42.5,22.2,67.0,95.7,168.2,50.6,122.2,101.4,163.8,50.3,30.0,4.5,7.2,5.7,6.5,10.6],[3.2,0.0,4.0,49.9,0.0,0.0,0.0,0.0,0.0,0.6,0.0,27.2,38.2,67.7,54.0,98.3,57.8,120.7,59.5,56.8,51.5,36.2,71.3,54.5,161.1,100.8,152.9,33.9,59.0,43.3,52.0,30.5,10.4,10.7,17.5,3.9],[0.0,0.0,3.3,0.0,0.0,0.0,0.0,28.5,1.3,14.4,7.9,49.2,94.3,74.3,145.8,95.1,100.8,23.2,5.4,40.6,97.0,111.9,96.0,141.0,137.3,80.0,161.5,204.1,302.7,78.4,25.9,9.1,5.5,0.9,0.6,3.0],[5.3,0.0,0.0,0.0,7.9,0.0,2.0,4.0,4.4,23.5,2.2,1.7,11.0,16.4,203.3,145.1,133.9,24.4,147.9,117.9,39.3,117.1,68.8,106.6,147.9,113.2,170.4,168.5,209.7,106.8,11.5,10.8,16.3,1.9,0.0,0.0],[0.0,6.2,0.0,13.1,5.3,0.1,0.0,2.4,0.0,0.0,0.0,7.5,60.2,54.3,78.6,90.5,214.9,177.4,60.1,5.9,50.2,37.2,52.5,29.0,13.0,55.9,131.9,72.5,31.7,31.4,201.2,11.1,1.2,0.0,0.0,48.9],[0.0,0.0,0.0,0.4,0.3,6.2,0.0,5.1,0.0,10.9,22.8,150.0,8.3,82.4,147.5,90.8,139.3,152.7,58.7,171.5,169.7,180.1,97.0,124.3,121.9,133.0,329.3,63.2,18.1,134.6,44.4,0.0,38.7,0.3,0.0,0.0],[1.9,0.0,3.9,0.0,0.0,5.3,24.7,2.8,0.0,0.3,1.4,10.4,1.3,133.6,170.6,157.2,89.1,102.4,141.6,155.1,87.5,123.8,58.0,121.2,42.8,78.3,179.9,127.7,211.5,80.9,65.5,41.5,6.4,0.0,0.3,7.2],[0.0,0.2,0.0,14.8,0.0,0.0,0.0,0.2,0.0,22.9,63.1,25.2,64.8,116.0,73.8,106.8,82.9,19.7,31.9,27.9,19.9,59.5,92.2,150.5,111.4,107.8,113.0,102.8,89.8,122.7,13.0,0.0,0.0,1.2,8.0,8.9],[0.0,0.0,0.0,0.0,0.0,0.0,1.5,11.5,0.0,2.2,7.5,28.5,34.8,10.0,170.8,81.9,54.5,53.4,68.0,42.7,17.3,12.5,64.8,96.1,136.7,71.1,95.2,118.6,98.8,117.6,25.0,65.5,4.4,2.0,11.1,3.1],[2.2,0.0,0.0,0.4,4.0,0.0,9.7,0.0,0.0,0.0,0.0,6.2,113.3,11.9,85.6,70.1,109.5,47.9,16.7,4.2,7.5,21.5,74.7,128.8,108.4,134.3,236.5,58.6,148.6,122.2,77.6,11.2,76.7,6.2,1.8,0.9],[0.0,6.5,0.7,0.0,0.0,0.0,0.0,0.0,22.3,0.0,0.0,25.8,64.5,4.3,15.0,139.7,102.9,1.7,24.3,53.5,6.5,2.2,23.0,2.6,38.1,48.4,141.7,45.2,151.9,87.1,92.3,35.8,28.0,0.0,44.3,19.7],[0.0,0.0,0.0,0.0,0.0,12.2,0.0,0.0,0.0,0.0,0.0,71.3,13.4,47.2,95.9,135.8,110.4,35.7,13.3,20.3,14.2,90.0,77.9,37.3,115.0,104.6,86.5,45.9,147.3,196.9,86.3,9.4,1.2,10.2,20.6,4.6],[0.0,0.0,0.0,0.0,0.0,0.0,2.3,1.8,0.0,2.8,48.9,40.8,73.0,62.3,90.9,147.6,198.8,85.3,18.3,9.0,49.6,88.5,57.0,48.8,144.8,113.5,129.1,181.1,46.8,73.9,23.8,18.4,0.0,13.7,0.8,2.2],[0.0,8.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,9.0,0.0,37.3,34.3,224.7,141.3,86.8,120.3,46.2,1.0,8.4,24.1,36.5,18.5,7.7,67.0,67.5,44.3,327.0,173.1,66.3,21.0,1.6,0.5,0.0,21.4,0.0],[0.0,0.0,0.0,0.0,0.0,0.2,0.0,0.0,0.0,0.5,16.5,0.0,19.8,88.0,146.4,47.8,31.4,62.0,20.1,17.6,16.0,29.0,29.0,41.4,31.2,95.3,114.0,131.9,78.9,156.5,50.7,34.1,12.4,0.0,1.0,0.0],[0.8,0.0,2.3,0.0,0.0,0.0,0.0,0.0,20.7,15.8,0.8,3.2,2.5,151.9,127.8,120.8,115.3,9.0,31.1,15.7,96.8,95.1,20.4,108.1,116.1,142.9,65.6,161.2,62.9,170.8,223.5,35.2,103.2,12.8,0.0,0.0],[0.0,1.8,0.0,0.0,0.0,0.0,0.0,15.9,0.0,4.7,82.8,14.1,4.8,4.6,32.1,49.0,144.5,90.9,89.5,7.1,22.8,98.3,81.0,178.1,64.2,128.6,34.0,36.0,83.7,107.6,80.8,8.6,2.1,0.3,0.4,12.4],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.1,0.0,0.3,7.5,78.7,105.8,89.0,105.1,138.0,118.3,40.2,22.7,43.5,76.4,18.7,105.3,100.0,191.5,256.8,124.6,111.9,131.1,58.2,45.4,5.3,16.9,26.1,0.0,0.0],[0.0,0.0,0.0,0.0,0.0,0.0,9.3,27.0,0.0,0.0,0.4,34.8,0.9,46.6,88.5,76.4,43.7,128.7,113.1,16.2,6.5,41.7,28.2,88.7,29.3,46.9,100.7,134.4,64.6,109.5,128.7,47.5,0.8,0.0,3.8,30.0],[0.0,0.0,1.4,3.5,6.8,0.0,0.0,0.0,9.7,53.7,0.0,54.6,9.7,100.4,29.3,90.9,175.1,126.9,111.9,36.2,87.0,43.7,42.2,34.3,98.6,79.8,214.6,82.3,91.8,42.3,139.6,163.1,75.6,21.8,0.1,18.7],[21.4,5.4,2.3,21.6,1.6,8.5,0.0,0.0,0.0,18.2,1.1,10.5,55.7,69.4,1.7,123.7,114.5,87.9,86.8,29.0,33.5,8.1,33.7,98.5,61.1,146.1,81.8,158.3,204.8,85.1,41.1,53.5,15.4,2.2,6.1,0.7],[0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.7,0.8,13.1,5.4,36.0,7.2,0.0,67.3,72.0,77.9,29.5,9.6,8.1,12.4,20.6,1.2,1.6,30.2,6.6,108.7,163.2,61.1,33.7,35.5,null,null,null,null,null]]},"postrera_planting":{"date":"2026-08-30","late_default":false},"inputs":{"texture_class":"default","whc_mm":90,"slope_pct":3.1,"weights":{"food":1.0,"income":0.5,"soil":0.5,"water":0.5,"labor":0.3},"seeds":null,"temp_correction_c":1.66,"share_days_imerg":0.999,"soil":{"error":"Request failed after 4 tries: https://rest.isric.org/soilgrids/v2.0/properties/query\nHTTP 502: <html>\r\n<head><title>502 Bad Gateway<\/title><\/head>\r\n<body>\r\n<center><h1>502 Bad Gateway<\/h1><\/center>\r\n<hr><center>nginx<\/center>\r\n<\/body>\r\n<\/html>\r\n"},"terrain":{"elevation_m":53,"slope_deg":1.77,"slope_pct":3.1,"source":"SRTM GL1 v003 (USGS/SRTMGL1_003) via Google Earth Engine"},"sources":{"power":"NASA POWER daily, community AG, params ['T2M', 'T2M_MAX', 'T2M_MIN', 'RH2M', 'ALLSKY_SFC_SW_DWN', 'PRECTOTCORR']","imerg":"GPM IMERG V07 half-hourly (NASA/GPM_L3/IMERG_V07), summed by local day"}}}}};
-const zones = Object.keys(DATA.zones);
-let zk = zones[0], weights = null, seeds = null, lastW = 0, ranked = [];
+
+// Localization strings dictionary
+const I18N = {
+  es: {
+    pageTitle: "Tempo · Apoyo para la Postrera en el Corredor Seco",
+    brandSub: "Postrera · Corredor Seco",
+    pillGood: "Condición favorable",
+    pillWarn: "Precaución",
+    pillRisk: "Alerta de sequía",
+    readingSeasonal: "Lectura de temporada",
+    readingDynamic: "Selección dinámica",
+    lblCanicula: "Canícula",
+    lblOnset: "Inicio de lluvias postrera",
+    lblAnalogs: "Años análogos analizados",
+    headingStrategies: "Comparación de rotaciones de postrera",
+    descStrategies: "Puntaje = 60% desempeño en años pasados con canícula similar + 40% prioridades de su parcela. Mueva los controles para actualizar la jerarquía.",
+    headingPlate: "Lámina bioclimática: historial de lluvia y ciclos",
+    descPlate: "Lluvia satelital desde 2001, trayectoria del año actual contra el rango histórico y calendario de cada rotación en un único eje mensual.",
+    headingValidation: "¿Habría ayudado Tempo en años anteriores? (Hindcast)",
+    descValidation: "Cada año histórico fue ocultado al modelo y predicho a partir de los demás (validación retrospectiva leave-one-out 2001–2025). Cuadro izquierdo: práctica habitual (frijol en relevo). Cuadro derecho: elección de Tempo.",
+    headingPrimera: "¿Detecta el modelo las sequías históricas registradas?",
+    headingMethod: "Metodología y supuestos del modelo",
+    seedTitle: "Semilla disponible en finca:",
+    crops: { maize: "Maíz", bean: "Frijol", sorghum: "Maicillo (sorgo)" },
+    wLabels: {
+      food: "Alimento familiar",
+      income: "Ingreso económico",
+      soil: "Conservación de suelo",
+      water: "Ahorro de agua",
+      labor: "Menor mano de obra"
+    },
+    tagRec: "Opción recomendada",
+    tagCurrent: "Práctica habitual",
+    tagAlternative: "Alternativa",
+    tagNoSeed: "Sin semilla disponible",
+    scoreComposite: "Puntaje combinado (0 a 1)",
+    inSimilarYears: "En años similares",
+    avg: "promedio",
+    failed: "fallos",
+    bareSoil: "Suelo descubierto",
+    daysYear: "días al año",
+    benefits: "Beneficios agronómicos",
+    risks: "A verificar en campo",
+    evidence: "Evidencia en años análogos",
+    noSeedFitted: "Ninguna rotación se ajusta a la semilla disponible",
+    relayHolds: "el frijol en relevo habitual se sostiene esta postrera",
+    saferPostrera: "es la postrera más segura",
+    stripGood: "Cosecha favorable (WRSI ≥ 80)",
+    stripPart: "Parcial (60 ≤ WRSI < 80)",
+    stripFail: "Pérdida de cosecha (WRSI < 60)",
+    docDrought: "Año con pérdidas por sequía registradas en primera",
+    legendDryWet: "Seco a húmedo, lluvia por decenio (10 días)",
+    legendNormal: "Rango normal para la época (P20–P80)",
+    legendCanicula: "Canícula, período seco de julio–agosto",
+    legendFlower: "Floración, momento crítico de agua",
+    methods: [
+      { t: "Lluvia: NASA GPM IMERG V07", d: "Estimación satelital cada media hora acumulada por día local (UTC-6) desde 2001. Días pendientes se completan con NASA POWER." },
+      { t: "Temperatura y evapotranspiración: NASA POWER", d: "Máximas y mínimas diarias corregidas por elevación de parcela (6.5 °C/km), calculando demanda evapotranspirativa de referencia Hargreaves." },
+      { t: "Relieve: SRTM 30 m", d: "Elevación para corrección térmica y cálculo de pendiente. En pendientes mayores a 15%, la protección del suelo recibe peso adicional (1.5×)." },
+      { t: "Índice de Satisfacción Hídrica (WRSI)", d: "Balance diario de agua en suelo para cada cultivo desde inicio de postrera hasta cosecha. 100 indica demanda hídrica satisfecha sin estrés. Estrés en floración o lluvia excesiva en maduración castigan el índice." },
+      { t: "Años análogos (canícula similar)", d: "Los años históricos se clasifican en tercios por duración de canícula (corta, normal, larga). Las estadísticas provienen de años del mismo grupo." },
+      { t: "Límites y lo que el modelo no sabe", d: "" }
+    ],
+    footer: "Tempo apoya, y no reemplaza, el criterio de productores y agrónomos locales. Desarrollado para NASA Space Apps 2026, reto Field Shift. Datos: NASA GPM IMERG, NASA POWER, SRTM; suelo: ISRIC SoilGrids."
+  },
+  en: {
+    pageTitle: "Tempo · Postrera Decision Support in the Dry Corridor",
+    brandSub: "Postrera · Dry Corridor",
+    pillGood: "Favorable outlook",
+    pillWarn: "Caution outlook",
+    pillRisk: "Drought alert",
+    readingSeasonal: "Seasonal reading",
+    readingDynamic: "Dynamic selection",
+    lblCanicula: "Canícula",
+    lblOnset: "Postrera rains onset",
+    lblAnalogs: "Analyzed analog years",
+    headingStrategies: "Compare postrera crop rotations",
+    descStrategies: "Score = 60% performance in past years with similar canícula + 40% farm priorities. Adjust controls to re-rank options.",
+    headingPlate: "Bioclimatic plate: rainfall history and crop cycles",
+    descPlate: "Satellite rainfall since 2001, current year trajectory against normal range, and crop calendar for each rotation on a shared month axis.",
+    headingValidation: "Would Tempo have helped in past years? (Hindcast)",
+    descValidation: "Each past year was hidden from the model and predicted from the others (leave-one-out cross validation 2001–2025). Left square: current practice (relay bean). Right square: Tempo's pick.",
+    headingPrimera: "Does the model detect documented historical droughts?",
+    headingMethod: "Methodology and model assumptions",
+    seedTitle: "Available seed on farm:",
+    crops: { maize: "Maize", bean: "Bean", sorghum: "Sorghum" },
+    wLabels: {
+      food: "Food for family",
+      income: "Cash income",
+      soil: "Soil conservation",
+      water: "Water saving",
+      labor: "Less labor required"
+    },
+    tagRec: "Best fit",
+    tagCurrent: "Current practice",
+    tagAlternative: "Alternative",
+    tagNoSeed: "No seed available",
+    scoreComposite: "Combined score (0 to 1)",
+    inSimilarYears: "In similar years",
+    avg: "avg",
+    failed: "failed",
+    bareSoil: "Bare soil",
+    daysYear: "days a year",
+    benefits: "Agronomic benefits",
+    risks: "Check locally",
+    evidence: "Evidence in analog years",
+    noSeedFitted: "No rotation fits the seed available",
+    relayHolds: "the usual relay bean holds up this postrera",
+    saferPostrera: "is the safer postrera",
+    stripGood: "Good harvest (WRSI ≥ 80)",
+    stripPart: "Partial (60 ≤ WRSI < 80)",
+    stripFail: "Harvest failure (WRSI < 60)",
+    docDrought: "Year with documented drought losses in primera",
+    legendDryWet: "Dry to wet, rain per 10 days",
+    legendNormal: "Normal range this time of year (P20–P80)",
+    legendCanicula: "Canícula, the dry spell of July–August",
+    legendFlower: "Flowering, when water matters most",
+    methods: [
+      { t: "Rain: NASA GPM IMERG V07", d: "Half-hourly satellite rain summed by local day (UTC-6) since 2001. Days not yet available are filled with NASA POWER." },
+      { t: "Temperature and evapotranspiration: NASA POWER", d: "Daily max and min corrected for parcel elevation (6.5 °C per km), with Hargreaves reference evapotranspiration (water use of a well-watered crop)." },
+      { t: "Terrain: SRTM 30 m", d: "Elevation for temperature correction and slope. On slopes above 15%, soil protection weighs 1.5×." },
+      { t: "Water Requirement Satisfaction Index (WRSI)", d: "Daily soil-water bucket for each crop from postrera onset to harvest. 100 means full water demand satisfaction. Stress at flowering and heavy rain at bean maturity lower the outcome class." },
+      { t: "Similar years (canícula analogs)", d: "Past years are grouped by canícula length into short, normal and long thirds. Rotation statistics come only from years in the same group." },
+      { t: "What the model does not know", d: "" }
+    ],
+    footer: "Tempo supports, and does not replace, the judgment of farmers and local agronomists. Built for NASA Space Apps 2026, challenge Field Shift. Data: NASA GPM IMERG, NASA POWER, SRTM; soil: ISRIC SoilGrids."
+  }
+};
+
+const STRATEGY_DATA = {
+  A: {
+    es: {
+      label: "Práctica habitual: frijol en relevo",
+      short: "Frijol en relevo",
+      description: "El sistema tradicional: frijol sembrado entre los surcos de maíz cuando la primera madura. Ciclo corto y fija nitrógeno, pero sensible a sequías y a lluvias tardías excesivas.",
+      benefits: ["Fija nitrógeno para la siguiente primera.", "Mantiene el suelo cubierto.", "Menor demanda de agua que las alternativas."],
+      risks: ["El frijol es vulnerable a sequía en floración y a exceso de lluvia en maduración.", "Cobertura corta: el suelo queda expuesto desde diciembre."]
+    },
+    en: {
+      label: "Current: relay bean after maize",
+      short: "Relay bean",
+      description: "The usual system: beans sown between the maize rows once the primera maize matures. Short cycle, fixes nitrogen, but sensitive to both drought and heavy late rains.",
+      benefits: ["Fixes nitrogen for the next primera.", "Keeps more of the soil covered.", "Lower water demand than the alternatives."],
+      risks: ["Beans are hit by both drought at flowering and heavy rain at maturity.", "Short ground cover: soil is bare again by December."]
+    }
+  },
+  B: {
+    es: {
+      label: "Sorgo (maicillo) + frijol",
+      short: "Sorgo + frijol",
+      description: "Parte de la parcela se destina a sorgo tolerante a sequía (grano y forraje) y el resto a frijol. Raíces profundas y mayor cobertura protegen suelos en ladera.",
+      benefits: ["Fija nitrógeno para la siguiente primera.", "Mantiene el suelo cubierto por más tiempo.", "Distribuye el riesgo entre dos cultivos."],
+      risks: ["El sorgo tiene menor preferencia para consumo humano directo.", "Ciclo más largo: la cosecha entra en la época seca (diciembre–enero).", "Debe confirmarse disponibilidad de semilla local (maicillo)."]
+    },
+    en: {
+      label: "Sorghum + bean",
+      short: "Sorghum + bean",
+      description: "Part of the plot goes to drought-tolerant sorghum (grain and forage), the rest to beans. Deep roots and longer ground cover protect sloped soil.",
+      benefits: ["Fixes nitrogen for the next primera.", "Keeps more of the soil covered.", "Spreads risk across two crops."],
+      risks: ["Sorghum is less valued as human food than maize or beans.", "Longer cycle: sorghum harvest falls into the dry season (December-January).", "Seed of local sorghum (maicillo) varieties must be confirmed."]
+    }
+  },
+  C: {
+    es: {
+      label: "Segunda de maíz",
+      short: "Segunda de maíz",
+      description: "Una segunda siembra de maíz en lugar de frijol para reponer la reserva de grano tras una primera deficiente. Mayor consumo de agua y sin aporte de nitrógeno.",
+      benefits: ["Mayor valor calórico y seguridad alimentaria directa para la familia."],
+      risks: ["Mayor consumo de agua; siembra tardía empuja el llenado de grano a la temporada seca.", "No devuelve nitrógeno al suelo; maíz sobre maíz desgasta la fertilidad.", "Omitir el frijol elimina la principal fuente de proteína y venta rápida."]
+    },
+    en: {
+      label: "Second maize",
+      short: "Second maize",
+      description: "A second maize crop instead of beans, to rebuild the grain reserve after a lost primera. Highest water demand of the three and no nitrogen return.",
+      benefits: ["Highest food value."],
+      risks: ["Highest water demand; late planting pushes grain filling into the dry season.", "No nitrogen returned to the soil; maize after maize depletes it.", "Skipping the bean crop removes the household's main protein and cash crop."]
+    }
+  }
+};
+
+const GAPS_ES = [
+  "La precipitación proviene de una celda satelital de ~10 km (IMERG) o modelo a ~55 km (POWER), no del pluviómetro de la parcela. IMERG puede subestimar lluvia en relieve montañoso.",
+  "Los parámetros de cultivo (ciclo, Kc, uso de agua) son valores estándar FAO-56 sin calibración agronómica local.",
+  "Las proporciones de siembra combinada (0.6 / 0.4) y el umbral de exceso de lluvia en frijol (150 mm en maduración) son supuestos; no se modela rendimiento físico en quintales.",
+  "Los datos de suelo corresponden a SoilGrids a 250 m a menos que se cargue análisis de campo."
+];
+
+let lang = "es";
+try {
+  const saved = localStorage.getItem("tempo_lang");
+  if (saved === "es" || saved === "en") lang = saved;
+} catch (e) {}
+
 const $ = id => document.getElementById(id);
 const pct = x => Math.round(100 * x) + "%";
 const sc = s => s >= 0.99 ? "s1" : s > 0 ? "s05" : "s0";
-const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
-const short = l => cap(l.replace("Current: ", ""));
-const CROPS = {maize: "Maize", bean: "Bean", sorghum: "Sorghum"};
-const CROP_COL = {maize: "var(--maize)", bean: "var(--bean)", sorghum: "var(--sorghum)"};
-const W_LABEL = {food: "Food for the family", income: "Income", soil: "Soil health", water: "Save water", labor: "Less labor"};
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], STARTS = [1,32,60,91,121,152,182,213,244,274,305,335];
 
-$("demo").hidden = !DATA.demo;
-$("zones").innerHTML = zones.map(k => `<button data-k="${k}">${DATA.zones[k].zone.name.split(",")[0]}</button>`).join("");
-$("zones").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { zk = b.dataset.k; reset(); renderControls(); render(); } });
+if (!DATA || !DATA.zones) {
+  $("verdictHeadline").textContent = "Tempo · Plantilla base";
+  $("verdictLead").textContent = "Ejecute 'python build_page.py' para compilar 'web/index.html' con los datos inyectados.";
+  throw new Error("DATA not loaded");
+}
+
+const zones = Object.keys(DATA.zones);
+let zk = zones[0];
+let weights = null;
+let seeds = null;
+let lastW = 0;
+let ranked = [];
+
+const CROP_COL = { maize: "var(--crop-maize)", bean: "var(--crop-bean)", sorghum: "var(--crop-sorghum)" };
+const MONTHS_EN = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_ES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const STARTS = [1,32,60,91,121,152,182,213,244,274,305,335];
+
+function t(k) { return I18N[lang][k] || k; }
+
+function getStratInfo(key) {
+  const s = STRATEGY_DATA[key];
+  if (s && s[lang]) return s[lang];
+  return { label: key, short: key, description: "", benefits: [], risks: [] };
+}
+
+function formatOnset(iso) {
+  if (!iso) return lang === "es" ? "Sin inicio claro al 30 de sep" : "Late, no clear onset by Sep 30";
+  const parts = iso.split("-");
+  if (parts.length !== 3) return iso;
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  if (lang === "es") {
+    const mNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    return `${d} de ${mNames[m]} de ${parts[0]}`;
+  }
+  return `${MONTHS_EN[m]} ${d}, ${parts[0]}`;
+}
+
+// Build zone switcher
+$("zones").innerHTML = zones.map(k => `<button type="button" class="seg-btn" data-k="${k}">${DATA.zones[k].zone.name.split(",")[0]}</button>`).join("");
+$("zones").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (b && b.dataset.k) {
+    zk = b.dataset.k;
+    reset();
+    renderControls();
+    render();
+  }
+});
+
+// Build language switcher listeners
+$("btnLangEs").addEventListener("click", () => switchLang("es"));
+$("btnLangEn").addEventListener("click", () => switchLang("en"));
+
+function switchLang(newLang) {
+  if (lang === newLang) return;
+  lang = newLang;
+  try { localStorage.setItem("tempo_lang", lang); } catch (e) {}
+  $("btnLangEs").setAttribute("aria-pressed", lang === "es");
+  $("btnLangEn").setAttribute("aria-pressed", lang === "en");
+  document.documentElement.lang = lang;
+  updateStaticTexts();
+  renderControls();
+  render();
+}
+
+function updateStaticTexts() {
+  $("pageTitle").textContent = t("pageTitle");
+  $("brandSub").textContent = t("brandSub");
+  $("lblCanicula").textContent = t("lblCanicula");
+  $("lblOnset").textContent = t("lblOnset");
+  $("lblAnalogs").textContent = t("lblAnalogs");
+  $("headingStrategies").textContent = t("headingStrategies");
+  $("descStrategies").textContent = t("descStrategies");
+  $("headingPlate").textContent = t("headingPlate");
+  $("descPlate").textContent = t("descPlate");
+  $("headingValidation").textContent = t("headingValidation");
+  $("descValidation").textContent = t("descValidation");
+  $("headingPrimera").textContent = t("headingPrimera");
+  $("headingMethod").textContent = t("headingMethod");
+  $("footerText").textContent = t("footer");
+}
+
+function reset() {
+  weights = Object.assign({}, DATA.zones[zk].inputs.weights);
+  seeds = { maize: true, bean: true, sorghum: true };
+}
 
 function renderControls() {
-  $("controls").innerHTML = Object.keys(W_LABEL).map(k => `<label for="w-${k}">${W_LABEL[k]}<input type="range" id="w-${k}" data-k="${k}" min="0" max="2" step="0.25" value="${weights[k]}"></label>`).join("") +
-    `<div class="seeds"><span style="color:var(--mute);font-size:14px;align-self:center">Seed available:</span>${Object.keys(CROPS).map(c => `<label><input type="checkbox" id="s-${c}" data-c="${c}" ${seeds[c] ? "checked" : ""}>${CROPS[c]}</label>`).join("")}</div>`;
+  const wL = t("wLabels");
+  const cropsL = t("crops");
+  $("controlsGrid").innerHTML = Object.keys(wL).map(k => `
+    <label for="w-${k}">
+      <span>${wL[k]}</span>
+      <input type="range" id="w-${k}" data-k="${k}" min="0" max="2" step="0.25" value="${weights[k]}">
+    </label>
+  `).join("") + `
+    <div class="seeds-row">
+      <span class="seeds-title">${t("seedTitle")}</span>
+      <div class="seeds-checkboxes">
+        ${Object.keys(cropsL).map(c => `
+          <label class="seed-label">
+            <input type="checkbox" id="s-${c}" data-c="${c}" ${seeds[c] ? "checked" : ""}>
+            <span>${cropsL[c]}</span>
+          </label>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
-function reset() { weights = Object.assign({}, DATA.zones[zk].inputs.weights); seeds = {maize: true, bean: true, sorghum: true}; }
+
 function score(s, z) {
   const w = Object.assign({}, weights);
   if (z.inputs.slope_pct != null && z.inputs.slope_pct > 15) w.soil *= 1.5;
   const tot = Object.values(w).reduce((a, b) => a + b, 0) || 1;
   return 0.6 * s.analog_stats.mean_score + 0.4 * Object.keys(w).reduce((a, k) => a + w[k] * s.attributes[k], 0) / tot;
 }
-function rainColor(t) {
-  const a = [92,58,36], b = [36,98,150], c = [159,220,255], m = (p, q, u) => p.map((v, i) => Math.round(v + (q[i] - v) * u));
-  return "rgb(" + (t < .5 ? m(a, b, t * 2) : m(b, c, (t - .5) * 2)).join(",") + ")";
+
+function rainColor(valNorm) {
+  const a = [92,58,36], b = [36,98,150], c = [159,220,255];
+  const m = (p, q, u) => p.map((v, i) => Math.round(v + (q[i] - v) * u));
+  return "rgb(" + (valNorm < 0.5 ? m(a, b, valNorm * 2) : m(b, c, (valNorm - 0.5) * 2)).join(",") + ")";
 }
 
 function drawPlate() {
   const z = DATA.zones[zk], fig = $("fig"), s = $("plate"), W = fig.clientWidth;
   if (!W) return;
-  const small = W < 600, g = small ? 40 : 190, r = 6, X = d => g + (Math.min(d, 366) - 1) / 365 * (W - g - r);
-  const ink = "#f4f8fc", mute = "#9db4c8", T = (x, y, t, o = "") => `<text x="${x}" y="${y}" fill="${mute}" font-size="12" ${o}>${t}</text>`;
-  const title = (y, t) => `<text x="0" y="${y}" fill="${ink}" font-size="14" font-weight="600">${t}</text>`;
+  const small = W < 620;
+  const g = small ? 42 : 180;
+  const r = 8;
+  const X = d => g + (Math.min(d, 366) - 1) / 365 * (W - g - r);
+  const ink = "#f1f5f9", mute = "#8fa5ba";
+  const T = (x, y, txt, o = "") => `<text x="${x}" y="${y}" fill="${mute}" font-size="12" ${o}>${txt}</text>`;
+  const title = (y, txt) => `<text x="0" y="${y}" fill="${ink}" font-size="14" font-weight="600">${txt}</text>`;
   let y = 0, out = "";
-  // --- strip 1: every season
-  const H = z.heat, n = H.years.length, vals = H.mm.flat().filter(v => v != null).sort((a, b) => a - b), vmax = vals[Math.floor(vals.length * .97)] || 1;
+
+  // Strip 1: Historical rainfall seasons heatmap
+  const H = z.heat, n = H.years.length;
+  const vals = H.mm.flat().filter(v => v != null).sort((a, b) => a - b);
+  const vmax = vals[Math.floor(vals.length * 0.97)] || 1;
   const rh = small ? 6 : 8, curH = 22, cw = (W - g - r) / 36;
-  out += title(14, small ? "Every rainy season since " + H.years[0] : "Every season since " + H.years[0]);
+  const sTitle = lang === "es"
+    ? (small ? "Temporadas desde " + H.years[0] : "Lluvias por temporada desde " + H.years[0])
+    : (small ? "Seasons since " + H.years[0] : "Every season since " + H.years[0]);
+  out += title(14, sTitle);
   y = small ? 24 : 4;
-  const seasons = [[135, "Primera rains"], [213, "Canícula"], [275, "Postrera rains"]];
-  out += seasons.map(([d, t]) => `<text x="${X(d + 15)}" y="${y + 12}" fill="${t === "Canícula" ? "#ff7a59" : mute}" font-size="12" text-anchor="middle" font-weight="600">${small ? t.split(" ")[0] : t}</text>`).join("");
-  y += 20; const y1 = y;
+
+  const seasons = [
+    [135, lang === "es" ? "Lluvias primera" : "Primera rains"],
+    [213, "Canícula"],
+    [275, lang === "es" ? "Lluvias postrera" : "Postrera rains"]
+  ];
+  out += seasons.map(([d, txt]) => `<text x="${X(d + 15)}" y="${y + 12}" fill="${txt === "Canícula" ? "#ff7a59" : mute}" font-size="12" text-anchor="middle" font-weight="600">${small ? txt.split(" ")[0] : txt}</text>`).join("");
+  y += 20;
+  const y1 = y;
+
   H.mm.forEach((row, i) => {
-    const last = i === n - 1, h = last ? curH : rh; if (last) y += 6;
-    out += row.map((v, k) => v == null ? "" : `<rect x="${(g + k * cw).toFixed(1)}" y="${y}" width="${(cw + .6).toFixed(1)}" height="${h}" fill="${rainColor(Math.sqrt(Math.min(1, v / vmax)))}"/>`).join("");
-    if (last || (!small && H.years[i] % 5 === 0)) out += `<text x="${g - 8}" y="${y + h / 2 + 4}" text-anchor="end" font-size="${last && !small ? 14 : 12}" font-weight="${last ? 700 : 400}" fill="${last ? ink : mute}">${H.years[i]}</text>`;
+    const last = i === n - 1, h = last ? curH : rh;
+    if (last) y += 6;
+    out += row.map((v, k) => v == null ? "" : `<rect x="${(g + k * cw).toFixed(1)}" y="${y}" width="${(cw + 0.6).toFixed(1)}" height="${h}" fill="${rainColor(Math.sqrt(Math.min(1, v / vmax)))}"/>`).join("");
+    if (last || (!small && H.years[i] % 5 === 0)) {
+      out += `<text x="${g - 8}" y="${y + h / 2 + 4}" text-anchor="end" font-size="${last && !small ? 14 : 12}" font-weight="${last ? 700 : 400}" fill="${last ? ink : mute}">${H.years[i]}</text>`;
+    }
     y += h + (last ? 0 : 1);
   });
+
   const yr = z.yearly.find(q => q.year === z.current_year);
   let c0 = null, c1 = null;
   if (yr && yr.canicula_start) {
-    c0 = Math.round((new Date(yr.canicula_start + "T00:00") - new Date(z.current_year, 0, 1)) / 864e5) + 1; c1 = c0 + yr.canicula_days;
+    c0 = Math.round((new Date(yr.canicula_start + "T00:00") - new Date(z.current_year, 0, 1)) / 864e5) + 1;
+    c1 = c0 + yr.canicula_days;
     out += `<rect x="${X(c0)}" y="${y - curH - 2}" width="${X(c1) - X(c0)}" height="${curH + 4}" fill="none" stroke="#ff7a59" stroke-width="2.5" rx="2"/>`;
   }
-  // --- strip 2: this year against normal
-  y += 30; const top2 = y, h2 = small ? 120 : 160, c = z.chart, cur = Object.entries(c.current).map(([d, v]) => [+d, v]);
-  const ymax = Math.max(10, ...c.p80.filter(v => v != null), ...cur.map(d => d[1])) * 1.05, Y = v => top2 + h2 - v / ymax * h2;
-  out += title(top2 - 8, z.current_year + " against normal");
-  if (c0) out += `<rect x="${X(c0)}" y="${top2}" width="${X(c1) - X(c0)}" height="${h2}" fill="#ff7a59" opacity=".28"/><text x="${(X(c0) + X(c1)) / 2}" y="${top2 + 16}" text-anchor="middle" fill="#ffb9a6" font-size="13" font-weight="700">${yr.canicula_days} dry days</text>`;
-  out += [0, Math.round(ymax / 2.1 / 10) * 10, Math.round(ymax / 1.05 / 10) * 10].map(v => `<line x1="${g}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#fff" opacity=".1"/>${T(g - 8, Y(v) + 4, v + (v && !small ? " mm" : ""), 'text-anchor="end"')}`).join("");
+
+  // Strip 2: Current year against normal envelope
+  y += 30;
+  const top2 = y, h2 = small ? 120 : 160, c = z.chart;
+  const cur = Object.entries(c.current).map(([d, v]) => [+d, v]);
+  const ymax = Math.max(10, ...c.p80.filter(v => v != null), ...cur.map(d => d[1])) * 1.05;
+  const Y = v => top2 + h2 - v / ymax * h2;
+
+  const compTitle = lang === "es"
+    ? `${z.current_year} vs rango histórico normal`
+    : `${z.current_year} against normal range`;
+  out += title(top2 - 8, compTitle);
+
+  if (c0) {
+    const dryLabel = lang === "es" ? `${yr.canicula_days} días secos` : `${yr.canicula_days} dry days`;
+    out += `<rect x="${X(c0)}" y="${top2}" width="${X(c1) - X(c0)}" height="${h2}" fill="#ff7a59" opacity=".28"/><text x="${(X(c0) + X(c1)) / 2}" y="${top2 + 16}" text-anchor="middle" fill="#ffb9a6" font-size="13" font-weight="700">${dryLabel}</text>`;
+  }
+
+  out += [0, Math.round(ymax / 2.1 / 10) * 10, Math.round(ymax / 1.05 / 10) * 10].map(v =>
+    `<line x1="${g}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#fff" opacity=".1"/>${T(g - 8, Y(v) + 4, v + (v && !small ? " mm" : ""), 'text-anchor="end"')}`
+  ).join("");
+
   out += `<polygon points="${c.doy.map((d, i) => X(d) + "," + Y(c.p80[i] ?? 0)).join(" ")} ${c.doy.slice().reverse().map((d, j) => X(d) + "," + Y(c.p20[c.doy.length - 1 - j] ?? 0)).join(" ")}" fill="#8fd3ff" opacity=".22"/>
     <polyline points="${c.doy.map((d, i) => X(d) + "," + Y(c.p50[i] ?? 0)).join(" ")}" fill="none" stroke="#8fd3ff" stroke-opacity=".55" stroke-dasharray="3 4"/>
     <polyline points="${cur.map(([d, v]) => X(d) + "," + Y(v)).join(" ")}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>`;
+
   y = top2 + h2 + 18;
-  out += STARTS.map((d, i) => T(X(d + 15), y, small ? MONTHS[i][0] : MONTHS[i], 'text-anchor="middle"')).join("");
-  const axisY = y + 8;
-  // --- strip 3: rotations
-  y += 40; out += title(y - 12, "The year of each rotation");
+  const monthsArr = lang === "es" ? MONTHS_ES : MONTHS_EN;
+  out += STARTS.map((d, i) => T(X(d + 15), y, small ? monthsArr[i][0] : monthsArr[i], 'text-anchor="middle"')).join("");
+
+  // Strip 3: Rotation crop calendars
+  y += 40;
+  out += title(y - 12, lang === "es" ? "Calendario agrícola de rotaciones" : "The year of each rotation");
   const order = z.strategies.slice().sort((a, b) => (ranked.indexOf(a.key) < 0 ? 9 : ranked.indexOf(a.key)) - (ranked.indexOf(b.key) < 0 ? 9 : ranked.indexOf(b.key)));
   const rowH = 20;
+
   order.forEach(st => {
-    const best = ranked[0] === st.key, off = ranked.indexOf(st.key) < 0, post = st.rotation.filter(q => q.season === "postrera"), prim = st.rotation.filter(q => q.season === "primera");
-    const gh = Math.max(post.length * (rowH + 4), small ? 0 : 40), op = off ? .35 : 1;
-    if (small) { out += `<text x="0" y="${y + 12}" fill="${ink}" font-size="13" font-weight="${best ? 700 : 500}" opacity="${op}">${short(st.label)}${best ? " · best fit" : ""} · bare soil ${st.bare_days} days</text>`; y += 20; }
-    else out += `<text x="0" y="${y + 14}" fill="${ink}" font-size="14" font-weight="${best ? 700 : 500}" opacity="${op}">${short(st.label)}</text>${T(0, y + 31, (best ? "Best fit · " : "") + "bare soil " + st.bare_days + " days", `opacity="${op}"`)}`;
+    const isBest = ranked[0] === st.key;
+    const isOff = ranked.indexOf(st.key) < 0;
+    const post = st.rotation.filter(q => q.season === "postrera");
+    const prim = st.rotation.filter(q => q.season === "primera");
+    const gh = Math.max(post.length * (rowH + 4), small ? 0 : 40);
+    const op = isOff ? 0.35 : 1;
+    const sInfo = getStratInfo(st.key);
+    const bareLabel = lang === "es" ? `${st.bare_days} d expuesto` : `${st.bare_days} d bare`;
+
+    if (small) {
+      out += `<text x="0" y="${y + 12}" fill="${ink}" font-size="12" font-weight="${isBest ? 600 : 400}" opacity="${op}">${sInfo.short}${isBest ? (lang === "es" ? " · recomendada" : " · best fit") : ""} · ${bareLabel}</text>`;
+      y += 18;
+    } else {
+      out += `<text x="0" y="${y + 14}" fill="${ink}" font-size="14" font-weight="${isBest ? 600 : 400}" opacity="${op}">${sInfo.short}</text>${T(0, y + 31, (isBest ? (lang === "es" ? "Mejor opción · " : "Best fit · ") : "") + (lang === "es" ? "suelo expuesto " : "bare soil ") + st.bare_days + " d", `opacity="${op}"`)}`;
+    }
+
     out += `<rect x="${g}" y="${y}" width="${W - g - r}" height="${gh - 4}" fill="#fff" opacity=".05" rx="3"/>`;
-    const bar = (q, yy, h, o) => {
-      const x0 = X(q.start), x1 = X(q.end), w = x1 - x0, col = CROP_COL[q.crop];
+    const drawBar = (q, yy, h, o) => {
+      const x0 = X(q.start), x1 = X(q.end), w = x1 - x0;
+      const col = CROP_COL[q.crop];
+      const cropName = t("crops")[q.crop] || q.crop;
       return `<rect x="${x0}" y="${yy}" width="${w}" height="${h}" fill="${col}" opacity="${o * op}" rx="3"/>
         <rect x="${X(q.flower_start)}" y="${yy + 1}" width="${X(q.flower_end) - X(q.flower_start)}" height="${h - 2}" fill="none" stroke="#fff" stroke-width="1.5" opacity="${op}" rx="2"/>
-        ${X(q.flower_start) - x0 > 46 ? `<text x="${x0 + 6}" y="${yy + h / 2 + 4}" font-size="12" font-weight="600" fill="#0a2540" opacity="${op}">${CROPS[q.crop]}</text>` : ""}`;
+        ${X(q.flower_start) - x0 > 44 ? `<text x="${x0 + 6}" y="${yy + h / 2 + 4}" font-size="12" font-weight="600" fill="#0c1a27" opacity="${op}">${cropName}</text>` : ""}`;
     };
-    prim.forEach(q => out += bar(q, y, gh - 4, .5));
-    post.forEach((q, i) => out += bar(q, y + i * (rowH + 4), post.length > 1 ? rowH : gh - 4, 1));
+
+    prim.forEach(q => out += drawBar(q, y, gh - 4, 0.5));
+    post.forEach((q, i) => out += drawBar(q, y + i * (rowH + 4), post.length > 1 ? rowH : gh - 4, 1));
     y += gh + 10;
   });
+
   const total = y + 4;
   out = STARTS.map(d => `<line x1="${X(d)}" x2="${X(d)}" y1="${y1}" y2="${total - 10}" stroke="#fff" opacity=".07"/>`).join("") + out;
   fig.style.height = total + "px";
   s.innerHTML = out;
+
+  // Build plate legend
+  $("plateLegend").innerHTML = `
+    <span class="plate-legend-item"><i class="legend-swatch legend-ramp"></i><span>${t("legendDryWet")}</span></span>
+    <span class="plate-legend-item"><i class="legend-swatch" style="background:#8fd3ff38"></i><span>${t("legendNormal")}</span></span>
+    <span class="plate-legend-item"><i class="legend-swatch" style="background:var(--canicula)"></i><span>${t("legendCanicula")}</span></span>
+    <span class="plate-legend-item"><i class="legend-swatch" style="background:none;border:1.5px solid #fff"></i><span>${t("legendFlower")}</span></span>
+  `;
 }
 
 function render() {
-  const z = DATA.zones[zk], cur = z.current, v = z.validation;
-  [...$("zones").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === zk));
-  const strat = z.strategies.map(s => ({...s, ok: s.crops.every(c => seeds[c]), sc: score(s, z)}));
-  const rk = strat.filter(s => s.ok).sort((a, b) => b.sc - a.sc), best = rk[0], A = strat.find(s => s.key === "A");
-  ranked = rk.map(s => s.key);
-  const nA = A.analog_stats.n_years, failA = Math.round(A.analog_stats.failure_rate * nA);
-  $("title").textContent = !best ? "No rotation fits the seed available" : `${z.zone.name.split(",")[0]}, ${z.current_year}: ` + (best.key === "A" ? "the usual relay bean holds up this postrera" : `${best.label.toLowerCase()} is the safer postrera`);
-  $("sub").textContent = `A ${cur.canicula_class} canícula of ${cur.canicula_days} dry days. Postrera rains began ${cur.postrera_onset || "late, with no clear onset by September 30"}. Compared with ${nA} past years that had a similar canícula.`;
-  $("verdictBand").className = "verdict " + (cur.traffic_light || "green");
-  $("verdict").innerHTML = `<b>The current practice, ${short(A.label).toLowerCase()}, failed in ${failA} of ${nA}</b> similar years and scored ${A.analog_stats.mean_score.toFixed(2)} on average, where 1 is a good harvest. ` +
-    (best && best.key !== "A" ? `<b>${best.label}</b> scored ${best.analog_stats.mean_score.toFixed(2)} and failed in ${pct(best.analog_stats.failure_rate)} of them.` : `No alternative did better in those years.`);
+  const z = DATA.zones[zk];
+  const cur = z.current;
+  const v = z.validation;
+  const sk = z.skill;
 
-  $("cards").innerHTML = strat.slice().sort((a, b) => (b.ok - a.ok) || (b.sc - a.sc)).map(s => {
-    const st = s.analog_stats, isBest = best && s.key === best.key;
-    return `<article class="card ${isBest ? "rec" : ""} ${s.ok ? "" : "off"}">
-      ${isBest ? '<span class="tag">Best fit</span>' : s.ok ? "" : '<span class="tag" style="background:var(--mute)">No seed</span>'}
-      <h3>${s.label}</h3>
-      <div class="big"><b>${s.ok ? s.sc.toFixed(2) : "—"}</b><span>score, 0 to 1</span></div>
-      <div class="bar"><i style="width:${s.ok ? Math.round(s.sc * 100) : 0}%"></i></div>
-      <div class="kv"><span>In similar years</span><b>avg ${st.mean_score.toFixed(2)} · failed ${pct(st.failure_rate)}</b></div>
-      <div class="kv"><span>Soil left bare</span><b>${s.bare_days} days a year</b></div>
-      <p style="margin:0;font-size:15px">${s.description}</p>
-      <h4>Evidence: similar years</h4>
-      <div class="years">${s.evidence.map(e => `<span class="yr ${sc(e.score)}" title="${Object.entries(e.crops).map(([c, r]) => `${c} WRSI ${r.wrsi}`).join(", ")}">${e.year}</span>`).join("")}</div>
-      ${s.benefits.length ? `<h4>Benefits</h4><ul>${s.benefits.map(b => `<li>${b}</li>`).join("")}</ul>` : ""}
-      <h4>Check locally</h4><ul>${s.risks.map(r => `<li>${r}</li>`).join("")}</ul>
-    </article>`;
+  [...$("zones").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.k === zk));
+
+  // Score strategies
+  const strat = z.strategies.map(s => ({
+    ...s,
+    ok: s.crops.every(c => seeds[c]),
+    sc: score(s, z)
+  }));
+  const rk = strat.filter(s => s.ok).sort((a, b) => b.sc - a.sc);
+  const best = rk[0];
+  const A = strat.find(s => s.key === "A");
+  ranked = rk.map(s => s.key);
+
+  const nA = A.analog_stats.n_years;
+  const failA = Math.round(A.analog_stats.failure_rate * nA);
+  const sInfoA = getStratInfo("A");
+  const sInfoBest = best ? getStratInfo(best.key) : null;
+
+  // 1) EL VEREDICTO VA ARRIBA, CON TEXTO HONESTO DEL HINDCAST
+  // Check if Tempo does not distinguish from always-C (second maize)
+  const isAlwaysC = !v.n_years || (v.mean_score_tempo <= v.mean_score_same_every_year) || ((v.picks && (v.picks["C"] || 0) >= (v.n_years - 1)));
+
+  // Traffic light pill
+  const lightClass = cur.traffic_light || "green";
+  const pillLabel = lightClass === "green" ? t("pillGood") : lightClass === "yellow" ? t("pillWarn") : t("pillRisk");
+  $("verdictPill").className = "status-pill " + lightClass;
+  $("verdictPillText").textContent = pillLabel;
+  $("verdictReadingPill").textContent = isAlwaysC ? t("readingSeasonal") : t("readingDynamic");
+
+  // Headline
+  if (!best) {
+    $("verdictHeadline").textContent = t("noSeedFitted");
+  } else {
+    const zoneName = z.zone.name.split(",")[0];
+    if (best.key === "A") {
+      $("verdictHeadline").textContent = `${zoneName}, ${z.current_year}: ` + t("relayHolds");
+    } else {
+      $("verdictHeadline").textContent = `${zoneName}, ${z.current_year}: ${sInfoBest.label.toLowerCase()} ` + t("saferPostrera");
+    }
+  }
+
+  // Lead finding comparison
+  if (lang === "es") {
+    let lead = `La práctica habitual (${sInfoA.short.toLowerCase()}) falló en ${failA} de ${nA} años con canícula similar (puntaje promedio de ${A.analog_stats.mean_score.toFixed(2)} sobre 1.00). `;
+    if (best && best.key !== "A") {
+      lead += `La rotación recomendada (<b>${sInfoBest.label}</b>) promedió ${best.analog_stats.mean_score.toFixed(2)} y falló en ${pct(best.analog_stats.failure_rate)} de dichos años.`;
+    } else {
+      lead += `Ninguna rotación alternativa superó a la práctica habitual en esos años.`;
+    }
+    $("verdictLead").innerHTML = lead;
+  } else {
+    let lead = `Current practice (${sInfoA.short.toLowerCase()}) failed in ${failA} of ${nA} similar years (average score ${A.analog_stats.mean_score.toFixed(2)} out of 1.00). `;
+    if (best && best.key !== "A") {
+      lead += `The recommended rotation (<b>${sInfoBest.label}</b>) averaged ${best.analog_stats.mean_score.toFixed(2)} with ${pct(best.analog_stats.failure_rate)} historical failures.`;
+    } else {
+      lead += `No alternative rotation performed better in those years.`;
+    }
+    $("verdictLead").innerHTML = lead;
+  }
+
+  // Honest Hindcast Box: displays 'lectura de temporada' if Tempo does not distinguish from always-C
+  const hindcastEl = $("verdictHindcast");
+  if (isAlwaysC) {
+    hindcastEl.className = "hindcast-box seasonal-reading";
+    if (lang === "es") {
+      hindcastEl.innerHTML = `<strong>Lectura de temporada:</strong> En la validación retrospectiva (hindcast 2001–2025), una regla fija de sembrar siempre segunda de maíz (estrategia C) obtiene un puntaje igual o superior a la selección dinámica (${(v.mean_score_same_every_year || 0).toFixed(2)} vs ${(v.mean_score_tempo || 0).toFixed(2)}). Como la duración de la canícula correlaciona débilmente con la lluvia de postrera (Spearman ${sk.canicula_vs_sep_nov_rain ?? "0.0"}), este resultado se entrega como <strong>lectura de temporada</strong> basada en la climatología de la zona y no como predicción prescriptiva.`;
+    } else {
+      hindcastEl.innerHTML = `<strong>Seasonal reading:</strong> In the retrospective hindcast (2001–2025), simply planting second maize (strategy C) every single year scores equal to or higher than dynamic selection (${(v.mean_score_same_every_year || 0).toFixed(2)} vs ${(v.mean_score_tempo || 0).toFixed(2)}). Because canícula duration correlates weakly with postrera rainfall (Spearman correlation ${sk.canicula_vs_sep_nov_rain ?? "0.0"}), this result is a <strong>seasonal reading</strong> reflecting local climate normals rather than a prescriptive forecast.`;
+    }
+  } else {
+    hindcastEl.className = "hindcast-box";
+    if (lang === "es") {
+      hindcastEl.innerHTML = `<strong>Validación retrospectiva:</strong> En el hindcast histórico (2001–2025), la selección dinámica promedió ${(v.mean_score_tempo || 0).toFixed(2)} frente a ${(v.mean_score_current || 0).toFixed(2)} de la práctica habitual, superándola en ${v.years_tempo_better || 0} de ${v.n_years || 0} años.`;
+    } else {
+      hindcastEl.innerHTML = `<strong>Retrospective validation:</strong> In the 2001–2025 hindcast, dynamic selection averaged ${(v.mean_score_tempo || 0).toFixed(2)} vs ${(v.mean_score_current || 0).toFixed(2)} for current practice, outperforming it in ${v.years_tempo_better || 0} of ${v.n_years || 0} years.`;
+    }
+  }
+
+  // Diagnostics row
+  const caniculaClassMap = { short: lang === "es" ? "corta" : "short", normal: "normal", long: lang === "es" ? "larga" : "long" };
+  const cClassText = caniculaClassMap[cur.canicula_class] || cur.canicula_class;
+  const daysText = lang === "es" ? "días secos" : "dry days";
+  $("valCanicula").textContent = `${cur.canicula_days} ${daysText} (${cClassText})`;
+  $("valOnset").textContent = formatOnset(cur.postrera_onset);
+  $("valAnalogs").textContent = `${nA} ${lang === "es" ? "años (2001–2025)" : "years (2001–2025)"}`;
+
+  // 6) ASYMMETRIC ANTI-SLOP STRATEGY DISPLAY
+  const sortedStrat = strat.slice().sort((a, b) => (b.ok - a.ok) || (b.sc - a.sc));
+  const feat = sortedStrat[0];
+  const alts = sortedStrat.slice(1);
+
+  if (feat) {
+    const fInfo = getStratInfo(feat.key);
+    const fStats = feat.analog_stats;
+    const isBestFit = best && feat.key === best.key;
+    $("featuredCard").innerHTML = `
+      <div class="featured-header">
+        <div class="featured-badges">
+          ${isBestFit ? `<span class="badge badge-rec">${t("tagRec")}</span>` : ""}
+          <span class="badge badge-tag">${feat.key === "A" ? t("tagCurrent") : t("tagAlternative")}</span>
+          ${feat.ok ? "" : `<span class="badge badge-dim">${t("tagNoSeed")}</span>`}
+        </div>
+      </div>
+      <h3 class="featured-title">${fInfo.label}</h3>
+      <p class="strategy-desc">${fInfo.description}</p>
+      
+      <div class="score-banner">
+        <div class="score-num">${feat.ok ? feat.sc.toFixed(2) : "—"}</div>
+        <div class="score-details">
+          <span class="score-label">${t("scoreComposite")} · 60% ${t("inSimilarYears").toLowerCase()} + 40% ${lang === "es" ? "prioridades" : "priorities"}</span>
+          <div class="progress-track"><div class="progress-bar" style="width:${feat.ok ? Math.round(feat.sc * 100) : 0}%"></div></div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div>${t("inSimilarYears")}: <strong>${t("avg")} ${fStats.mean_score.toFixed(2)} · ${pct(fStats.failure_rate)} ${t("failed")}</strong></div>
+        <div>${t("bareSoil")}: <strong>${feat.bare_days} ${t("daysYear")}</strong></div>
+        <div>${lang === "es" ? "Aporte de nitrógeno" : "Nitrogen fixation"}: <strong>${feat.key === "C" ? (lang === "es" ? "No aporta" : "None") : (lang === "es" ? "Fijación activa" : "Fixes N2")}</strong></div>
+      </div>
+
+      <div class="details-columns">
+        <div class="details-col">
+          <h4>${t("evidence")}</h4>
+          <div class="years-chips">
+            ${feat.evidence.map(e => `<span class="yr-chip ${sc(e.score)}" title="Año ${e.year} · WRSI ${Object.entries(e.crops).map(([c, r]) => `${c} ${r.wrsi}`).join(", ")}">${e.year}</span>`).join("")}
+          </div>
+          ${fInfo.benefits && fInfo.benefits.length ? `<h4 style="margin-top:14px">${t("benefits")}</h4><ul>${fInfo.benefits.map(b => `<li>${b}</li>`).join("")}</ul>` : ""}
+        </div>
+        <div class="details-col">
+          <h4>${t("risks")}</h4>
+          <ul>${fInfo.risks.map(r => `<li>${r}</li>`).join("")}</ul>
+        </div>
+      </div>
+    `;
+  }
+
+  $("alternativesGrid").innerHTML = alts.map(s => {
+    const sInfo = getStratInfo(s.key);
+    const sStats = s.analog_stats;
+    return `
+      <article class="alt-card ${s.ok ? "" : "is-off"}">
+        <div class="alt-header">
+          <h3>${sInfo.label}</h3>
+          <span class="alt-score">${s.ok ? s.sc.toFixed(2) : "—"}</span>
+        </div>
+        <div class="progress-track"><div class="progress-bar" style="width:${s.ok ? Math.round(s.sc * 100) : 0}%"></div></div>
+        <p>${sInfo.description}</p>
+        <div class="alt-kvs">
+          <span>${t("inSimilarYears")}: <strong>${t("avg")} ${sStats.mean_score.toFixed(2)} · ${pct(sStats.failure_rate)} ${t("failed")}</strong></span>
+          <span>${t("bareSoil")}: <strong>${s.bare_days} ${t("daysYear")}</strong></span>
+        </div>
+        <div class="years-chips" style="margin-top:6px">
+          ${s.evidence.map(e => `<span class="yr-chip ${sc(e.score)}">${e.year}</span>`).join("")}
+        </div>
+      </article>
+    `;
   }).join("");
 
+  // Validation stat figures
   $("figs").innerHTML = v.n_years ? [
-    [v.mean_score_tempo.toFixed(2) + " vs " + v.mean_score_current.toFixed(2), "average score, Tempo's pick vs current practice"],
-    [v.mean_score_same_every_year.toFixed(2), "average score planting the same best rotation every year"],
-    [v.failure_years_tempo + " vs " + v.failure_years_current, "failed seasons in " + v.n_years + " years, Tempo vs current"],
-    [v.years_tempo_better + " / " + v.years_tempo_worse, "years Tempo did better / worse than current"]
-  ].map(([n, l]) => `<div><div class="num">${n}</div><small>${l}</small></div>`).join("") : "<div>Not enough complete years to test.</div>";
-  $("strip").innerHTML = (v.by_year || []).map(r => `<div class="cell" title="Pick: ${r.pick}"><b>${r.year}</b><div><span class="${sc(r.score_A)}"></span><span class="${sc(r.score_pick)}"></span></div>${r.pick}</div>`).join("");
-  const pc = z.primera_check, sk = z.skill;
-  $("pcNote").textContent = `Primera maize was simulated for every year with the same water balance. ${pc.documented_in_worst_third.length} of the ${pc.documented.length} years with documented drought losses (${pc.documented.join(", ")}) fall among the model's ${pc.worst_third_size} driest of ${pc.n_years}. Number = water satisfaction (WRSI), 100 is no stress.`;
-  $("pcStrip").innerHTML = pc.years.map(r => `<div class="cell ${r.documented ? "doc" : ""}"><b>${r.year}</b><em class="${r.class === "good" ? "s1" : r.class === "partial" ? "s05" : "s0"}">${Math.round(r.wrsi)}</em></div>`).join("");
-  $("gaps").innerHTML = (sk.canicula_vs_sep_nov_rain != null ? `Canícula length explains little of the postrera by itself (rank correlation with September–November rain: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} years). ` : "") +
-    z.strategies[0].gaps.join(" ") + ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; temperature corrected by ${z.inputs.temp_correction_c} °C; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`;
+    [v.mean_score_tempo.toFixed(2) + " vs " + v.mean_score_current.toFixed(2), lang === "es" ? "Puntaje promedio: Tempo vs práctica habitual" : "Average score: Tempo vs current practice"],
+    [v.mean_score_same_every_year.toFixed(2), lang === "es" ? "Puntaje sembrando siempre la misma rotación (C)" : "Average score planting same rotation every year (C)"],
+    [v.failure_years_tempo + " vs " + v.failure_years_current, lang === "es" ? `Años con pérdida de cosecha (de ${v.n_years} años)` : `Failed seasons in ${v.n_years} years: Tempo vs current`],
+    [v.years_tempo_better + " / " + v.years_tempo_worse, lang === "es" ? "Años en que Tempo superó / empeoró a la práctica" : "Years Tempo did better / worse than current"]
+  ].map(([num, lbl]) => `
+    <div class="stat-item">
+      <div class="stat-num">${num}</div>
+      <div class="stat-label">${lbl}</div>
+    </div>
+  `).join("") : `<div class="stat-item"><div class="stat-label">${lang === "es" ? "Sin suficientes años para validar." : "Not enough years to test."}</div></div>`;
+
+  $("strip").innerHTML = (v.by_year || []).map(r => `
+    <div class="cell" title="${lang === "es" ? "Año" : "Year"} ${r.year} · Canícula ${r.canicula_class} · ${lang === "es" ? "Elección" : "Pick"}: ${r.pick}">
+      <b>${r.year}</b>
+      <div><span class="${sc(r.score_A)}"></span><span class="${sc(r.score_pick)}"></span></div>
+      ${r.pick}
+    </div>
+  `).join("");
+
+  $("stripLegend").innerHTML = `
+    <span><i class="legend-swatch" style="background:var(--harvest-good)"></i> ${t("stripGood")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-part)"></i> ${t("stripPart")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-fail)"></i> ${t("stripFail")}</span>
+  `;
+
+  // Primera drought validation check
+  const pc = z.primera_check;
+  if (lang === "es") {
+    $("pcNote").textContent = `El maíz de primera fue simulado para cada año bajo el mismo balance hídrico. ${pc.documented_in_worst_third.length} de los ${pc.documented.length} años con pérdidas por sequía registradas (${pc.documented.join(", ")}) coinciden con los ${pc.worst_third_size} años más secos según el modelo (de ${pc.n_years} analizados). Número = Satisfacción hídrica (WRSI, 100 = sin estrés).`;
+  } else {
+    $("pcNote").textContent = `Primera maize was simulated for every year with the same water balance. ${pc.documented_in_worst_third.length} of the ${pc.documented.length} years with documented drought losses (${pc.documented.join(", ")}) fall among the model's ${pc.worst_third_size} driest of ${pc.n_years}. Number = water satisfaction (WRSI, 100 is no stress).`;
+  }
+
+  $("pcStrip").innerHTML = pc.years.map(r => `
+    <div class="cell ${r.documented ? "doc" : ""}" title="${lang === "es" ? "Año" : "Year"} ${r.year}${r.documented ? (lang === "es" ? " (sequía registrada)" : " (documented drought)") : ""}">
+      <b>${r.year}</b>
+      <em class="${r.class === "good" ? "s1" : r.class === "partial" ? "s05" : "s0"}">${Math.round(r.wrsi)}</em>
+    </div>
+  `).join("");
+
+  $("pcStripLegend").innerHTML = `
+    <span><i class="legend-swatch" style="background:none;border:2px solid var(--ink-primary)"></i> ${t("docDrought")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-good)"></i> ${t("stripGood")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-part)"></i> ${t("stripPart")}</span>
+    <span><i class="legend-swatch" style="background:var(--harvest-fail)"></i> ${t("stripFail")}</span>
+  `;
+
+  // Methodology & gaps
+  const methodsList = t("methods");
+  const gapsDesc = (sk.canicula_vs_sep_nov_rain != null ? (lang === "es"
+    ? `La duración de la canícula por sí sola explica muy poco de la lluvia de postrera (correlación de Spearman con lluvia sep–nov: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} años). `
+    : `Canícula length explains little of the postrera by itself (rank correlation with September–November rain: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} years). `) : "") +
+    (lang === "es" ? GAPS_ES.join(" ") : z.strategies[0].gaps.join(" ")) +
+    (lang === "es"
+      ? ` Lluvia de IMERG en ${pct(z.inputs.share_days_imerg)} de los días; temperatura corregida por ${z.inputs.temp_correction_c} °C; suelo tratado como ${z.inputs.texture_class} (${z.inputs.whc_mm} mm de agua disponible)${z.inputs.slope_pct != null ? `; pendiente ${z.inputs.slope_pct}%` : ""}.`
+      : ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; temperature corrected by ${z.inputs.temp_correction_c} °C; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`);
+
+  $("methodGrid").innerHTML = methodsList.map((m, idx) => `
+    <div class="method-item">
+      <dt>${m.t}</dt>
+      <dd>${idx === methodsList.length - 1 ? gapsDesc : m.d}</dd>
+    </div>
+  `).join("");
+
   drawPlate();
 }
 
-$("controls").addEventListener("input", e => {
+$("controlsGrid").addEventListener("input", e => {
   if (e.target.dataset.k) weights[e.target.dataset.k] = +e.target.value;
   if (e.target.dataset.c) seeds[e.target.dataset.c] = e.target.checked;
   render();
 });
-new ResizeObserver(() => { const w = $("fig").clientWidth; if (w !== lastW) { lastW = w; drawPlate(); } }).observe($("fig"));
-reset(); renderControls(); render();
+
+new ResizeObserver(() => {
+  const w = $("fig").clientWidth;
+  if (w !== lastW) {
+    lastW = w;
+    drawPlate();
+  }
+}).observe($("fig"));
+
+reset();
+updateStaticTexts();
+renderControls();
+render();
 }
 </script>
 </body>
