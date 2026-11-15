@@ -36,7 +36,8 @@ const I18N = {
     chip_morazan: "Morazán · ladera",
     chip_nacaome: "Nacaome · Golfo de Fonseca",
     chip_chinandega: "Chinandega · Nicaragua",
-    legend_done: "Analizado",
+    legend_done: "Opción recomendada, confianza media o alta",
+    legend_low: "Opción recomendada, confianza baja",
     legend_partial: "Parcial (faltó una fuente)",
     legend_area: "Zona cubierta",
     layers_label: "Capa del mapa",
@@ -103,7 +104,7 @@ const I18N = {
     confirm_new: "¿Analizar este punto?",
     confirm_yes: "Sí, elegir este punto",
     verdict_kind: (y) => `Veredicto · Postrera ${y}`,
-    rec_kind: (y) => `Lectura de la postrera ${y} · para planificar ${Number(y) + 1 || ""}`,
+    rec_kind: (y) => `Recomendada para planificar ${Number(y) + 1 || ""}, según la postrera ${y}`,
     planted: (y, d) => `La postrera ${y} ya se sembró (≈${d}). Esta lectura sirve para planificar la siembra ${Number(y) + 1} con su técnico de campo, no para decidir hoy.`,
     rain_unc: (i, p, n, t) => `Incertidumbre de lluvia: en sep–nov el satélite (IMERG, celda ~10 km) da ${i} mm y el modelo (POWER, ~50 km) ${p} mm en promedio. Con POWER, la elección histórica cambia en ${n} de ${t} años.`,
     val_title: "Prueba con años pasados (2001–2025)",
@@ -215,6 +216,15 @@ const I18N = {
     demo_new: "Analizar un punto nuevo descarga datos de NASA y tarda minutos: necesita el servidor de Tempo (python server.py) con acceso a Earth Engine. Aquí solo se pueden abrir los análisis ya calculados.",
     demo_near: (name, km) => `Abrir el análisis guardado más cercano: ${name} (a ${km} km)`,
     demo_missing: "Ese análisis no está en la demo.",
+    why_conf: (c, n) => c === "alta" ? "En qué se apoya esta confianza" : `Por qué la confianza no es más alta${n ? ` (${n} ${n === 1 ? "motivo" : "motivos"})` : ""}`,
+    sc_title: (n) => `Puntaje de cada opción en ${n} escenarios posibles`,
+    sc_worst: "peor caso",
+    sc_axis: "puntaje (1 = buena cosecha)",
+    sc_key_dot: "un escenario",
+    sc_key_worst: "su peor caso",
+    sc_key_ref: "peor caso de la recomendada",
+    sc_sr: (name, w, b) => `${name}: peor caso ${w}, mejor caso ${b}.`,
+    more_title: "Detalle para revisar",
   },
   en: {
     brand_badge: "NASA data",
@@ -234,7 +244,8 @@ const I18N = {
     chip_morazan: "Morazán · hillside",
     chip_nacaome: "Nacaome · Gulf of Fonseca",
     chip_chinandega: "Chinandega · Nicaragua",
-    legend_done: "Analyzed",
+    legend_done: "Recommended option, medium or high confidence",
+    legend_low: "Recommended option, low confidence",
     legend_partial: "Partial (a source was missing)",
     legend_area: "Covered area",
     layers_label: "Map layer",
@@ -301,7 +312,7 @@ const I18N = {
     confirm_new: "Analyze this point?",
     confirm_yes: "Yes, choose this point",
     verdict_kind: (y) => `Verdict · Postrera ${y}`,
-    rec_kind: (y) => `Reading of the ${y} postrera · to plan ${Number(y) + 1 || ""}`,
+    rec_kind: (y) => `Recommended to plan ${Number(y) + 1 || ""}, based on the ${y} postrera`,
     planted: (y, d) => `The ${y} postrera is already planted (≈${d}). Use this reading to plan the ${Number(y) + 1} planting with your field technician, not to decide today.`,
     rain_unc: (i, p, n, t) => `Rainfall uncertainty: in Sep–Nov the satellite (IMERG, ~10 km cell) gives ${i} mm and the model (POWER, ~50 km) ${p} mm on average. With POWER, the historical choice changes in ${n} of ${t} years.`,
     val_title: "Test against past years (2001–2025)",
@@ -413,6 +424,15 @@ const I18N = {
     demo_new: "Analyzing a new point downloads NASA data and takes minutes: it needs the Tempo server (python server.py) with Earth Engine access. Here you can only open the analyses already computed.",
     demo_near: (name, km) => `Open the nearest saved analysis: ${name} (${km} km away)`,
     demo_missing: "That analysis is not in the demo.",
+    why_conf: (c, n) => c === "alta" ? "What this confidence rests on" : `Why confidence is not higher${n ? ` (${n} ${n === 1 ? "reason" : "reasons"})` : ""}`,
+    sc_title: (n) => `Each option's score in ${n} possible scenarios`,
+    sc_worst: "worst case",
+    sc_axis: "score (1 = good harvest)",
+    sc_key_dot: "one scenario",
+    sc_key_worst: "its worst case",
+    sc_key_ref: "worst case of the recommended one",
+    sc_sr: (name, w, b) => `${name}: worst case ${w}, best case ${b}.`,
+    more_title: "Detail to review",
   },
 };
 
@@ -996,8 +1016,8 @@ function resultHtml(rec, r, an, note) {
     ? `<p class="rain-unc">${esc(cur.rain_unc(num(sn.mean_imerg_mm), num(sn.mean_power_mm), ll.cambios_con_power, ll.anios_comparados || sn.n_years || ""))}</p>` : "";
   const va = r.validacion || {};
   const picksTxt = Object.entries(va.elecciones || {}).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${stratName(k)} (${cur.val_years(n)})`).join(", ");
-  const valHtml = isNum(va.tempo) ? `<section class="block" aria-labelledby="val-h">
-      <h2 id="val-h">${esc(cur.val_title)}</h2>
+  const valHtml = isNum(va.tempo) ? `<details class="tech">
+      <summary id="val-h">${esc(cur.val_title)}</summary>
       <p class="fineprint">${esc(cur.val_desc)}</p>
       <ul class="val">
         ${picksTxt ? `<li>${esc(cur.val_picks(picksTxt))}</li>` : ""}
@@ -1006,7 +1026,7 @@ function resultHtml(rec, r, an, note) {
         ${isNum(va.misma_siempre) && va.misma_siempre >= va.tempo ? `<li>${esc(cur.val_same)}</li>` : ""}
       </ul>
       <p class="fineprint">${esc(cur.val_diff)}</p>
-    </section>` : "";
+    </details>` : "";
   const seasonHtml = ts.length && dd.lluvia_hasta ? `<section class="block" aria-labelledby="season-h">
       <h2 id="season-h">${esc(cur.season_title(r.anio || ""))}</h2>
       <p class="fineprint">${esc(cur.season_desc(fmtDate(dd.lluvia_hasta)))}</p>
@@ -1025,19 +1045,23 @@ function resultHtml(rec, r, an, note) {
     <p class="place">${esc(displayName(rec))} <span class="coords">${coord(rec.lat, rec.lon)}</span></p>
     ${dataLine}
     ${dd.respaldo_clima === "meteomatics" ? `<p class="data-line">${esc(cur.backup_line)}</p>` : ""}
-    ${demo ? `<p class="demo-line">${esc(cur.demo_line)}</p>` : ""}
-    ${plantedHtml}
     ${note ? `<p class="demo-line">${esc(note)}</p>` : ""}
 
     <section class="verdict ${rc ? `is-rec conf-${esc(rc.confianza)}` : claro ? "is-clear" : "is-open"}" aria-labelledby="verdict-h">
+      <h1 id="verdict-h">${rc ? `<span class="opt-key is-rec" aria-hidden="true">${esc(rc.clave)}</span>` : ""}${esc(verdictTitle(r))}</h1>
       <p class="verdict-kind">${esc(rc ? cur.rec_kind(r.anio || "") : cur.verdict_kind(r.anio || ""))}</p>
-      <h1 id="verdict-h">${esc(verdictTitle(r))}</h1>
-      ${rc ? `<p class="conf-line"><span class="conf-badge conf-${esc(rc.confianza)}">${esc(cur.conf[rc.confianza] || rc.confianza)}</span> <span class="conf-help">${esc(cur.conf_help[rc.confianza] || "")}</span></p>` : ""}
+      ${rc ? confHtml(rc, cur) : ""}
+      ${rc ? scenarioChart(rc, cur) : ""}
       <p class="verdict-text">${esc(verdictText(r))}</p>
-      ${rainUnc}
-      ${rc && rc.limites && rc.limites.length ? `<ul class="limits">${rc.limites.map((x) => `<li lang="es">${esc(x)}</li>`).join("")}</ul>` : ""}
+      ${rc && ((rc.limites && rc.limites.length) || rainUnc) ? `<details class="fold why-conf">
+        <summary>${esc(cur.why_conf(rc.confianza, (rc.limites || []).length))}</summary>
+        ${rc.limites && rc.limites.length ? `<ul class="limits">${rc.limites.map((x) => `<li lang="es">${esc(x)}</li>`).join("")}</ul>` : ""}
+        ${rainUnc}
+      </details>` : (!rc ? rainUnc : "")}
     </section>
 
+    ${plantedHtml}
+    ${demo ? `<p class="demo-line">${esc(cur.demo_line)}</p>` : ""}
     ${missingHtml(missing, r.advertencias)}
 
     <section class="block" aria-labelledby="opts-h">
@@ -1049,22 +1073,23 @@ function resultHtml(rec, r, an, note) {
 
     ${seasonHtml}
 
-    ${basisHtml}
-
-    ${valHtml}
-
-    ${conds ? `<section class="block" aria-labelledby="why-h">
-      <h2 id="why-h">${esc(rc && rc.origen === "robusta" ? cur.why_title_rec : cur.why_title)}</h2>
-      ${rc && rc.origen === "robusta" ? `<p class="fineprint">${esc(cur.why_desc_rec)}</p>` : ""}
-      <ul class="conds">${conds}</ul>
-    </section>` : ""}
+    ${hydrographHtml(an.chart, ll.canicula_dias, r.anio)}
 
     ${facts.length ? `<section class="block" aria-labelledby="facts-h">
       <h2 id="facts-h">${esc(cur.facts_title)}</h2>
       <dl class="facts">${facts.map(([k, val]) => `<div><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`).join("")}</dl>
     </section>` : ""}
 
-    ${hydrographHtml(an.chart, ll.canicula_dias, r.anio)}
+    <h2 class="more-h">${esc(cur.more_title)}</h2>
+    ${basisHtml}
+
+    ${valHtml}
+
+    ${conds ? `<details class="tech">
+      <summary id="why-h">${esc(rc && rc.origen === "robusta" ? cur.why_title_rec : cur.why_title)}</summary>
+      ${rc && rc.origen === "robusta" ? `<p class="fineprint">${esc(cur.why_desc_rec)}</p>` : ""}
+      <ul class="conds">${conds}</ul>
+    </details>` : ""}
 
     <details class="tech">
       <summary>${esc(cur.tech_title)}</summary>
@@ -1097,6 +1122,59 @@ function resultHtml(rec, r, an, note) {
     </div>`;
 }
 
+// Confianza como medidor de tres tramos (baja, media, alta) más la palabra: no depende solo del color
+const CONF_LEVEL = { baja: 1, media: 2, alta: 3 };
+function confHtml(rc, cur) {
+  const n = CONF_LEVEL[rc.confianza] || 0;
+  return `<div class="conf-line">
+    <span class="conf-meter conf-${esc(rc.confianza)}" aria-hidden="true">${[1, 2, 3].map((i) => `<i class="${i <= n ? "on" : ""}"></i>`).join("")}</span>
+    <span class="conf-badge conf-${esc(rc.confianza)}">${esc(cur.conf[rc.confianza] || rc.confianza)}</span>
+    <span class="conf-help">${esc(cur.conf_help[rc.confianza] || "")}</span>
+  </div>`;
+}
+
+// Gráfico de escenarios: por opción, un punto por escenario y el peor caso marcado. La línea vertical
+// es el peor caso de la recomendada: se elige la opción cuyo peor punto queda más a la derecha (maximin).
+function scenarioChart(rc, cur) {
+  const sc = Array.isArray(rc.escenarios) ? rc.escenarios : [];
+  if (!sc.length) return "";
+  const keys = [...new Set(sc.flatMap((e) => Object.keys(e.puntajes || {})))].sort();
+  const data = keys.map((k) => {
+    const vals = sc.map((e) => e.puntajes?.[k]).filter(isNum);
+    const worst = rc.peor_puntaje && isNum(rc.peor_puntaje[k]) ? rc.peor_puntaje[k] : Math.min(...vals);
+    return { k, vals, worst, best: Math.max(...vals) };
+  }).filter((d) => d.vals.length);
+  if (!data.length) return "";
+  const all = data.flatMap((d) => d.vals);
+  const lo = Math.max(0, Math.floor((Math.min(...all) - 0.02) * 20) / 20);
+  const hi = Math.min(1, Math.ceil((Math.max(...all) + 0.02) * 20) / 20);
+  const X = (v) => (((v - lo) / (hi - lo || 1)) * 100).toFixed(2);
+  const recWorst = data.find((d) => d.k === rc.clave)?.worst;
+  const rows = data.map((d) => {
+    const isRec = d.k === rc.clave;
+    const counts = new Map();
+    for (const v of d.vals) counts.set(v, (counts.get(v) || 0) + 1);
+    const dots = [...counts.entries()].map(([v, c]) => `<span class="sc-dot${c > 1 ? " is-multi" : ""}" style="left:${X(v)}%"></span>`).join("");
+    return `<li class="sc-row${isRec ? " is-rec" : ""}">
+      <div class="sc-head"><span class="opt-key" aria-hidden="true">${esc(d.k)}</span><span class="sc-name">${esc(stratName(d.k))}</span>
+        <span class="sc-worst">${esc(cur.sc_worst)} <strong>${num(d.worst, 3)}</strong></span></div>
+      <div class="sc-track" aria-hidden="true">
+        ${isNum(recWorst) ? `<span class="sc-ref" style="left:${X(recWorst)}%"></span>` : ""}
+        <span class="sc-range" style="left:${X(d.worst)}%;width:${(X(d.best) - X(d.worst)).toFixed(2)}%"></span>
+        ${dots}
+        <span class="sc-dot is-worst" style="left:${X(d.worst)}%"></span>
+      </div>
+      <span class="sr-only">${esc(cur.sc_sr(stratName(d.k), num(d.worst, 3), num(d.best, 3)))}</span>
+    </li>`;
+  }).join("");
+  return `<figure class="sc-chart" aria-labelledby="sc-cap">
+    <figcaption id="sc-cap" class="sc-cap">${esc(cur.sc_title(sc.length))}</figcaption>
+    <ul class="sc-rows">${rows}</ul>
+    <div class="sc-axis" aria-hidden="true"><span>${num(lo, 2)}</span><span>${esc(cur.sc_axis)}</span><span>${num(hi, 2)}</span></div>
+    <p class="sc-key"><span><i class="k-dot"></i>${esc(cur.sc_key_dot)}</span><span><i class="k-worst"></i>${esc(cur.sc_key_worst)}</span><span><i class="k-ref"></i>${esc(cur.sc_key_ref)}</span></p>
+  </figure>`;
+}
+
 // Tabla de escenarios: puntaje de cada opción en cada supuesto y su peor caso
 function basisTable(rc, cur, backup) {
   const keys = [...new Set(rc.escenarios.flatMap((e) => Object.keys(e.puntajes || {})))].sort();
@@ -1109,8 +1187,8 @@ function basisTable(rc, cur, backup) {
   }
   const cell = (k, v, best) => `<td class="n${k === rc.clave ? " is-rec" : ""}${best ? " is-best" : ""}">${num(v, 3)}</td>`;
   const rows = rc.escenarios.map((e) => `<tr><th scope="row">${esc(scName(e))}</th>${keys.map((k) => cell(k, e.puntajes?.[k], k === e.mejor)).join("")}</tr>`).join("");
-  return `<section class="block" aria-labelledby="basis-h">
-    <h2 id="basis-h">${esc(cur.basis_title)}</h2>
+  return `<details class="tech">
+    <summary id="basis-h">${esc(cur.basis_title)}</summary>
     <p class="fineprint">${esc(cur.basis_desc(rc.escenarios.length))}</p>
     <div class="table-wrap"><table class="basis">
       <thead><tr><th>${esc(cur.basis_scenario)}</th>${keys.map((k) => `<th class="n${k === rc.clave ? " is-rec" : ""}"><abbr title="${esc(stratName(k))}">${esc(k)}</abbr></th>`).join("")}</tr></thead>
@@ -1118,7 +1196,7 @@ function basisTable(rc, cur, backup) {
       <tfoot><tr><th scope="row">${esc(cur.basis_worst)}</th>${keys.map((k) => `<td class="n${k === rc.clave ? " is-rec" : ""}">${num(worst[k], 3)}</td>`).join("")}</tr></tfoot>
     </table></div>
     <p class="fineprint">${keys.map((k) => `${esc(k)} = ${esc(stratName(k))}`).join(" · ")}</p>
-  </section>`;
+  </details>`;
 }
 
 // Gráfico de lluvia: banda p20–p80, mediana y el año en curso, de mayo a noviembre
@@ -1220,8 +1298,15 @@ function renderJobs() {
   if (!state.jobs.length) ul.innerHTML = `<li class="muted empty">${esc(cur.list_empty)}</li>`;
   for (const j of [...state.jobs].reverse()) {
     const name = displayName(j);
-    const m = L.circleMarker([j.lat, j.lon], { radius: 8, color: "#fff", weight: 2, fillColor: COLORS[j.estado] || "#666", fillOpacity: 0.95 })
-      .bindTooltip(`${esc(name)} · ${esc(cur[`st_${j.estado}`] || j.estado)}`)
+    // En el mapa, cada análisis muestra la letra de la opción recomendada (A, B o C) y su confianza.
+    const jrc = j.veredicto && j.veredicto.recomendacion;
+    const icon = L.divIcon({
+      className: "",
+      html: `<span class="job-pin st-${esc(j.estado)}${jrc ? ` conf-${esc(jrc.confianza)}` : ""}">${jrc ? esc(jrc.clave) : ""}</span>`,
+      iconSize: [26, 26], iconAnchor: [13, 13],
+    });
+    const m = L.marker([j.lat, j.lon], { icon, keyboard: false })
+      .bindTooltip(`${esc(name)} · ${jrc ? `${esc(cur.rec_tag)}: ${esc(jrc.clave)} · ${esc(cur.conf[jrc.confianza] || jrc.confianza)}` : esc(cur[`st_${j.estado}`] || j.estado)}`)
       .on("click", (ev) => { L.DomEvent.stopPropagation(ev); openJob(j); });
     jobsLayer.addLayer(m);
 

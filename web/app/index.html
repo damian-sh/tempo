@@ -6,6 +6,9 @@
 <title>Tempo · Decisión de postrera con datos NASA</title>
 <meta name="description" content="Tempo compara qué sembrar en la postrera del Corredor Seco con 25 años de lluvia satelital NASA GPM IMERG, NASA POWER, relieve SRTM y suelo SoilGrids, y dice cuán segura es la comparación.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <meta name="theme-color" content="#2b6a3c">
@@ -47,7 +50,8 @@
   </nav>
 
   <div class="map-legend" aria-hidden="true">
-    <span class="legend-item"><span class="legend-dot st-listo"></span><span data-i18n="legend_done">Analizado</span></span>
+    <span class="legend-item"><span class="job-pin legend-pin">A</span><span data-i18n="legend_done">Opción recomendada, confianza media o alta</span></span>
+    <span class="legend-item"><span class="job-pin legend-pin conf-baja">A</span><span data-i18n="legend_low">Opción recomendada, confianza baja</span></span>
     <span class="legend-item"><span class="legend-dot st-parcial"></span><span data-i18n="legend_partial">Parcial (faltó una fuente)</span></span>
     <span class="legend-item"><span class="legend-dot st-area"></span><span data-i18n="legend_area">Zona cubierta</span></span>
   </div>
@@ -73,6 +77,7 @@
           <button type="button" class="primary" id="btn-intro-demo" data-i18n="btn_demo">Ver un ejemplo ya analizado</button>
           <button type="button" class="secondary" id="btn-intro-pick" data-i18n="btn_pick">Elegir mi parcela en el mapa</button>
         </div>
+        <p class="demo-note" id="demo-note" role="note" hidden></p>
 
         <ol class="steps">
           <li data-i18n-html="step1"><strong>Toca tu parcela</strong> en el mapa, dentro del recuadro punteado.</li>
@@ -89,7 +94,6 @@
           <p class="error" id="coords-error" hidden></p>
         </form>
 
-        <p class="demo-note" id="demo-note" role="note" hidden></p>
         <p class="fineprint" data-i18n="intro_date">En noviembre la postrera del año ya está sembrada: Tempo muestra cómo responde cada opción en una temporada como la de este año, para planificar la próxima siembra.</p>
         <p class="fineprint" data-i18n="coverage">Zona cubierta: El Salvador, sur de Honduras y norte de Nicaragua (latitud 12 a 15, longitud −90,5 a −87).</p>
       </div>
