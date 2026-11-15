@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Method · Tempo</title>
+<meta name="description" content="How the water balance and the score are calculated.">
+<link rel="alternate" hreflang="es" href="metodo.html"><link rel="alternate" hreflang="en" href="metodo-en.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index-en.html">Tempo</a>
+  <nav aria-label="Main"><a href="index-en.html">Verdict</a><a href="hindcast-en.html">Hindcast</a><a href="metodo-en.html" aria-current="page">Method</a><a href="fuentes-en.html">Sources</a><a href="limites-en.html">Limits</a></nav>
+  <div class="langs" role="group" aria-label="Language"><span class="lang lang--on">EN</span><a class="lang" href="metodo.html" hreflang="es" lang="es">Español</a></div>
+</div></header>
+<main id="main" class="wrap" tabindex="-1">
+<section class="hero hero--sm"><p class="eyebrow">Method</p><h1>How it is calculated</h1>
+<p class="lead">A simple daily water balance for the plot, with satellite rain and reanalysis temperature.</p></section>
+<section class="block" aria-labelledby="steps"><h2 id="steps">Steps</h2><ol class="steps">
+<li><strong>Rain:</strong> IMERG V07 summed per local day (UTC−6) at the point. NASA POWER fills missing days.</li><li><strong>Temperature:</strong> NASA POWER, corrected for elevation with SRTM (-0.96 °C at this plot, −0.0065 °C/m).</li><li><strong>Evapotranspiration:</strong> Hargreaves with (Tmax+Tmin)/2, FAO-56 eq. 52.</li><li><strong>Soil:</strong> water capacity of 130 mm from the clayey texture (SoilGrids). The value per texture is an ASSUMPTION.</li><li><strong>Balance:</strong> daily bucket capped at capacity; stress starts below half of capacity. Simplified WRSI-type index, not full FAO-56. Classes: ≥ 80 good, 60–80 partial, &lt; 60 failure; one class down for stress at flowering or, for beans, more than 150 mm of rain at the end of the cycle.</li><li><strong>Similar years:</strong> years are grouped into thirds by mid-summer drought length; each year uses the other years in the same third. Never the year being evaluated nor the current season.</li><li><strong>Ties:</strong> if two options tie on climate, current practice is kept. In the drought check, tied years take the highest rank, and if most years tie the check is marked “not evaluable”.</li><li><strong>Final score:</strong> 60 % climate and 40 % priorities. With slope above 15 % (here 19.9 %), the soil weight is multiplied by 1.5.</li><li><strong>Margin and sign test:</strong> the margin is the mean score difference against current practice. The sign test counts better and worse years and ignores ties; it does not account for assumptions shared across years.</li>
+</ol></section>
+<section class="block" aria-labelledby="w"><h2 id="w">Priority weights</h2>
+<div class="table-wrap"><table class=""><caption>Weights used in the final score</caption><thead><tr><th scope="col">Priority</th><th scope="col">Weight</th></tr></thead><tbody><tr><td data-label="Priority">Food</td><td data-label="Weight">1.0</td></tr><tr><td data-label="Priority">Income</td><td data-label="Weight">0.5</td></tr><tr><td data-label="Priority">Soil</td><td data-label="Weight">0.5</td></tr><tr><td data-label="Priority">Water</td><td data-label="Weight">0.5</td></tr><tr><td data-label="Priority">Labor</td><td data-label="Weight">0.3</td></tr></tbody></table></div>
+<p class="muted">Weights set by the team; they are ASSUMPTIONS, not measured data.</p></section></main>
+<footer class="foot wrap"><p>Decision support for the postrera season. It does not replace local agronomic judgement. Data: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Site built locally; not published.</p></footer>
+</body></html>

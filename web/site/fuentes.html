@@ -3,22 +3,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fuentes · Tempo</title>
 <meta name="description" content="Fuentes de datos de Tempo.">
+<link rel="alternate" hreflang="es" href="fuentes.html"><link rel="alternate" hreflang="en" href="fuentes-en.html">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head><body>
+<a class="skip" href="#main">Saltar al contenido</a>
 <header class="top"><div class="wrap">
   <a class="brand" href="index.html">Tempo</a>
   <nav aria-label="Principal"><a href="index.html">Veredicto</a><a href="hindcast.html">Hindcast</a><a href="metodo.html">Método</a><a href="fuentes.html" aria-current="page">Fuentes</a><a href="limites.html">Límites</a></nav>
+  <div class="langs" role="group" aria-label="Idioma"><span class="lang lang--on">ES</span><a class="lang" href="fuentes-en.html" hreflang="en" lang="en">English</a></div>
 </div></header>
-<main class="wrap">
+<main id="main" class="wrap" tabindex="-1">
 <section class="hero hero--sm"><p class="eyebrow">Fuentes</p><h1>De dónde sale cada número</h1></section>
-<section class="block"><div class="table-wrap"><table><thead><tr><th>Fuente</th><th>Qué aporta</th><th>Cómo se usa</th></tr></thead><tbody>
-<tr><td>GPM IMERG V07 (NASA/GPM_L3/IMERG_V07, GEE)</td><td>Lluvia cada 30 min</td><td>Suma diaria en el punto, reducción en servidor</td></tr>
-<tr><td>NASA POWER Daily AG</td><td>Temperatura, radiación, humedad, lluvia (respaldo)</td><td>Serie diaria del punto</td></tr>
-<tr><td>SRTM GL1 (USGS/SRTMGL1_003, GEE)</td><td>Elevación y pendiente</td><td>Corrección de temperatura</td></tr>
-<tr><td>ISRIC SoilGrids v2</td><td>Arena, limo, arcilla y carbono 0–30 cm</td><td>Textura y capacidad de agua</td></tr>
-<tr><td>FEWS NET / FAO-GIEWS / ReliefWeb</td><td>Años con sequía documentada</td><td>Solo años con cita verificable</td></tr>
-</tbody></table></div></section></main>
+<section class="block"><div class="table-wrap"><table class="stack"><caption>Fuentes de datos</caption><thead><tr><th scope="col">Fuente</th><th scope="col">Qué aporta</th><th scope="col">Cómo se usa</th></tr></thead><tbody><tr><td data-label="Fuente">GPM IMERG V07 (NASA/GPM_L3/IMERG_V07, GEE)</td><td data-label="Qué aporta">Lluvia cada 30 min</td><td data-label="Cómo se usa">Suma diaria en el punto, reducción en servidor</td></tr><tr><td data-label="Fuente">NASA POWER Daily AG</td><td data-label="Qué aporta">Temperatura, radiación, humedad, lluvia (respaldo)</td><td data-label="Cómo se usa">Serie diaria del punto</td></tr><tr><td data-label="Fuente">SRTM GL1 (USGS/SRTMGL1_003, GEE)</td><td data-label="Qué aporta">Elevación y pendiente</td><td data-label="Cómo se usa">Corrección de temperatura y peso del suelo</td></tr><tr><td data-label="Fuente">ISRIC SoilGrids v2</td><td data-label="Qué aporta">Arena, limo, arcilla y carbono 0–30 cm</td><td data-label="Cómo se usa">Textura y capacidad de agua</td></tr><tr><td data-label="Fuente">FAO-56 (Allen et al., 1998)</td><td data-label="Qué aporta">Coeficientes de cultivo y etapas</td><td data-label="Cómo se usa">Valores por defecto, sin validar localmente</td></tr><tr><td data-label="Fuente">FEWS NET / FAO-GIEWS / ReliefWeb</td><td data-label="Qué aporta">Años con sequía documentada</td><td data-label="Cómo se usa">Solo años con cita verificable</td></tr></tbody></table></div></section></main>
 <footer class="foot wrap"><p>Apoyo para decisiones de la postrera. No reemplaza el criterio agronómico local. Datos: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Sitio generado localmente; no publicado.</p></footer>
 </body></html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verdict · Tempo</title>
+<meta name="description" content="Postrera verdict for the plot.">
+<link rel="alternate" hreflang="es" href="index.html"><link rel="alternate" hreflang="en" href="index-en.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index-en.html">Tempo</a>
+  <nav aria-label="Main"><a href="index-en.html" aria-current="page">Verdict</a><a href="hindcast-en.html">Hindcast</a><a href="metodo-en.html">Method</a><a href="fuentes-en.html">Sources</a><a href="limites-en.html">Limits</a></nav>
+  <div class="langs" role="group" aria-label="Language"><span class="lang lang--on">EN</span><a class="lang" href="index.html" hreflang="es" lang="es">Español</a></div>
+</div></header>
+<main id="main" class="wrap" tabindex="-1">
+<section class="hero">
+  <p class="eyebrow">Plot 13.796406 · -89.801031 · season 2026</p>
+  <h1>No option is clearly better for this plot in 2026</h1>
+  <p class="lead">The highest score goes to relay bean after maize (current practice), 0.003 points above the second option, and the result depends on unvalidated assumptions. Read it as a description of the season, not as a recommendation.</p>
+  <ul class="chips" aria-label="Plot data">
+    <li class="chip">Rain: IMERG 100 %</li>
+    <li class="chip">Soil: clayey, 130 mm</li>
+    <li class="chip">Mid-summer drought: 3 days (short)</li>
+    <li class="chip">Slope: 19.9 %</li>
+  </ul>
+</section>
+<section class="block" aria-labelledby="how"><h2 id="how">How to read the verdict</h2>
+  <p>Tempo only names a better option when all four conditions hold. Today 0 of 4 hold.</p>
+  <ul class="conds"><li class="cond cond--no"><span class="cond-mark">Not met</span><strong>Gap between the top two options</strong> <span>0.003 points; the reading threshold is 0.05 (an ASSUMPTION, not a measured error).</span></li><li class="cond cond--no"><span class="cond-mark">Not met</span><strong>Stable under other assumptions</strong> <span>Without the 150 mm bean rule, the pick changes in 25 of 25 years; with 60 mm water capacity, in 3.</span></li><li class="cond cond--no"><span class="cond-mark">Not met</span><strong>Stable with another rain source</strong> <span>With NASA POWER instead of IMERG, the pick changes in 8 of 25 years.</span></li><li class="cond cond--no"><span class="cond-mark">Not met</span><strong>The model recognises documented droughts</strong> <span>Not evaluable: 23 of 25 years tie at WRSI 100 for primera maize.</span></li></ul>
+  <p class="muted">Score from 0 to 1: 60 % comes from climate (how each option did in years with a similar mid-summer drought) and 40 % from household priorities (food, income, soil, water, labor). It is not a yield.</p>
+</section>
+<section class="block" aria-labelledby="opts"><h2 id="opts">The three options</h2><div class="grid3"><article class="card">
+<p class="eyebrow">Strategy A</p>
+<h3>Relay bean after maize (current practice)</h3>
+<p class="num">0.823<span> / 1.00</span></p>
+<dl class="facts">
+<div><dt>Gap to the highest score</dt><dd>0.000</dd></div>
+<div><dt>Climate: mean in 10 similar years</dt><dd>0.85</dd></div>
+<div><dt>Failure years among them</dt><dd>0 %</dd></div>
+</dl></article><article class="card">
+<p class="eyebrow">Strategy B</p>
+<h3>Sorghum (maicillo) + bean</h3>
+<p class="num">0.820<span> / 1.00</span></p>
+<dl class="facts">
+<div><dt>Gap to the highest score</dt><dd>0.003</dd></div>
+<div><dt>Climate: mean in 10 similar years</dt><dd>0.94</dd></div>
+<div><dt>Failure years among them</dt><dd>0 %</dd></div>
+</dl></article><article class="card">
+<p class="eyebrow">Strategy C</p>
+<h3>Second maize</h3>
+<p class="num">0.808<span> / 1.00</span></p>
+<dl class="facts">
+<div><dt>Gap to the highest score</dt><dd>0.015</dd></div>
+<div><dt>Climate: mean in 10 similar years</dt><dd>1.00</dd></div>
+<div><dt>Failure years among them</dt><dd>0 %</dd></div>
+</dl></article></div></section>
+<section class="block" aria-labelledby="past"><h2 id="past">What the past says</h2>
+  <p>Over 25 years (2001–2025, each year evaluated without using it), the Tempo rule scores 1.00 and current practice 0.82: mean margin 0.18. Tempo is better in 9 years and worse in 0 (sign test p = 0.0039).</p>
+  <p>Planting the same strategy every year scores 1.00 (Tempo margin over that: 0.00). Without the 150 mm bean rule, the margin over current practice becomes 0.00 and the pick changes in 25 of 25 years.</p>
+  <p><a href="hindcast-en.html">See the year-by-year hindcast and sensitivity</a> · <a href="limites-en.html">See the limits</a></p>
+</section></main>
+<footer class="foot wrap"><p>Decision support for the postrera season. It does not replace local agronomic judgement. Data: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Site built locally; not published.</p></footer>
+</body></html>
