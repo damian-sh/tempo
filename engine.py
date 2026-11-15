@@ -4,6 +4,7 @@ Run after fetch.py:
     python engine.py                       # all zones in config.ZONES
     python engine.py --zones morazan --seeds maize,bean
     python engine.py --weights food=1,income=0.5,soil=1,water=0.5,labor=0.3
+    python engine.py --rain-source power   # NASA POWER rain only (default: imerg)
 
 Writes out/<zone>.json (read by the web interface) and prints the hindcast
 validation that decides whether the recommendation is worth showing.
@@ -132,19 +133,129 @@ def validate(hcdf: pd.DataFrame, indic: pd.DataFrame, complete_years: list[int])
     }
 
 
+def hindcast_years(validation: dict, hcdf: pd.DataFrame, pm: pd.DataFrame, worst_third: int,
+                   years: list[int]) -> list[dict]:
+    """One row per year: leave-one-out pick, per-crop WRSI/class, and the D6 hit/fallo.
+
+    hit/fallo only for years in config.VALIDATION_DROUGHT_YEARS (cited source, D6): "hit" when the
+    primera maize WRSI ranks in the worst third of the record (same rule as CHECK 1), else "fallo".
+    """
+    picks = {int(r["year"]): r for r in validation.get("by_year", [])}
+    pmi = pm.set_index("year") if not pm.empty else pd.DataFrame()
+    rows = []
+    for y in years:
+        crops_y = {}
+        for parts in hcdf.loc[hcdf["year"] == y, "crops"]:
+            for c, r in parts.items():
+                crops_y.setdefault(c, {"wrsi": r["wrsi"], "class": r["class"]})
+        pk = picks.get(y)
+        prim = None
+        if y in pmi.index:
+            pr = pmi.loc[y]
+            prim = {"wrsi": float(pr["wrsi"]), "class": pr["class"], "rank_driest": int(pr["rank_driest"])}
+        source = config.VALIDATION_DROUGHT_YEARS.get(y)
+        result = None
+        if source is not None:
+            result = "hit" if prim is not None and prim["rank_driest"] <= worst_third else "fallo"
+        rows.append({"year": int(y),
+                     "strategy": pk["pick"] if pk else None,
+                     "canicula_class": pk["canicula_class"] if pk else None,
+                     "score_strategy": pk["score_pick"] if pk else None,
+                     "score_current": pk["score_A"] if pk else None,
+                     "crops": crops_y, "primera_maize": prim,
+                     "documented": source is not None, "result": result, "source": source})
+    return rows
+# ---------------------------------------------------------------- rain source
+# Rain windows compared between IMERG and POWER (same as the yearly indicators).
+RAIN_WINDOWS = {"primera": ("05-01", "08-31"), "canicula": ("07-01", "08-31"),
+                "sep_nov": ("09-01", "11-30")}
+
+
+def _hindcast_picks(df: pd.DataFrame, crops: dict, whc: float) -> dict:
+    indic = ind.yearly_indicators(df)
+    hcdf = hc.run_hindcast(df, indic, crops, whc)
+    complete = sorted(hcdf.groupby("year")["complete"].all().loc[lambda s: s].index.tolist())
+    return validate(hcdf, indic, complete)
+
+
+def rain_source_sensitivity(df_imerg: pd.DataFrame, df_power: pd.DataFrame,
+                            crops: dict, whc: float) -> dict:
+    """Compare IMERG and POWER rain per window and check whether the chosen strategy changes.
+
+    Per window and year, totals are compared only when every day has IMERG (P_src == "IMERG")
+    and POWER is complete. bias = POWER - IMERG; bias_pct is relative to the IMERG total.
+    verdict_changes lists the years whose leave-one-out pick (validate) differs between a
+    run with IMERG rain (POWER gap-filled, the default) and a run with POWER rain only.
+    """
+    if not (df_imerg["P_src"] == "IMERG").any():
+        return {"available": False, "reason": "no IMERG days in cache (imerg.csv missing or empty)"}
+    windows = {}
+    for name, (a, b) in RAIN_WINDOWS.items():
+        rows = []
+        for y in sorted(set(df_imerg.index.year) & set(df_power.index.year)):
+            wi = df_imerg.loc[f"{y}-{a}":f"{y}-{b}"]
+            wp = df_power["P"].loc[f"{y}-{a}":f"{y}-{b}"]
+            n_days = (pd.Timestamp(f"{y}-{b}") - pd.Timestamp(f"{y}-{a}")).days + 1
+            if len(wi) < n_days or len(wp) < n_days or (wi["P_src"] != "IMERG").any() \
+                    or wi["P"].isna().any() or wp.isna().any():
+                continue
+            rows.append({"year": int(y), "imerg_mm": round(float(wi["P"].sum()), 1),
+                         "power_mm": round(float(wp.sum()), 1)})
+        t = pd.DataFrame(rows, columns=["year", "imerg_mm", "power_mm"])
+        if t.empty:
+            windows[name] = {"months": f"{a}..{b}", "n_years": 0, "bias_mm": None, "bias_pct": None,
+                             "spearman": None, "by_year": []}
+            continue
+        si = t["imerg_mm"].sum()
+        rho = t["imerg_mm"].corr(t["power_mm"], method="spearman") if len(t) >= 3 else None
+        windows[name] = {
+            "months": f"{a}..{b}", "n_years": int(len(t)),
+            "mean_imerg_mm": round(float(t["imerg_mm"].mean()), 1),
+            "mean_power_mm": round(float(t["power_mm"].mean()), 1),
+            "bias_mm": round(float((t["power_mm"] - t["imerg_mm"]).mean()), 1),
+            "bias_pct": round(float(100 * (t["power_mm"].sum() - si) / si), 1) if si else None,
+            "spearman": None if rho is None or pd.isna(rho) else round(float(rho), 2),
+            "by_year": t.to_dict(orient="records"),
+        }
+
+    v_i, v_p = _hindcast_picks(df_imerg, crops, whc), _hindcast_picks(df_power, crops, whc)
+    by_i = {r["year"]: r for r in v_i.get("by_year", [])}
+    by_p = {r["year"]: r for r in v_p.get("by_year", [])}
+    common = sorted(set(by_i) & set(by_p))
+    changes = [{"year": int(y), "pick_imerg": by_i[y]["pick"], "pick_power": by_p[y]["pick"],
+                "score_imerg": by_i[y]["score_pick"], "score_power": by_p[y]["score_pick"]}
+               for y in common if by_i[y]["pick"] != by_p[y]["pick"]]
+    return {
+        "available": True,
+        "convention": "bias = POWER - IMERG; bias_pct relative to IMERG; years with complete IMERG only",
+        "windows": windows,
+        "n_years_compared": len(common),
+        "verdict_changes": changes,
+        "n_verdict_changes": len(changes),
+        "picks": {"imerg": v_i.get("picks", {}), "power": v_p.get("picks", {})},
+        "mean_score_tempo": {"imerg": v_i.get("mean_score_tempo"), "power": v_p.get("mean_score_tempo")},
+    }
+
+
 # ---------------------------------------------------------------- per zone
 def _ts(x):
     return None if x is None or (isinstance(x, float) and np.isnan(x)) or pd.isna(x) else pd.Timestamp(x).date().isoformat()
 
 
-def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict:
+def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
+               rain_source: str = "imerg") -> dict:
     crops = hc.load_crops()
-    df, info = ind.load_zone(zone.key)
+    df, info = ind.load_zone(zone.key, rain_source)
     indic = ind.yearly_indicators(df)
 
     texture = info["soil"].get("texture_class") or "default"
     whc = crops["soil_whc_mm"].get(texture, crops["soil_whc_mm"]["default"])
     slope_pct = info["terrain"].get("slope_pct")
+
+    by_src = {rain_source: df}
+    for src in ind.RAIN_SOURCES:
+        by_src.setdefault(src, ind.load_zone(zone.key, src)[0])
+    sensitivity = rain_source_sensitivity(by_src["imerg"], by_src["power"], crops, whc)
 
     hcdf = hc.run_hindcast(df, indic, crops, whc)
     complete_years = sorted(hcdf.groupby("year")["complete"].all().loc[lambda s: s].index.tolist())
@@ -169,6 +280,17 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
         "years": pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))).to_dict(orient="records") if not pm.empty else [],
         "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
         "documented_in_worst_third": [int(y) for y in doc if int(pm.set_index("year").loc[y, "rank_driest"]) <= third],
+        # CHECK 1 is only informative if the WRSI actually varies. Ties at 100 put every
+        # unstressed year at the same rank, so the check is vacuous when most years tie.
+        "n_at_max_wrsi": int((pm["wrsi"] >= 100.0).sum()) if not pm.empty else 0,
+        "discriminative": bool(not pm.empty and (pm["wrsi"] < 100.0).sum() >= len(pm) / 2),
+    }
+    hindcast = {
+        "method": "leave-one-out by canicula tercile; hit/fallo only for cited drought years (D6), "
+                  "primera maize WRSI in the worst third",
+        "worst_third_size": int(third),
+        "years": hindcast_years(validation, hcdf, pm, third,
+                                list(range(int(config.START_DATE[:4]), config.TARGET_YEAR))),
     }
 
     # Current season = latest year with a canicula reading.
@@ -265,12 +387,14 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
         "validation": validation,
         "skill": skill,
         "primera_check": primera_check,
+        "hindcast": hindcast,
+        "rain_source_sensitivity": sensitivity,
         "yearly": yearly,
         "chart": chart,
         "heat": heat,
         "postrera_planting": {"date": plant_cur.date().isoformat(), "late_default": bool(late_cur)},
         "warnings": info["warnings"],
-        "inputs": {"texture_class": texture, "whc_mm": whc, "slope_pct": slope_pct,
+        "inputs": {"rain_source": rain_source, "texture_class": texture, "whc_mm": whc, "slope_pct": slope_pct,
                    "weights": weights, "seeds": sorted(seeds) if seeds else None,
                    "temp_correction_c": info["temp_correction_c"],
                    "et0_change_vs_t2m_pct": info["et0_change_vs_t2m_pct"],
@@ -297,12 +421,14 @@ def clean_json(obj):
 def print_summary(out: dict) -> None:
     z, v, c = out["zone"], out["validation"], out["current"]
     print(f"\n=== {z['key']} — {z['name']}")
-    print(f"  Rain days from IMERG: {100 * out['inputs']['share_days_imerg']:.0f}%  |  "
+    print(f"  Rain source: {out['inputs']['rain_source']}  |  Rain days from IMERG: {100 * out['inputs']['share_days_imerg']:.0f}%  |  "
           f"temp correction {out['inputs']['temp_correction_c']} C  |  WHC {out['inputs']['whc_mm']} mm  |  "
           f"ET0 vs T2M {out['inputs']['et0_change_vs_t2m_pct']} %")
     for w in out["warnings"]:
         print(f"  WARNING: {w}")
     pc, sk = out["primera_check"], out["skill"]
+    if not pc.get("discriminative", True):
+        print(f"  CHECK 1 NO DISCRIMINANTE: {pc['n_at_max_wrsi']} of {pc['n_years']} years tie at WRSI 100")
     print(f"  CHECK 1 - documented droughts: {len(pc['documented_in_worst_third'])} of {len(pc['documented'])} "
           f"documented years fall in the model's worst {pc['worst_third_size']} of {pc['n_years']} primera years "
           f"({pc['documented_in_worst_third']} of {pc['documented']})")
@@ -314,6 +440,15 @@ def print_summary(out: dict) -> None:
               f"same strategy every year {v['mean_score_same_every_year']} | perfect hindsight {v['mean_score_best_possible']}")
         print(f"    failure years: Tempo {v['failure_years_tempo']} vs current {v['failure_years_current']}; "
               f"Tempo better in {v['years_tempo_better']}, worse in {v['years_tempo_worse']}; picks {v['picks']}")
+    rs = out["rain_source_sensitivity"]
+    if rs.get("available"):
+        for name, w in rs["windows"].items():
+            print(f"  RAIN SOURCE {name}: n={w['n_years']} bias {w['bias_mm']} mm ({w['bias_pct']} %), "
+                  f"Spearman IMERG vs POWER {w['spearman']}")
+        print(f"  RAIN SOURCE verdict changes: {rs['n_verdict_changes']} of {rs['n_years_compared']} years "
+              f"{[c['year'] for c in rs['verdict_changes']]}; picks {rs['picks']}")
+    else:
+        print(f"  RAIN SOURCE sensitivity not available: {rs.get('reason')}")
     print(f"  {out['current_year']}: canícula {c['canicula_days']} days ({c['canicula_class']}), "
           f"light {c['traffic_light']}, recommended {c['recommended']}, analogs {c['analog_years']}")
     for s in out["strategies"]:
@@ -325,6 +460,8 @@ def main() -> None:
     ap.add_argument("--zones", help="comma-separated zone keys (default: all)")
     ap.add_argument("--seeds", help="comma-separated available seeds, e.g. maize,bean")
     ap.add_argument("--weights", help="e.g. food=1,income=0.5,soil=1,water=0.5,labor=0.3")
+    ap.add_argument("--rain-source", choices=ind.RAIN_SOURCES, default="imerg",
+                    help="imerg: IMERG with POWER gap fill (default); power: NASA POWER only")
     a = ap.parse_args()
 
     weights = dict(DEFAULT_WEIGHTS)
@@ -339,7 +476,7 @@ def main() -> None:
     for z in config.ZONES:
         if keys and z.key not in keys:
             continue
-        out = build_zone(z, weights, seeds)
+        out = build_zone(z, weights, seeds, a.rain_source)
         with open(os.path.join(OUT_DIR, f"{z.key}.json"), "w") as f:
             json.dump(clean_json(out), f, indent=1, default=str, allow_nan=False)
         print_summary(out)

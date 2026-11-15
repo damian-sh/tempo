@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Método · Tempo</title>
+<meta name="description" content="Cómo se calcula el balance hídrico y el puntaje.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">Tempo</a>
+  <nav aria-label="Principal"><a href="index.html">Veredicto</a><a href="hindcast.html">Hindcast</a><a href="metodo.html" aria-current="page">Método</a><a href="fuentes.html">Fuentes</a><a href="limites.html">Límites</a></nav>
+</div></header>
+<main class="wrap">
+<section class="hero hero--sm"><p class="eyebrow">Método</p><h1>Cómo se calcula</h1>
+<p class="lead">Un balance hídrico diario sencillo sobre la parcela, con lluvia y temperatura de satélite y reanálisis.</p></section>
+<section class="block"><h2>Pasos</h2><ol class="steps">
+<li><strong>Lluvia:</strong> IMERG V07 sumado por día local (UTC−6) en el punto. Si faltan días, POWER como respaldo.</li>
+<li><strong>Temperatura:</strong> POWER, corregida por elevación con SRTM (-0.96 °C en esta parcela, −0,0065 °C/m).</li>
+<li><strong>Evapotranspiración:</strong> Hargreaves con (Tmax+Tmin)/2, según FAO-56.</li>
+<li><strong>Suelo:</strong> capacidad de agua de 130 mm según la textura clayey (SoilGrids). El valor de capacidad por textura es un SUPUESTO.</li>
+<li><strong>Balance:</strong> cubeta diaria con tope de capacidad y agotamiento p = 0,5 para todos los cultivos. Es un índice tipo WRSI simplificado, no FAO-56 completo.</li>
+<li><strong>Puntaje:</strong> ponderado por comida, ingreso, suelo, agua y mano de obra (pesos en la tabla de abajo).</li></ol></section>
+<section class="block"><h2>Pesos de prioridad</h2><div class="table-wrap"><table><thead><tr><th>Prioridad</th><th>Peso</th></tr></thead><tbody>
+<tr><td>food</td><td>1,0</td></tr><tr><td>income</td><td>0,5</td></tr><tr><td>soil</td><td>0,5</td></tr><tr><td>water</td><td>0,5</td></tr><tr><td>labor</td><td>0,3</td></tr>
+</tbody></table></div><p class="muted">Pesos definidos por el equipo; son SUPUESTOS, no datos medidos.</p></section></main>
+<footer class="foot wrap"><p>Apoyo para decisiones de la postrera. No reemplaza el criterio agronómico local. Datos: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Sitio generado localmente; no publicado.</p></footer>
+</body></html>

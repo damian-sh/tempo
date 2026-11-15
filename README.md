@@ -11,11 +11,27 @@ python -m venv ~/.venvs/tempo && ~/.venvs/tempo/bin/pip install -r requirements.
 export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # solo por variable de entorno
 ~/.venvs/tempo/bin/python fetch.py           # POWER + SoilGrids + IMERG/SRTM (GEE)
 ~/.venvs/tempo/bin/python engine.py          # out/<zona>.json
+~/.venvs/tempo/bin/python hindcast_md.py     # hindcast.md desde out/<zona>.json
+~/.venvs/tempo/bin/python engine.py          # out/<zona>.json (lluvia IMERG + relleno POWER)
+~/.venvs/tempo/bin/python engine.py --rain-source power   # solo lluvia NASA POWER
 ~/.venvs/tempo/bin/python build_page.py      # web/index.html (sin --demo)
 ~/.venvs/tempo/bin/python -m pytest tests -q
 ```
 
-Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`).
+Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`). La lluvia POWER
+(`PRECTOTCORR`) se guarda además en `~/.cache/tempo/<zona>/precip_power.json` (JSON compacto, ~50 KB).
+
+## Sensibilidad a la fuente de lluvia
+
+`out/<zona>.json` incluye `rain_source_sensitivity` (IMERG vs POWER), calculado siempre con ambas
+fuentes, sea cual sea `--rain-source`:
+
+- `windows.{primera,canicula,sep_nov}` (May-Ago, Jul-Ago, Sep-Nov): `bias_mm` (media anual de
+  POWER − IMERG), `bias_pct` (relativo al total IMERG), `spearman` (totales anuales), `n_years`
+  (solo años con IMERG completo en la ventana) y `by_year`.
+- `verdict_changes`: años en que la estrategia elegida por el hindcast leave-one-out (`validate`)
+  cambia entre la corrida con IMERG y la corrida con POWER.
+- Sin `imerg.csv` (sin GEE) el bloque queda `available: false`.
 
 ## Fuentes
 
@@ -38,6 +54,7 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 ## Límites conocidos
 
 - **Circularidad (D1):** `VALIDATION_DROUGHT_YEARS` solo contiene años <= 2025 con cita; `TARGET_YEAR` = 2026 queda fuera (aserción en `engine.validate`, test `test_no_circularity`).
+- **CHECK 1 no discriminante:** en la parcela, 24 de 26 años dan WRSI de maíz de primera = 100. La lluvia de la ventana de primera (730–1600 mm) supera la ET0 (~480 mm) incluso en 2014 y 2018, así que el modelo no ve estrés en esos años. Esto es un resultado de los datos de este punto, no un error de la ecuación. Con ese empate, el ranking no separa años y el CHECK 1 se marca "NO DISCRIMINANTE" en la salida. No se ajustó el balance para forzar estrés.
 - **Señal débil:** la canícula no correlaciona con la lluvia Sep-Nov (Spearman 0.04 Morazán, −0.18 Choluteca).
 - **Estrategia dominante:** Tempo elige C (segunda maíz) en 24 de 25 años en Morazán y 25 de 25 en Choluteca. Igualar "misma estrategia siempre" le gana o empata. Si las estrategias no se distinguen, la lectura es de temporada, no una recomendación fuerte.
 - **Balance hídrico:** zona radicular fija y `p` uniforme, no sigue FAO-56 completo (Zr dinámica, `p` por cultivo, Ky). Ver hallazgos de auditoría AGY.
@@ -47,7 +64,7 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 
 ## Hindcast
 
-Ver [hindcast.md](hindcast.md): año por año, 2001-2025, leave-one-out.
+Ver [hindcast.md](hindcast.md): año por año, 2001-2025, leave-one-out. La tabla vive en `out/<zona>.json` (`hindcast.years`: estrategia elegida, WRSI y clase por cultivo, `documented`, `result` hit/fallo según D6, `source`); `hindcast.md` lo genera `hindcast_md.py`, no se edita a mano.
 
 ## Uso de IA
 
