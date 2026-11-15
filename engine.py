@@ -30,6 +30,10 @@ STEEP_SLOPE_PCT = 15        # above this, soil protection weighs 1.5x
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 SENSITIVITY_WHC_MM = (60, 90, 130)   # sandy / default / clayey in crops.json
 CURRENT_PRACTICE = "A"                # relay bean after maize; kept on ties (no change without margin)
+# Robust recommendation (D10). Both values are SUPUESTOS, not measured errors.
+ROBUST_TIE = 0.005                    # scores are rounded to 3 decimals; closer than this is a tie
+ROBUST_MARGIN = 0.05                  # same reading threshold as the site verdict (build_site.READ_MARGIN)
+CONFIDENCE_ORDER = ("baja", "media", "alta")
 
 RISKS = {
     "A": ["Beans are hit by both drought at flowering and heavy rain at maturity.",
@@ -370,6 +374,176 @@ def rain_source_sensitivity(df_imerg: pd.DataFrame, df_power: pd.DataFrame,
     }
 
 
+# ---------------------------------------------------------------- robust recommendation (D10)
+def season_scores(df: pd.DataFrame, crops: dict, whc: float, weights: dict, slope_pct: float | None,
+                  year: int, keys: list[str]) -> dict[str, float]:
+    """Final score per strategy for `year`, computed exactly like the strategy cards in build_zone
+    (analog years of the same canícula tercile, history only), under the given rain/crops/soil."""
+    indic = ind.yearly_indicators(df)
+    if year not in indic.index:
+        return {}
+    hcdf = hc.run_hindcast(df, indic, crops, whc)
+    complete = history_years(_complete_years(hcdf))
+    if not complete:
+        return {}
+    _, analogs = hc.analog_years(year, indic, [y for y in complete if y != year] + [year])
+    stats = hc.strategy_stats(hcdf, analogs)
+    wd = mean_water_demand(hcdf, analogs or complete)
+    out = {}
+    for k in keys:
+        st = stats.get(k)
+        if st and st.get("mean_score") is not None:
+            out[k] = final_score(st["mean_score"], strategy_attributes(k, crops, wd), weights, slope_pct)
+    return out
+
+
+def robust_pick(scenarios: dict[str, dict[str, float]]) -> dict | None:
+    """Maximin over scenarios: the strategy whose lowest score across scenarios is highest.
+
+    Only strategies scored in every scenario compete. Ties on the worst case go to the higher mean,
+    then to the current practice (no change without margin), then alphabetical. Returns None when
+    fewer than two strategies can be compared.
+    """
+    names = [n for n, s in scenarios.items() if s]
+    if not names:
+        return None
+    keys = sorted(set.intersection(*(set(scenarios[n]) for n in names)))
+    if len(keys) < 2:
+        return None
+    worst = {k: min(scenarios[n][k] for n in names) for k in keys}
+    mean = {k: sum(scenarios[n][k] for n in names) / len(names) for k in keys}
+    best_in = {n: max(scenarios[n][k] for k in keys) for n in names}
+    regret = {k: max(best_in[n] - scenarios[n][k] for n in names) for k in keys}
+    order = sorted(keys, key=lambda k: (-worst[k], -mean[k], k != CURRENT_PRACTICE, k))
+    pick, second = order[0], order[1]
+    wins = [n for n in names if scenarios[n][pick] >= best_in[n] - ROBUST_TIE]
+    return {
+        "pick": pick, "second": second,
+        "worst": {k: round(worst[k], 3) for k in keys},
+        "mean": {k: round(mean[k], 3) for k in keys},
+        "max_regret": {k: round(regret[k], 3) for k in keys},
+        "worst_margin": round(worst[pick] - worst[second], 3),
+        "wins": wins, "n_wins": len(wins), "n_scenarios": len(names),
+    }
+
+
+def robust_confidence(rp: dict, rain_compared: bool, soil_measured: bool,
+                      check1_ok: bool = True, strict_ok: bool = True,
+                      base_margin: float | None = None) -> tuple[str, list[str]]:
+    """Confidence label for a robust pick, with the reasons that capped it (D10 rev. 2, SUPUESTO).
+
+    First gate: in the base scenario the pick must beat the next option by ROBUST_MARGIN; a smaller
+    gap is "baja" (no real difference, so no reason to change practice).
+    alta : best (or tied) in every scenario, worst case ahead of the runner-up by ROBUST_MARGIN,
+           and the strict historical checks pass (no pick change without the 150 mm rule or with
+           POWER instead of IMERG).
+    media: never more than ROBUST_MARGIN behind the best option of any scenario.
+    baja : otherwise. The pick is still the safest under the scenarios, and the reasons say why.
+    Caps: without IMERG max baja; soil default, documented-drought check not evaluable, or strict
+    checks failing: max media.
+    """
+    n, w = rp["n_scenarios"], rp["n_wins"]
+    regret = rp["max_regret"][rp["pick"]]
+    caps = []
+    if base_margin is not None and base_margin < ROBUST_MARGIN:
+        level = "baja"
+        caps.append("margin")
+    elif w == n and rp["worst_margin"] >= ROBUST_MARGIN:
+        level = "alta"
+    elif regret <= ROBUST_MARGIN:
+        level = "media"
+    else:
+        level = "baja"
+    if not strict_ok:
+        caps.append("strict")
+        if level == "alta":
+            level = "media"
+    if not rain_compared:
+        caps.append("rain")
+        level = "baja"
+    if not soil_measured:
+        caps.append("soil")
+        if level == "alta":
+            level = "media"
+    if not check1_ok:
+        caps.append("check1")
+        if level == "alta":
+            level = "media"
+    return level, caps
+
+
+def robust_recommendation(by_src: dict[str, pd.DataFrame], rain_compared: bool, crops: dict, whc: float,
+                          weights: dict, slope_pct: float | None, year: int, keys: list[str],
+                          soil_measured: bool, base_src: str = "imerg", check1_ok: bool = True,
+                          strict_ok: bool = True) -> dict:
+    """Scores of each strategy for `year` under the uncertainties the verdict already reports:
+    rain source (IMERG or POWER), the 150 mm bean rule (with or without) and soil water capacity
+    (SENSITIVITY_WHC_MM). Defaults never change; this only chooses the option that holds up best."""
+    nb = _crops_without_bean_rule(crops)
+    plan = [("base", base_src, crops, whc), ("no_bean_rule", base_src, nb, whc)]
+    alt = "power" if base_src != "power" else "imerg"
+    if rain_compared:
+        plan += [(alt, alt, crops, whc), (f"{alt}_no_bean_rule", alt, nb, whc)]
+    plan += [(f"whc_{w}", base_src, crops, w) for w in SENSITIVITY_WHC_MM if w != whc]
+    scenarios, defs = {}, {}
+    for name, src, c, w in plan:
+        s = season_scores(by_src[src], c, w, weights, slope_pct, year, keys)
+        if s:
+            scenarios[name] = s
+            defs[name] = {"rain": src, "bean_rule": c is crops, "whc_mm": w}
+    rp = robust_pick(scenarios)
+    if rp is None:
+        return {"available": False, "reason": "fewer than two strategies scored in every scenario",
+                "scenarios": scenarios, "scenario_defs": defs}
+    base = scenarios.get("base") or {}
+    others = [v for k, v in base.items() if k != rp["pick"]]
+    base_margin = round(base[rp["pick"]] - max(others), 3) if rp["pick"] in base and others else None
+    level, caps = robust_confidence(rp, rain_compared, soil_measured, check1_ok, strict_ok, base_margin)
+    return {"available": True, "method": "maximin over scenarios (best worst-case score)",
+            "tie": ROBUST_TIE, "margin": ROBUST_MARGIN, **rp, "base_margin": base_margin,
+            "confidence": level, "confidence_caps": caps,
+            "scenarios": scenarios, "scenario_defs": defs}
+
+
+def current_season(hcdf: pd.DataFrame, crops: dict, year: int, last_day) -> list[dict]:
+    """How the current postrera is going with MEASURED rain only (no forecast, no analogs).
+
+    A strategy whose crops already reached harvest has a real simulated outcome for this year
+    (water balance with observed rain; yields are not modeled). The others are still in the field:
+    harvest date and days of data still missing are reported, never filled.
+    """
+    out = []
+    rows = hcdf[hcdf["year"] == year]
+    for r in rows.itertuples():
+        harvest = pd.Timestamp(r.plant_date)
+        ends = []
+        for c in crops["strategies"][r.strategy]["crops"]:
+            ini, dev, mid, late = crops["crops"][c]["stages_days"]
+            ends.append(harvest + pd.Timedelta(days=ini + dev + mid + late))
+        end = max(ends)
+        missing = max(0, (end - pd.Timestamp(last_day)).days) if last_day is not None else None
+        out.append({"strategy": r.strategy, "plant_date": r.plant_date, "harvest_date": end.date().isoformat(),
+                    "complete": bool(r.complete), "score": r.score if r.complete else None,
+                    "days_missing": None if r.complete else missing,
+                    "crops": {c: {"wrsi": p["wrsi"], "class": p["class"]} for c, p in (r.crops or {}).items()}
+                    if r.complete else {}})
+    return out
+
+
+def data_dates(df: pd.DataFrame, df_power: pd.DataFrame, meta: dict) -> dict:
+    """Last observed day of each rain series and when the data was downloaded."""
+    def last(s):
+        i = s.last_valid_index()
+        return _ts(i) if i is not None else None
+    imerg_days = df.index[df["P_src"] == "IMERG"] if "P_src" in df.columns else []
+    return {"rain_last_day": last(df["P"]),
+            "imerg_last_day": _ts(imerg_days.max()) if len(imerg_days) else None,
+            "power_last_day": last(df_power["P"]) if "P" in df_power.columns else None,
+            "fetched_utc": (meta or {}).get("fetched_utc"),
+            "weather_backup": ((meta or {}).get("weather_backup") or {}).get("source"),
+            "requested_end": (meta or {}).get("end")}
+
+
 # ---------------------------------------------------------------- per zone
 def _ts(x):
     return None if x is None or (isinstance(x, float) and np.isnan(x)) or pd.isna(x) else pd.Timestamp(x).date().isoformat()
@@ -460,6 +634,14 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
     ranked = sorted([c for c in cards if c["score"] is not None], key=lambda c: -c["score"])
     recommended = ranked[0]["key"] if ranked else None
     margin = round(ranked[0]["score"] - ranked[1]["score"], 3) if len(ranked) > 1 else None
+    robust = robust_recommendation(by_src, bool(sensitivity.get("available")), crops, whc, weights, slope_pct,
+                                   cur, [c["key"] for c in cards if c["available"]],
+                                   soil_measured=info["soil"].get("texture_class") is not None,
+                                   base_src=rain_source,
+                                   check1_ok=bool(primera_check.get("discriminative")),
+                                   strict_ok=(sensitivity_params.get("max_pick_changes", 1) == 0
+                                              and bool(sensitivity.get("available"))
+                                              and sensitivity.get("n_verdict_changes", 1) == 0))
 
     # Chart: 10-day rain of the current year vs the 2001-(cur-1) normal band.
     clim = ind.climatology(df, [y for y in complete_years if y != cur])
@@ -508,6 +690,9 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
                     "postrera_onset": _ts(indic.loc[cur, "postrera_onset"]),
                     "analog_years": analogs,
                     "recommended": recommended, "margin_over_second": margin},
+        "robust": robust,
+        "current_season": current_season(hcdf, crops, cur, df["P"].last_valid_index()),
+        "data_dates": data_dates(df, by_src["power"], info.get("meta") or {}),
         "strategies": cards,
         "validation": validation,
         "sensitivity": sensitivity_params,

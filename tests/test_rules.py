@@ -11,6 +11,7 @@ FORBIDDEN_SOURCES = re.compile(
 SOURCES_ALLOWED_IN = {"README.md", "DECISIONES.md", SELF}
 SECRET_PREFIXES = ("cog_", "4/1A")
 ALLOWED_JSON = {"crops.json", "parcelas.json"}  # parcelas.json es registro de sitios, no caché
+DEMO_DIR = "web/app/demo/"  # instantánea de demo versionada a propósito (export_demo.py)
 CACHE_DIRS = ("cache/", "out/")
 
 
@@ -40,5 +41,5 @@ def test_no_cache_json_in_git():
     tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, check=True,
                              capture_output=True, text=True).stdout.splitlines()
     bad = [f for f in tracked if f.startswith(CACHE_DIRS)
-           or (f.endswith(".json") and f not in ALLOWED_JSON)]
+           or (f.endswith(".json") and f not in ALLOWED_JSON and not f.startswith(DEMO_DIR))]
     assert not bad, f"cache/output JSON tracked in git: {bad}"

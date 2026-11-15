@@ -3,67 +3,150 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tempo · Mapa de parcelas</title>
-<meta name="description" content="Ubique su parcela en el mapa de El Salvador y el Corredor Seco y Tempo analiza la postrera con lluvia satelital de NASA.">
+<title>Tempo · Decisión de postrera con datos NASA</title>
+<meta name="description" content="Tempo compara qué sembrar en la postrera del Corredor Seco con 25 años de lluvia satelital NASA GPM IMERG, NASA POWER, relieve SRTM y suelo SoilGrids, y dice cuán segura es la comparación.">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#2b6a3c">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="bar">
-  <a class="brand" href="/app/">Tempo</a>
-  <form class="search" id="search" role="search" autocomplete="off">
-    <label class="sr-only" for="q">Buscar un lugar registrado</label>
-    <input id="q" type="search" list="sitios" placeholder="Buscar lugar (parcelas.json)">
-    <datalist id="sitios"></datalist>
-    <button type="submit">Ir</button>
-  </form>
+  <a class="brand" href="/app/" aria-label="Tempo, inicio"><img class="brand-icon" src="icon.svg" alt="" width="30" height="30">Tempo</a>
+  <span class="brand-badge" data-i18n="brand_badge">Datos NASA</span>
+  <span class="brand-tagline" data-i18n="tagline">Qué sembrar en la postrera, con 25 años de lluvia satelital</span>
+
+  <div class="bar-right">
+    <form class="search" id="search" role="search" autocomplete="off">
+      <label class="sr-only" for="q" data-i18n="search_label">Buscar un lugar registrado</label>
+      <input id="q" type="search" list="sitios" data-i18n-ph="search_ph" placeholder="Buscar lugar">
+      <datalist id="sitios"></datalist>
+      <button type="submit" data-i18n="search_go">Ir</button>
+    </form>
+    <button type="button" class="icon-btn" id="btn-search-toggle" aria-expanded="false" aria-controls="search" data-i18n-label="search_label" aria-label="Buscar un lugar registrado">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <button type="button" class="bar-btn" id="btn-metodo" aria-haspopup="dialog" data-i18n="how_btn">Cómo funciona</button>
+    <button type="button" class="bar-btn" id="btn-lang" lang="en" aria-label="Switch to English">EN</button>
+  </div>
 </header>
 
-<main class="layout">
-  <div id="map" class="map" role="application" aria-label="Mapa: toque su parcela para elegir el punto"></div>
+<p class="mobile-tagline" data-i18n="tagline">Qué sembrar en la postrera, con 25 años de lluvia satelital</p>
 
-  <aside class="panel" id="panel" aria-live="polite" data-size="half">
-    <button class="handle" id="handle" type="button" aria-label="Agrandar o achicar el panel" aria-expanded="false"><span></span></button>
-    <nav class="tabs" role="tablist">
-      <button role="tab" id="tab-punto" aria-selected="true" aria-controls="view-punto" type="button">Punto</button>
-      <button role="tab" id="tab-lista" aria-selected="false" aria-controls="view-lista" type="button">Análisis hechos <span id="n-jobs" class="count"></span></button>
-    </nav>
+<main class="layout">
+  <div id="map" class="map" role="application" data-i18n-label="map_label" aria-label="Mapa: toca un punto para elegir la parcela"></div>
+
+  <nav class="showcase" id="showcase" data-i18n-label="examples_label" aria-label="Ejemplos ya analizados">
+    <span class="showcase-title" data-i18n="examples_title">Ejemplos</span>
+    <button type="button" class="chip-btn" data-site="parcela" data-i18n="chip_parcela">Ahuachapán · zona alta</button>
+    <button type="button" class="chip-btn" data-site="choluteca" data-i18n="chip_choluteca">Choluteca · Corredor Seco</button>
+    <button type="button" class="chip-btn" data-site="morazan" data-i18n="chip_morazan">Morazán · ladera</button>
+    <button type="button" class="chip-btn" data-site="nacaome" data-i18n="chip_nacaome">Nacaome · Golfo de Fonseca</button>
+    <button type="button" class="chip-btn" data-site="chinandega" data-i18n="chip_chinandega">Chinandega · Nicaragua</button>
+  </nav>
+
+  <div class="map-legend" aria-hidden="true">
+    <span class="legend-item"><span class="legend-dot st-listo"></span><span data-i18n="legend_done">Analizado</span></span>
+    <span class="legend-item"><span class="legend-dot st-parcial"></span><span data-i18n="legend_partial">Parcial (faltó una fuente)</span></span>
+    <span class="legend-item"><span class="legend-dot st-area"></span><span data-i18n="legend_area">Zona cubierta</span></span>
+  </div>
+
+  <div class="map-layer-switch" role="group" data-i18n-label="layers_label" aria-label="Capa del mapa">
+    <button type="button" id="btn-layer-sat" class="active" aria-pressed="true" data-i18n="layer_sat">Satélite</button>
+    <button type="button" id="btn-layer-map" aria-pressed="false" data-i18n="layer_map">Mapa</button>
+  </div>
+
+  <aside class="panel" id="panel" data-size="half">
+    <button class="handle" id="handle" type="button" data-i18n-label="handle_label" aria-label="Agrandar o achicar el panel" aria-expanded="false"><span></span></button>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-punto" aria-selected="true" aria-controls="view-punto" type="button" data-i18n="tab_punto">Parcela</button>
+      <button role="tab" id="tab-lista" aria-selected="false" aria-controls="view-lista" type="button" tabindex="-1"><span data-i18n="tab_lista">Guardados</span> <span id="n-jobs" class="count"></span></button>
+    </div>
 
     <section id="view-punto" role="tabpanel" aria-labelledby="tab-punto" class="view">
       <div id="intro">
-        <h1>¿Dónde está su parcela?</h1>
-        <p>Toque el mapa sobre su parcela. Tempo compara tres opciones para la postrera con la lluvia y la temperatura de NASA en ese punto.</p>
-        <p class="muted">Solo El Salvador y el Corredor Seco cercano (latitud 12 a 15, longitud −90,5 a −87). El recuadro del mapa marca ese límite.</p>
+        <h1 data-i18n="intro_title">¿Qué conviene sembrar en la postrera?</h1>
+        <p data-i18n-html="intro_desc">Elige un punto del Corredor Seco. Tempo revisa <strong>25 años de lluvia medida por satélite</strong>, el relieve y el suelo de ese lugar, compara tres opciones de siembra y te dice <strong>cuán segura es la comparación</strong>.</p>
+
+        <div class="intro-actions">
+          <button type="button" class="primary" id="btn-intro-demo" data-i18n="btn_demo">Ver un ejemplo ya analizado</button>
+          <button type="button" class="secondary" id="btn-intro-pick" data-i18n="btn_pick">Elegir mi parcela en el mapa</button>
+        </div>
+
+        <ol class="steps">
+          <li data-i18n-html="step1"><strong>Toca tu parcela</strong> en el mapa, dentro del recuadro punteado.</li>
+          <li data-i18n-html="step2"><strong>Tempo descarga los datos</strong> de NASA y del suelo. Si el punto es nuevo, tarda unos minutos.</li>
+          <li data-i18n-html="step3"><strong>Ves las tres opciones</strong> (frijol en relevo, sorgo + frijol, segunda maíz) y si alguna gana con claridad.</li>
+        </ol>
+
+        <form class="coords-form" id="coords-form">
+          <label for="coords-in" data-i18n="coords_label">¿Tienes coordenadas? Escríbelas (latitud, longitud)</label>
+          <div class="coords-row">
+            <input id="coords-in" type="text" inputmode="decimal" placeholder="13.79, -89.80" autocomplete="off">
+            <button type="submit" data-i18n="coords_go">Usar</button>
+          </div>
+          <p class="error" id="coords-error" hidden></p>
+        </form>
+
+        <p class="fineprint" data-i18n="intro_date">En noviembre la postrera del año ya está sembrada: Tempo muestra cómo responde cada opción en una temporada como la de este año, para planificar la próxima siembra.</p>
+        <p class="fineprint" data-i18n="coverage">Zona cubierta: El Salvador, sur de Honduras y norte de Nicaragua (latitud 12 a 15, longitud −90,5 a −87).</p>
+      </div>
+
+      <div id="picking" hidden>
+        <h2 data-i18n="picking_title">Toca tu parcela en el mapa</h2>
+        <p class="muted" data-i18n="picking_desc">Acerca el mapa con los dedos o con + y −. El punto debe quedar dentro del recuadro punteado.</p>
+        <button type="button" class="secondary" data-cancel-pick data-i18n="cancel">Cancelar</button>
       </div>
 
       <div id="pick" hidden>
-        <p class="eyebrow">Punto elegido</p>
+        <h2 data-i18n="pick_title">Parcela elegida</h2>
         <p class="coords" id="pick-coords"></p>
-        <label class="field">Nombre (opcional)
-          <input id="pick-name" type="text" maxlength="80" placeholder="Ej.: Parcela de la loma">
+        <label class="field"><span data-i18n="pick_name">Nombre de la parcela (opcional)</span>
+          <input id="pick-name" type="text" maxlength="80" data-i18n-ph="pick_name_ph" placeholder="Ej.: El Roble, lote 2">
         </label>
-        <button class="primary" id="go" type="button">Analizar este punto</button>
-        <p class="muted" id="pick-note">Tarda unos minutos: descargamos lluvia satelital de NASA para tu punto. Si el punto ya se analizó, verá el resultado guardado.</p>
+        <button class="primary" id="go" type="button" data-i18n="go">Analizar esta parcela</button>
+        <p class="muted" data-i18n="pick_note">Si este punto ya se analizó, el resultado aparece al instante. Si es nuevo, tarda unos minutos y puedes cerrar la página.</p>
         <p class="error" id="pick-error" hidden></p>
+        <button type="button" class="link-btn" data-cancel-pick data-i18n="back_home">← Volver al inicio</button>
       </div>
 
       <div id="progress" hidden>
-        <p class="eyebrow" id="prog-estado">En cola</p>
-        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="prog-msg" id="meter"><span id="meter-fill"></span></div>
+        <h2 id="prog-estado">En cola</h2>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="prog-estado" id="meter"><span id="meter-fill"></span></div>
         <p id="prog-msg"></p>
-        <p class="muted">La barra muestra en qué paso va, no cuánto falta. Puede cerrar la página: el análisis sigue en el servidor y queda en "Análisis hechos".</p>
+        <p class="muted" id="prog-time"></p>
+        <p class="muted" data-i18n="prog_note">Puedes cerrar la página: el resultado queda guardado en la pestaña «Guardados» y en el mapa.</p>
+        <button type="button" class="link-btn" data-cancel-pick data-i18n="back_home">← Volver al inicio</button>
       </div>
 
       <div id="result" hidden></div>
     </section>
 
     <section id="view-lista" role="tabpanel" aria-labelledby="tab-lista" class="view" hidden>
-      <h2>Análisis hechos</h2>
-      <p class="muted">Cada punto analizado queda en el mapa. Toque uno para ver su resultado.</p>
+      <h2 data-i18n="list_title">Análisis guardados</h2>
+      <p class="muted" data-i18n="list_desc">Toca uno para abrirlo. Marca dos o tres para compararlos.</p>
       <ul class="jobs" id="jobs"></ul>
+      <div class="compare-bar" id="compare-bar" hidden>
+        <span id="compare-count"></span>
+        <button type="button" class="primary" id="btn-compare" data-i18n="compare_go">Comparar</button>
+      </div>
+      <div id="compare" hidden></div>
     </section>
   </aside>
 </main>
+
+<p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
+
+<dialog class="modal" id="modal-metodo" aria-labelledby="modal-title">
+  <div class="modal-header">
+    <h2 id="modal-title">Cómo funciona Tempo</h2>
+    <button type="button" class="icon-btn" id="modal-close" data-i18n-label="close" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="modal-body" id="modal-body"></div>
+</dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="app.js"></script>

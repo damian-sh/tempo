@@ -2,6 +2,7 @@
 
 Sources
 - NASA POWER daily API (no auth): temperature, humidity, radiation, precipitation (backup).
+- Meteomatics API (credentials in .env): backup for temperature, humidity and rain when POWER fails.
 - ISRIC SoilGrids v2 API (no auth): clay, sand, silt, soil organic carbon, 0-30 cm.
 - Google Earth Engine (optional, needs a registered project):
     * GPM IMERG V07 half-hourly -> local-day precipitation totals
@@ -109,6 +110,96 @@ def power_precip_json(power: pd.DataFrame) -> dict:
             "values": [None if pd.isna(v) else float(v) for v in p.values]}
 
 
+# --------------------------------------------------------------------------- Meteomatics (respaldo)
+METEOMATICS_URL = "https://api.meteomatics.com"
+# Meteomatics parameter -> POWER column it replaces (same units: mm/day, degC, %).
+METEOMATICS_PARAMS = {"precip_24h:mm": "PRECTOTCORR", "t_max_2m_24h:C": "T2M_MAX",
+                      "t_min_2m_24h:C": "T2M_MIN", "t_mean_2m_24h:C": "T2M",
+                      "relative_humidity_mean_2m_24h:p": "RH2M"}
+METEOMATICS_SOURCE = ("Meteomatics API (precip_24h, t_max/t_min/t_mean_2m_24h, relative_humidity_mean_2m_24h), "
+                      "local day UTC-6; backup because NASA POWER did not respond")
+
+
+def meteomatics_available(today: dt.date | None = None) -> tuple[bool, str | None]:
+    """(True, None) when credentials exist and the account has not expired."""
+    if not (config.METEOMATICS_USER and config.METEOMATICS_PASSWORD):
+        return False, "Meteomatics sin credenciales (METEOMATICS_USER/METEOMATICS_PASSWORD)"
+    if config.METEOMATICS_VALID_UNTIL:
+        try:
+            until = dt.date.fromisoformat(config.METEOMATICS_VALID_UNTIL)
+        except ValueError:
+            return False, "METEOMATICS_VALID_UNTIL no es una fecha AAAA-MM-DD"
+        if (today or dt.date.today()) > until:
+            return False, f"cuenta Meteomatics vencida el {until.isoformat()}"
+    return True, None
+
+
+def parse_meteomatics(payload: dict, offset_h: int = config.LOCAL_UTC_OFFSET_HOURS) -> tuple[pd.DataFrame, float | None]:
+    """Meteomatics JSON -> DataFrame with POWER column names, indexed by LOCAL calendar day.
+
+    A 24 h value stamped at T covers (T-24h, T]. Requests are stamped at local midnight in UTC, so the
+    value stamped at day d+1 06:00Z (UTC-6) is local day d.
+    """
+    if payload.get("status") != "OK":
+        raise RuntimeError(f"Meteomatics status {payload.get('status')}: {payload.get('message')}")
+    cols, elev = {}, None
+    for block in payload.get("data", []):
+        dates = block["coordinates"][0]["dates"]
+        if block["parameter"] == "elevation:m":
+            vals = [d["value"] for d in dates if d.get("value") is not None]
+            elev = float(vals[0]) if vals else None
+            continue
+        col = METEOMATICS_PARAMS.get(block["parameter"])
+        if col is None:
+            continue
+        s = {}
+        for d in dates:
+            t = pd.Timestamp(d["date"]).tz_convert(None) + pd.Timedelta(hours=offset_h)
+            v = d.get("value")
+            # -999 is Meteomatics' "no data"
+            s[(t - pd.Timedelta(days=1)).normalize()] = None if v is None or v <= -999 else float(v)
+        cols[col] = pd.Series(s, dtype=float)
+    df = pd.DataFrame(cols).sort_index()
+    df.index.name = "date"
+    df["ALLSKY_SFC_SW_DWN"] = float("nan")   # not requested; the engine does not use it
+    return df[[c for c in POWER_PARAMS if c in df.columns]], elev
+
+
+def fetch_meteomatics(lat: float, lon: float, start: str, end: str,
+                      retries: int = 2, timeout: int = 90) -> tuple[pd.DataFrame, float | None]:
+    """Daily temperature, humidity and rain from Meteomatics, same shape as fetch_power."""
+    ok, why = meteomatics_available()
+    if not ok:
+        raise RuntimeError(why)
+    offset = -config.LOCAL_UTC_OFFSET_HOURS
+    params = ",".join([*METEOMATICS_PARAMS, "elevation:m"])
+    s, e = pd.Timestamp(start), pd.Timestamp(end)
+    frames, elev, cur = [], None, s
+    while cur <= e:
+        chunk_end = min(pd.Timestamp(year=cur.year + 4, month=12, day=31), e)
+        t0 = (cur + pd.Timedelta(days=1, hours=offset)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        t1 = (chunk_end + pd.Timedelta(days=1, hours=offset)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        url = f"{METEOMATICS_URL}/{t0}--{t1}:P1D/{params}/{lat},{lon}/json"
+        last = None
+        for attempt in range(retries):
+            try:
+                r = requests.get(url, auth=(config.METEOMATICS_USER, config.METEOMATICS_PASSWORD), timeout=timeout)
+                if r.status_code == 200:
+                    df, el = parse_meteomatics(r.json())
+                    break
+                last = f"HTTP {r.status_code}"   # the body may echo the request; keep it out of logs
+            except (requests.RequestException, ValueError) as ex:
+                last = type(ex).__name__
+            time.sleep(2 ** attempt)
+        else:
+            raise RuntimeError(f"Meteomatics no respondió ({last})")
+        frames.append(df)
+        elev = elev if elev is not None else el
+        cur = chunk_end + pd.Timedelta(days=1)
+    out = pd.concat(frames)
+    return out[~out.index.duplicated()], elev
+
+
 # --------------------------------------------------------------------------- SoilGrids
 def parse_soilgrids(payload: dict) -> dict:
     """Thickness-weighted 0-30 cm mean for each property, in conventional units."""
@@ -133,7 +224,44 @@ def fetch_soilgrids(lat: float, lon: float) -> dict:
     params = [("lon", lon), ("lat", lat), ("value", "mean")]
     params += [("property", p) for p in SOIL_PROPS]
     params += [("depth", d) for d in SOIL_DEPTHS]
-    return parse_soilgrids(_get(SOILGRIDS_URL, params))
+    # Plazo corto: si la API de ISRIC no responde, el servidor pasa a los mismos mapas en Earth Engine.
+    return parse_soilgrids(_get(SOILGRIDS_URL, params, retries=3, timeout=40))
+
+
+SOILGRIDS_GEE = "projects/soilgrids-isric/{prop}_mean"   # same SoilGrids v2.0 maps, served by Earth Engine
+SOILGRIDS_GEE_RADII_M = (0, 1000, 2000)                    # point first, then the mean of the surroundings
+SOIL_D_FACTOR = {"clay": 10, "sand": 10, "silt": 10, "soc": 10}   # g/kg -> %, dg/kg -> g/kg
+SOIL_UNITS = {"clay": "%", "sand": "%", "silt": "%", "soc": "g/kg"}
+
+
+def fetch_soilgrids_gee(lat: float, lon: float) -> dict:
+    """SoilGrids v2.0 from Earth Engine, used when the ISRIC REST API fails or has no value.
+
+    The exact 250 m cell first; if it has no data (towns, water bodies), the mean of the cells
+    within 1 km, then 2 km. The radius used is recorded so the page can say so. Raises when no
+    radius has data or Earth Engine is not available.
+    """
+    import ee
+
+    pt = ee.Geometry.Point([lon, lat])
+    bands = lambda p: [f"{p}_{d}_mean" for d in SOIL_DEPTHS]
+    for radius in SOILGRIDS_GEE_RADII_M:
+        geom, red = (pt, ee.Reducer.first()) if radius == 0 else (pt.buffer(radius), ee.Reducer.mean())
+        out = {}
+        for p in SOIL_PROPS:
+            vals = ee.Image(SOILGRIDS_GEE.format(prop=p)).select(bands(p)).reduceRegion(red, geom, 250).getInfo()
+            num = den = 0.0
+            for d, thick in SOIL_DEPTHS.items():
+                v = vals.get(f"{p}_{d}_mean")
+                if v is None:
+                    continue
+                num += (v / SOIL_D_FACTOR[p]) * thick
+                den += thick
+            out[p] = {"value_0_30cm": round(num / den, 2) if den else None, "units": SOIL_UNITS[p]}
+        if out["clay"]["value_0_30cm"] is not None and out["sand"]["value_0_30cm"] is not None:
+            out["radius_m"] = radius
+            return out
+    raise RuntimeError("SoilGrids sin dato en el punto ni en 2 km a la redonda")
 
 
 def texture_class(clay_pct: float | None, sand_pct: float | None) -> str | None:

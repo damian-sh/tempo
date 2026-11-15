@@ -71,6 +71,16 @@ export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # opcional; sin él, IMERG y SRTM q
 - Si falla una fuente, el análisis queda "parcial" con la lista de faltantes (sin GEE: lluvia 100 %
   POWER y sin corrección de temperatura por elevación; sin SoilGrids: capacidad de agua por defecto
   del modelo). Sin NASA POWER no hay análisis ("error"). Nada se rellena con datos inventados.
+- Suelo: si la API REST de ISRIC falla o no tiene valor en el punto, se usan los mismos mapas
+  SoilGrids v2.0 desde Earth Engine (el punto, o el promedio en 1 y 2 km; el radio se muestra).
+- Recalcular lo guardado con el motor actual (reusa los datos, reintenta solo lo que faltó):
+  `python server.py --reanalizar` (todos) o `python server.py --reanalizar <id> ...`.
+- Cada resultado muestra hasta qué día llegan los datos de lluvia (IMERG y POWER) y cuándo se descargaron.
+- Respaldo Meteomatics: si NASA POWER no responde, temperatura, humedad y lluvia diarias se piden a
+  Meteomatics (`METEOMATICS_USER`, `METEOMATICS_PASSWORD` y `METEOMATICS_VALID_UNTIL` en `.env`, nunca
+  en el repo). El análisis queda "parcial" con el aviso y la página lo dice. Después de la fecha de
+  vencimiento no se intenta. Sesgo conocido: en Nacaome (2024) Meteomatics da 2 813 mm de lluvia
+  frente a 1 911 mm de POWER y Tmax unos 3 °C más alta (punto a 37 m frente a la celda de POWER).
 - Límites: un punto nuevo tarda minutos (IMERG se pide año por año a Earth Engine); el resultado no se
   actualiza solo (para datos nuevos, borre `~/.cache/tempo/jobs/<id>*`); IMERG es una celda de ~10 km y
   POWER de ~50 km, no la lluvia exacta de la parcela; el servidor es local, sin usuarios ni
@@ -106,6 +116,33 @@ El sitio solo nombra una opción cuando se cumplen cuatro condiciones: margen en
 >= 0.05 (umbral de lectura, SUPUESTO), ninguna elección cambia en `sensitivity`, ninguna cambia con
 POWER en lugar de IMERG, y CHECK 1 es evaluable. Si falla alguna, el titular dice que ninguna
 opción es claramente mejor. En la parcela hoy no se cumple ninguna (margen 2026: 0.003).
+
+### Recomendación robusta en el mapa (D10)
+
+El mapa (`web/app`) recomienda una opción aunque el veredicto estricto no se cumpla. El motor calcula
+el puntaje de cada opción para el año actual en varios escenarios: lluvia IMERG o POWER, con o sin la
+regla de 150 mm del frijol, y suelo de 60/90/130 mm. Recomienda la opción con el mejor peor caso
+(maximin) y le pone una confianza: alta (gana en todos con margen ≥ 0,05), media (nunca más de 0,05
+detrás de la mejor y margen base ≥ 0,05) o baja (el resto). Sin IMERG la confianza es como mucho baja; con suelo por defecto o
+si CHECK 1 no es evaluable, como mucho media. Si el veredicto estricto se cumple, se recomienda esa opción con confianza alta. La
+tabla de escenarios se muestra en el resultado. Umbrales: SUPUESTOS (ver DECISIONES.md, D10).
+Confianza alta exige además que las pruebas estrictas no cambien la elección (rev. 2).
+
+### Qué hace distinto Tempo (y qué no)
+
+| | Tempo | FEWS NET / USGS GeoWRSI | FAO ASIS-Country |
+|---|---|---|---|
+| Qué mide | Balance de agua tipo WRSI simplificado (D5) para tres opciones de postrera | WRSI de cultivo; incluye maíz de postrera en Centroamérica (temporada ago–dic) | Estrés agrícola con vegetación y temperatura de superficie satelitales, cada 10 días |
+| Escala | Un punto elegido por el usuario | Malla regional | Malla nacional (portales de El Salvador, Guatemala, Honduras) |
+| Pregunta que responde | ¿Qué opción de siembra aguanta mejor una temporada como esta, y con qué confianza? | ¿Cómo va el cultivo en la región? | ¿Dónde hay estrés agrícola? |
+| Validación en campo | Pendiente (sin rendimientos) | Operativo desde hace años | Operativo, reconocido como bien público digital (2024) |
+
+Tempo no reemplaza esos sistemas ni compite con su cobertura; agrega la comparación de opciones de
+rotación por parcela con su incertidumbre. Fuentes:
+[GeoWRSI (FEWS NET)](https://help.fews.net/en/tools/v3/chapter-11-geowrsi),
+[productos WRSI de USGS para Centroamérica](https://earlywarning.usgs.gov/fews/product/927/),
+[FAO ASIS-Country para Centroamérica](https://www.fao.org/americas/publications/User-Manual-Agrigultural-Stress-Index-System-Country-Level-/en),
+[FAO Earth Observation](https://www.fao.org/giews/earthobservation/index.jsp).
 
 ## Fuentes
 

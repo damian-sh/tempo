@@ -62,7 +62,25 @@ LOCAL_UTC_OFFSET_HOURS = -6
 
 # Google Earth Engine cloud project id. Leave as None to skip GEE (POWER-only mode).
 import os as _os_gee
+# .env (ignorado por git) se lee siempre; una variable ya exportada en el entorno tiene prioridad.
+if True:
+    _env_f = _os_reg.path.join(_os_reg.path.dirname(_os_reg.path.abspath(__file__)), ".env")
+    if _os_reg.path.exists(_env_f):
+        with open(_env_f, encoding="utf-8") as _ef:
+            for _line in _ef:
+                _line = _line.strip()
+                if _line.startswith("export "):
+                    _line = _line[7:].strip()
+                if _line and not _line.startswith("#") and "=" in _line:
+                    _k, _v = _line.split("=", 1)
+                    _os_gee.environ.setdefault(_k.strip(), _v.strip().strip("'\""))
 GEE_PROJECT = _os_gee.environ.get("TEMPO_GEE_PROJECT")  # set via env; never hardcode
+
+# Meteomatics: respaldo de temperatura y lluvia cuando NASA POWER no responde. Credenciales solo
+# por entorno o .env; nunca en el código. Después de METEOMATICS_VALID_UNTIL no se intenta.
+METEOMATICS_USER = _os_gee.environ.get("METEOMATICS_USER")
+METEOMATICS_PASSWORD = _os_gee.environ.get("METEOMATICS_PASSWORD")
+METEOMATICS_VALID_UNTIL = _os_gee.environ.get("METEOMATICS_VALID_UNTIL")  # AAAA-MM-DD, opcional
 
 import os as _os
 # Cache lives outside the repo (plan rule). Override with TEMPO_CACHE.

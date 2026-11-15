@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="t">
+  <title id="t">Tempo: qué sembrar en tu parcela según la lluvia</title>
+  <!-- Pin de ubicación: tu parcela -->
+  <path d="M30 4C17.3 4 7 14.1 7 26.6 7 43.3 30 61 30 61s23-17.7 23-34.4C53 14.1 42.7 4 30 4Z" fill="#2b6a3c"/>
+  <circle cx="30" cy="26.5" r="15.5" fill="#ffffff"/>
+  <!-- Brote: qué sembrar -->
+  <path d="M30 38V25" stroke="#2b6a3c" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M30 27.5c0-6.2-4.6-9.6-11-9.2.2 6.3 4.7 9.4 11 9.2Z" fill="#4f9a5f"/>
+  <path d="M30 25c0-6.8 4.9-10.7 11.6-10.5-.2 7-5 10.7-11.6 10.5Z" fill="#2b6a3c"/>
+  <path d="M23 38.5h14" stroke="#8a6a3d" stroke-width="3" stroke-linecap="round"/>
+  <!-- Gota: lluvia medida por satélite -->
+  <path d="M51 3.5s-8.5 9.6-8.5 15.1a8.5 8.5 0 0 0 17 0C59.5 13.1 51 3.5 51 3.5Z" fill="#1e6aa8" stroke="#ffffff" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

@@ -223,8 +223,8 @@ class JobQueue:
             out = self.processor(rec, self.store, progress)
         except Exception as e:  # noqa: BLE001 - el error queda en el job, el worker sigue
             traceback.print_exc()
-            out = {"estado": "error", "mensaje": f"Falló el análisis: {type(e).__name__}: {e}",
-                   "faltantes": []}
+            # Solo la primera línea, corta: algunos servicios devuelven páginas HTML como error.
+            out = {"estado": "error", "mensaje": f"Falló el análisis: {_err(e)}", "faltantes": []}
         estado = out.get("estado", "error")
         if estado not in ("listo", "parcial", "error"):
             estado = "error"
@@ -302,6 +302,8 @@ def missing_from_files(d: str) -> list[str]:
     out = []
     if not os.path.exists(os.path.join(d, "power.csv")):
         out.append("NASA POWER (temperatura y lluvia diaria): sin dato")
+    elif (_read_json(os.path.join(d, "meta.json")) or {}).get("weather_backup"):
+        out.append("NASA POWER (temperatura y lluvia diaria): no respondió; se usó el respaldo Meteomatics")
     if not os.path.exists(os.path.join(d, "imerg.csv")):
         out.append("IMERG (lluvia satelital): sin dato; lluvia 100 % NASA POWER")
     terrain = _read_json(os.path.join(d, "terrain.json")) or {}
@@ -313,6 +315,40 @@ def missing_from_files(d: str) -> list[str]:
     if soil.get("error") or not soil.get("texture_class"):
         out.append("SoilGrids (suelo): sin dato; capacidad de agua por defecto del modelo")
     return out
+
+
+def fetch_soil(fm, lat: float, lon: float, progress, gee, errors: dict) -> dict:
+    """Suelo de SoilGrids: primero la API REST de ISRIC; si falla o no tiene valor en el punto,
+    los mismos mapas desde Earth Engine (punto, luego 1 y 2 km alrededor). Nunca se inventa:
+    si ninguna vía da arcilla y arena, queda el error y el modelo usa su valor por defecto."""
+    tex = lambda s: fm.texture_class((s.get("clay") or {}).get("value_0_30cm"), (s.get("sand") or {}).get("value_0_30cm"))
+    rest_err = None
+    progress("Consultando el suelo en ISRIC SoilGrids.", 0.15)
+    try:
+        soil = fm.fetch_soilgrids(lat, lon)
+        soil["texture_class"] = tex(soil)
+        if soil["texture_class"]:
+            soil["source"] = "ISRIC SoilGrids v2.0, mean, thickness-weighted 0-30 cm"
+            soil["radius_m"] = 0
+            return soil
+        rest_err = "la API REST no tiene valor en este punto"
+    except Exception as e:  # noqa: BLE001
+        rest_err = _err(e)
+    ok, why = (gee or gee_ready)()
+    if ok and hasattr(fm, "fetch_soilgrids_gee"):
+        progress("SoilGrids REST sin dato; consultando los mismos mapas en Earth Engine.", 0.17)
+        try:
+            soil = fm.fetch_soilgrids_gee(lat, lon)
+            soil["texture_class"] = tex(soil)
+            r = soil.get("radius_m", 0)
+            soil["source"] = ("ISRIC SoilGrids v2.0 vía Google Earth Engine, 0-30 cm"
+                              + (f", promedio en {r // 1000} km alrededor (el punto exacto no tiene dato)" if r else ""))
+            soil["rest_error"] = rest_err
+            return soil
+        except Exception as e:  # noqa: BLE001
+            why = _err(e)
+    errors["soilgrids"] = f"REST: {rest_err}; Earth Engine: {why}"
+    return {"error": errors["soilgrids"]}
 
 
 def fetch_point(lat: float, lon: float, d: str, progress, fetch_mod=None, gee=None) -> dict:
@@ -346,21 +382,29 @@ def fetch_point(lat: float, lon: float, d: str, progress, fetch_mod=None, gee=No
             meta["sources"]["power"] = f"NASA POWER daily, community AG, params {fm.POWER_PARAMS}"
             _write_json(meta_path, meta)
         except Exception as e:  # noqa: BLE001
-            errors["power"] = _err(e)
-            return errors  # sin POWER no hay temperatura: no se sigue
+            power_err = _err(e)
+            # Respaldo: Meteomatics con las mismas columnas. Si tampoco responde, no hay análisis.
+            try:
+                if not hasattr(fm, "fetch_meteomatics"):
+                    raise RuntimeError("respaldo no disponible")
+                progress("NASA POWER no respondió; descargando temperatura y lluvia de Meteomatics (respaldo).", 0.08)
+                power, cell_elev = fm.fetch_meteomatics(lat, lon, config.START_DATE, end)
+            except Exception as e2:  # noqa: BLE001
+                errors["power"] = f"{power_err}; respaldo Meteomatics: {_err(e2)}"
+                return errors  # sin temperatura no se sigue
+            power.to_csv(os.path.join(d, "power.csv"))
+            with open(os.path.join(d, "precip_power.json"), "w") as f:
+                json.dump(fm.power_precip_json(power), f, separators=(",", ":"))
+            meta["power_cell_elevation_m"] = cell_elev
+            meta["sources"]["power"] = fm.METEOMATICS_SOURCE
+            meta["weather_backup"] = {"source": "meteomatics", "power_error": power_err, "fetched_utc": _now()}
+            _write_json(meta_path, meta)
+            errors["power_respaldo"] = f"NASA POWER: {power_err}; se usó Meteomatics"
 
     soil_path = os.path.join(d, "soil.json")
     soil = _read_json(soil_path)
-    if not soil or soil.get("error"):
-        progress("Consultando el suelo en ISRIC SoilGrids.", 0.15)
-        try:
-            soil = fm.fetch_soilgrids(lat, lon)
-            soil["texture_class"] = fm.texture_class(soil.get("clay", {}).get("value_0_30cm"),
-                                                     soil.get("sand", {}).get("value_0_30cm"))
-            soil["source"] = "ISRIC SoilGrids v2.0, mean, thickness-weighted 0-30 cm"
-        except Exception as e:  # noqa: BLE001
-            errors["soilgrids"] = _err(e)
-            soil = {"error": errors["soilgrids"]}
+    if not soil or soil.get("error") or not soil.get("texture_class"):
+        soil = fetch_soil(fm, lat, lon, progress, gee, errors)
         _write_json(soil_path, soil)
 
     terrain_path = os.path.join(d, "terrain.json")
@@ -428,6 +472,85 @@ def _fetch_imerg_parts(fm, lat, lon, end, d, progress, errors) -> None:
     pd.concat(frames).to_csv(os.path.join(d, "imerg.csv"))
 
 
+SCENARIO_LABELS = {
+    "base": "Lluvia de satélite (IMERG) con la regla de 150 mm del frijol",
+    "no_bean_rule": "IMERG sin la regla de 150 mm del frijol",
+    "power": "Lluvia del modelo NASA POWER con la regla de 150 mm",
+    "power_no_bean_rule": "NASA POWER sin la regla de 150 mm",
+    "imerg": "Lluvia de satélite (IMERG) con la regla de 150 mm",
+    "imerg_no_bean_rule": "IMERG sin la regla de 150 mm",
+}
+
+
+def scenario_label(name: str) -> str:
+    if name.startswith("whc_"):
+        return f"Suelo con {name[4:]} mm de agua útil (en vez del valor del punto)"
+    return SCENARIO_LABELS.get(name, name)
+
+
+def robust_summary(out: dict, clear_pick: str | None, names: dict, fmt) -> dict | None:
+    """Recomendación (D10). Con veredicto claro, la opción del veredicto con confianza alta.
+    Si no, la opción más robusta del motor (maximin) con su confianza y en qué se basa.
+    None si el motor no pudo comparar al menos dos opciones en todos los escenarios."""
+    rb = out.get("robust") or {}
+    if not rb.get("available") and clear_pick is None:
+        return None
+    escenarios = []
+    for n, s in (rb.get("scenarios") or {}).items():
+        best = max(s, key=s.get) if s else None
+        escenarios.append({"clave": n, "nombre": scenario_label(n), "puntajes": s, "mejor": best,
+                           **(rb.get("scenario_defs") or {}).get(n, {})})
+    base = {"metodo": rb.get("method"), "escenarios": escenarios, "n_escenarios": rb.get("n_scenarios"),
+            "umbral": rb.get("margin"), "empate": rb.get("tie")}
+    if clear_pick is not None:
+        return {"clave": clear_pick, "confianza": "alta", "origen": "veredicto",
+                "texto": "Pasa las cuatro condiciones del veredicto: margen suficiente, no cambia sin la "
+                         "regla de 150 mm ni con otra fuente de lluvia, y el modelo distingue las sequías documentadas.",
+                "limites": [], **base}
+    pick, second = rb["pick"], rb["second"]
+    n, wins, regret = rb["n_scenarios"], rb["n_wins"], rb["max_regret"][pick]
+    peor = (f"su puntaje más bajo es {fmt(rb['worst'][pick])}, frente a {fmt(rb['worst'][second])} "
+            f"de {names[second].lower()}")
+    if wins == n:
+        texto = f"{names[pick]} queda primera o empatada en los {n} escenarios calculados; {peor}."
+    else:
+        texto = (f"Ninguna opción gana en todos los escenarios. {names[pick]} es la que mejor aguanta el peor "
+                 f"caso: en {n} escenarios {peor}. Queda primera o empatada en {wins} de {n}"
+                 + (f" y, cuando no, como mucho {fmt(regret)} puntos detrás." if regret > 0 else "."))
+    limites = []
+    if "soil" in rb.get("confidence_caps", []):
+        limites.append("El suelo es un valor por defecto (faltó SoilGrids): la confianza no puede ser alta.")
+    if "check1" in rb.get("confidence_caps", []):
+        limites.append("El modelo no distingue los años de sequía documentados: la confianza no puede ser alta.")
+    if "strict" in rb.get("confidence_caps", []):
+        limites.append("Las pruebas estrictas fallan: en los años pasados la elección cambia sin la regla de 150 mm "
+                       "del frijol o con otra fuente de lluvia. La confianza no puede ser alta.")
+    if "margin" in rb.get("confidence_caps", []):
+        bm = rb.get("base_margin")
+        if pick == "A":
+            limites.append(f"En el escenario base ninguna alternativa supera a la práctica actual por 0,05 o más "
+                           f"(diferencia {fmt(abs(bm) if bm is not None else None)}): no hay razón para cambiar.")
+        else:
+            limites.append(f"En el escenario base {names[pick].lower()} supera a la siguiente opción por solo "
+                           f"{fmt(bm)} puntos (menos de 0,05): la diferencia es mínima.")
+    if "rain" in rb.get("confidence_caps", []):
+        limites.append("Sin lluvia IMERG no se pudo comparar con otra fuente: la confianza queda en baja.")
+    if rb["confidence"] == "baja" and not limites:
+        limites.append(f"En algún escenario otra opción la supera por {fmt(regret)} puntos (más que el umbral "
+                       f"{fmt(rb.get('margin'), 2)}, un SUPUESTO): confirme con el técnico de campo.")
+    return {"clave": pick, "confianza": rb["confidence"], "origen": "robusta", "texto": texto,
+            "peor_puntaje": rb["worst"], "arrepentimiento_max": rb["max_regret"], "gana_en": rb["wins"],
+            "limites": limites, **base}
+
+
+def data_summary(out: dict) -> dict:
+    """Fechas reales de los datos usados: último día con lluvia y cuándo se descargó."""
+    dd = out.get("data_dates") or {}
+    return {"lluvia_hasta": dd.get("rain_last_day"), "imerg_hasta": dd.get("imerg_last_day"),
+            "power_hasta": dd.get("power_last_day"), "descargado_utc": dd.get("fetched_utc"),
+            "respaldo_clima": dd.get("weather_backup")}
+
+
 def summarize(out: dict, faltantes: list[str]) -> dict:
     """Resumen en español para el panel. Un ganador solo se nombra si se cumplen las cuatro
     condiciones de build_site.verdict y la validación no empata con elegir siempre lo mismo."""
@@ -450,6 +573,11 @@ def summarize(out: dict, faltantes: list[str]) -> dict:
                  f"{names.get(rec, str(rec)).lower()}, con {fmt(margin)} puntos sobre la segunda opción, "
                  "y el resultado depende de supuestos sin validar. Léalo como una descripción de la "
                  "temporada, no como una recomendación.") if rec else "No hay puntajes suficientes para ordenar las opciones."
+    recomendacion = robust_summary(out, rec if claro else None, names, fmt)
+    if recomendacion and not claro:
+        titulo = (f"Lectura de la postrera {year} para planificar {year + 1}: "
+                  f"{names[recomendacion['clave']].lower()}, confianza {recomendacion['confianza']}")
+        texto = recomendacion["texto"]
     pc, rs = out.get("primera_check", {}), out.get("rain_source_sensitivity", {})
     runs = out.get("sensitivity", {}).get("runs", {})
     nb = runs.get("no_bean_excess_rule", {})
@@ -460,8 +588,8 @@ def summarize(out: dict, faltantes: list[str]) -> dict:
         "rain": (f"Con NASA POWER en lugar de IMERG, la elección cambia en {rs.get('n_verdict_changes')} de "
                  f"{rs.get('n_years_compared')} años." if rs.get("available")
                  else "Sin IMERG no se puede comparar con otra fuente de lluvia."),
-        "check1": ("El modelo distingue las sequías documentadas (CHECK 1)." if pc.get("discriminative")
-                   else "CHECK 1 no evaluable: el modelo no distingue los años de sequía documentados."),
+        "check1": ("Prueba de sequías documentadas: el modelo distingue los años de sequía citados." if pc.get("discriminative")
+                   else "Prueba de sequías documentadas no evaluable: el modelo no distingue los años de sequía citados."),
     }
     windows = {k: {kk: w.get(kk) for kk in ("months", "n_years", "mean_imerg_mm", "mean_power_mm",
                                              "bias_mm", "bias_pct", "spearman")}
@@ -475,7 +603,13 @@ def summarize(out: dict, faltantes: list[str]) -> dict:
         "anio": year,
         "veredicto": {"claro": claro, "titulo": titulo, "texto": texto, "mejor": rec, "margen": margin,
                       "condiciones": [{"clave": k, "cumple": bool(ok), "texto": motivos[k]} for k, ok in conds.items()],
-                      "razones_lectura": season["razones"]},
+                      "razones_lectura": season["razones"],
+                      "recomienda": recomendacion is not None, "recomendacion": recomendacion},
+        "datos": data_summary(out),
+        "temporada_actual": [{"clave": s["strategy"], "nombre": names.get(s["strategy"], s["strategy"]),
+                              "siembra": s["plant_date"], "cosecha": s["harvest_date"], "completa": s["complete"],
+                              "puntaje": s["score"], "dias_faltan": s["days_missing"], "cultivos": s["crops"]}
+                             for s in out.get("current_season", [])],
         "estrategias": [{"clave": s["key"], "nombre": names.get(s["key"], s["label"]), "puntaje": s.get("score"),
                          "fallo_pct": None if (s.get("analog_stats") or {}).get("failure_rate") is None
                          else round(100 * s["analog_stats"]["failure_rate"]),
@@ -483,14 +617,18 @@ def summarize(out: dict, faltantes: list[str]) -> dict:
                         for s in out.get("strategies", [])],
         "lluvia": {**build_parcels.rain_summary(out), "ventanas_imerg_vs_power": windows,
                    "cambios_con_power": rs.get("n_verdict_changes") if rs.get("available") else None},
-        "suelo": build_parcels.soil_summary(out),
+        "suelo": {**build_parcels.soil_summary(out),
+                  "radio_m": ((out.get("inputs") or {}).get("soil") or {}).get("radius_m")},
         "terreno": {**{k: (inp.get("terrain") or {}).get(k) for k in ("elevation_m", "slope_pct", "source")},
                     "correccion_temp_c": inp.get("temp_correction_c")},
         "sensibilidad": sens,
         "validacion": {"anios": v.get("n_years"), "tempo": v.get("mean_score_tempo"),
                        "practica_actual": v.get("mean_score_current"),
                        "misma_siempre": v.get("mean_score_same_every_year"),
-                       "margen_medio": v.get("mean_margin_vs_current"), "p_signos": v.get("sign_test_p")},
+                       "margen_medio": v.get("mean_margin_vs_current"), "p_signos": v.get("sign_test_p"),
+                       "elecciones": v.get("picks") or {},
+                       "anios_mejor": v.get("years_tempo_better"), "anios_peor": v.get("years_tempo_worse"),
+                       "margen_sin_regla": (runs.get("no_bean_excess_rule") or {}).get("mean_margin_vs_current")},
         "faltantes": faltantes,
         "advertencias": out.get("warnings", []),
     }
@@ -528,7 +666,10 @@ def process_point(rec: dict, store: JobStore, progress, fetch_mod=None, gee=None
         mensaje += " Detalle: " + " | ".join(detalle)
     return {"estado": estado, "mensaje": mensaje, "faltantes": faltantes,
             "veredicto": {"claro": resumen["veredicto"]["claro"], "titulo": resumen["veredicto"]["titulo"],
-                          "anio": resumen["anio"]},
+                          "anio": resumen["anio"],
+                          "recomendacion": ({"clave": resumen["veredicto"]["recomendacion"]["clave"],
+                                             "confianza": resumen["veredicto"]["recomendacion"]["confianza"]}
+                                            if resumen["veredicto"].get("recomendacion") else None)},
             "resultado": {"resumen": resumen, "analisis": out}}
 
 
@@ -652,11 +793,33 @@ def make_server(host: str = "127.0.0.1", port: int = 8000, store: JobStore | Non
     return httpd, store, q
 
 
+def reanalyze(store: JobStore, ids: list[str] | None = None, processor=None) -> list[dict]:
+    """Vuelve a correr el análisis de jobs ya terminados con el motor actual. Reutiliza los datos
+    descargados y solo pide de nuevo las fuentes que faltaron (p. ej. SoilGrids caído).
+    Incluye los que quedaron en cola o procesando por un corte: correr con el servidor detenido."""
+    q = JobQueue(store, processor)
+    done = []
+    for rec in sorted(store.all(), key=lambda r: r.get("creado", "")):
+        if (ids and rec["id"] not in ids) or rec.get("estado") not in TERMINADOS + ("error", "en_cola", "procesando"):
+            continue
+        store.update(rec["id"], estado="en_cola", mensaje=MSG_COLA + " (reanálisis)", progreso=0.0)
+        out = q.run_one(rec["id"])
+        print(f"  {rec['id']} {out.get('estado')}: {(out.get('veredicto') or {}).get('titulo', out.get('mensaje'))}")
+        done.append(out)
+    return done
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Tempo: mapa y cola de análisis por punto")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--reanalizar", nargs="*", metavar="ID",
+                    help="Recalcula los análisis guardados (todos, o los ID dados) con el motor actual y sale. "
+                         "Correr con el servidor detenido.")
     a = ap.parse_args()
+    if a.reanalizar is not None:
+        reanalyze(JobStore(), a.reanalizar or None)
+        return
     httpd, store, q = make_server(a.host, a.port)
     print(f"Tempo en http://localhost:{a.port}/  (jobs en {store.root})")
     if not config.GEE_PROJECT:
