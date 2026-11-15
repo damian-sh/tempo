@@ -11,6 +11,7 @@ python -m venv ~/.venvs/tempo && ~/.venvs/tempo/bin/pip install -r requirements.
 export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # solo por variable de entorno
 ~/.venvs/tempo/bin/python fetch.py           # POWER + SoilGrids + IMERG/SRTM (GEE)
 ~/.venvs/tempo/bin/python engine.py          # out/<zona>.json
+~/.venvs/tempo/bin/python hindcast_md.py     # hindcast.md desde out/<zona>.json
 ~/.venvs/tempo/bin/python build_page.py      # web/index.html (sin --demo)
 ~/.venvs/tempo/bin/python -m pytest tests -q
 ```
@@ -47,7 +48,7 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 
 ## Hindcast
 
-Ver [hindcast.md](hindcast.md): año por año, 2001-2025, leave-one-out.
+Ver [hindcast.md](hindcast.md): año por año, 2001-2025, leave-one-out. La tabla vive en `out/<zona>.json` (`hindcast.years`: estrategia elegida, WRSI y clase por cultivo, `documented`, `result` hit/fallo según D6, `source`); `hindcast.md` lo genera `hindcast_md.py`, no se edita a mano.
 
 ## Uso de IA
 
