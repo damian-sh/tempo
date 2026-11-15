@@ -10,7 +10,7 @@ FORBIDDEN_SOURCES = re.compile(
     r"\b(GLDAS|GAEZ|SMAP|ERA5|Sentinel[-_ ]?2|Landsat|ECOSTRESS|GEDI)\b", re.IGNORECASE)
 SOURCES_ALLOWED_IN = {"README.md", "DECISIONES.md", SELF}
 SECRET_PREFIXES = ("cog_", "4/1A")
-ALLOWED_JSON = {"crops.json"}
+ALLOWED_JSON = {"crops.json", "parcelas.json"}  # parcelas.json es registro de sitios, no caché
 CACHE_DIRS = ("cache/", "out/")
 
 
