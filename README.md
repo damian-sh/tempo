@@ -45,6 +45,37 @@ python -m http.server 8000                                # desde la raíz del r
 Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`). La lluvia POWER
 (`PRECTOTCORR`) se guarda además en `~/.cache/tempo/<zona>/precip_power.json` (JSON compacto, ~50 KB).
 
+### Mapa: elegir la parcela con un clic
+
+```bash
+export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # opcional; sin él, IMERG y SRTM quedan como faltantes
+~/.venvs/tempo/bin/python server.py          # o: python server.py (con pandas/requests instalados)
+# abrir http://localhost:8000
+```
+
+- Pantalla principal: mapa (Leaflet 1.9.4 desde cdnjs, mosaicos de OpenStreetMap). Toque la parcela,
+  pulse "Analizar este punto" y el panel consulta el estado cada 4 s hasta mostrar el resultado:
+  veredicto, condiciones, las tres opciones, lluvia IMERG y POWER, suelo, elevación, sensibilidad
+  (sin la regla de 150 mm y con POWER) y límites. "Análisis hechos" lista y marca en el mapa todo
+  lo ya analizado. El buscador solo encuentra los sitios de `parcelas.json`.
+- Solo puntos con latitud 12 a 15 y longitud −90,5 a −87 (El Salvador y el Corredor Seco cercano).
+- Servidor solo con biblioteca estándar, escucha en 127.0.0.1. API: `POST /api/jobs {lat, lon, nombre?}`,
+  `GET /api/jobs`, `GET /api/jobs/<id>` (`en_cola | procesando | listo | parcial | error`, mensaje,
+  faltantes), `GET /api/jobs/<id>/result`, `GET /api/sitios`.
+- Cola: un worker en hilo, un análisis a la vez. Registro en `~/.cache/tempo/jobs/<id>.json`, datos y
+  resultado en `~/.cache/tempo/jobs/<id>/`; `id` = sha256 de lat/lon redondeados a 6 decimales. Un punto
+  ya analizado se devuelve sin recalcular. Al reiniciar, lo que estaba en cola o procesando vuelve a la
+  cola; IMERG se guarda año por año (`imerg_parts/`) y no se descarga de nuevo.
+- Si el punto coincide con un sitio de `parcelas.json` que ya tiene caché descargada, se copian esos
+  archivos en lugar de descargar.
+- Si falla una fuente, el análisis queda "parcial" con la lista de faltantes (sin GEE: lluvia 100 %
+  POWER y sin corrección de temperatura por elevación; sin SoilGrids: capacidad de agua por defecto
+  del modelo). Sin NASA POWER no hay análisis ("error"). Nada se rellena con datos inventados.
+- Límites: un punto nuevo tarda minutos (IMERG se pide año por año a Earth Engine); el resultado no se
+  actualiza solo (para datos nuevos, borre `~/.cache/tempo/jobs/<id>*`); IMERG es una celda de ~10 km y
+  POWER de ~50 km, no la lluvia exacta de la parcela; el servidor es local, sin usuarios ni
+  autenticación, y no debe exponerse a internet; el mapa necesita internet para los mosaicos y Leaflet.
+
 ## Sensibilidad a la fuente de lluvia
 
 `out/<zona>.json` incluye `rain_source_sensitivity` (IMERG vs POWER), calculado siempre con ambas

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tempo · Mapa de parcelas</title>
+<meta name="description" content="Ubique su parcela en el mapa de El Salvador y el Corredor Seco y Tempo analiza la postrera con lluvia satelital de NASA.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="/app/">Tempo</a>
+  <form class="search" id="search" role="search" autocomplete="off">
+    <label class="sr-only" for="q">Buscar un lugar registrado</label>
+    <input id="q" type="search" list="sitios" placeholder="Buscar lugar (parcelas.json)">
+    <datalist id="sitios"></datalist>
+    <button type="submit">Ir</button>
+  </form>
+</header>
+
+<main class="layout">
+  <div id="map" class="map" role="application" aria-label="Mapa: toque su parcela para elegir el punto"></div>
+
+  <aside class="panel" id="panel" aria-live="polite" data-size="half">
+    <button class="handle" id="handle" type="button" aria-label="Agrandar o achicar el panel" aria-expanded="false"><span></span></button>
+    <nav class="tabs" role="tablist">
+      <button role="tab" id="tab-punto" aria-selected="true" aria-controls="view-punto" type="button">Punto</button>
+      <button role="tab" id="tab-lista" aria-selected="false" aria-controls="view-lista" type="button">Análisis hechos <span id="n-jobs" class="count"></span></button>
+    </nav>
+
+    <section id="view-punto" role="tabpanel" aria-labelledby="tab-punto" class="view">
+      <div id="intro">
+        <h1>¿Dónde está su parcela?</h1>
+        <p>Toque el mapa sobre su parcela. Tempo compara tres opciones para la postrera con la lluvia y la temperatura de NASA en ese punto.</p>
+        <p class="muted">Solo El Salvador y el Corredor Seco cercano (latitud 12 a 15, longitud −90,5 a −87). El recuadro del mapa marca ese límite.</p>
+      </div>
+
+      <div id="pick" hidden>
+        <p class="eyebrow">Punto elegido</p>
+        <p class="coords" id="pick-coords"></p>
+        <label class="field">Nombre (opcional)
+          <input id="pick-name" type="text" maxlength="80" placeholder="Ej.: Parcela de la loma">
+        </label>
+        <button class="primary" id="go" type="button">Analizar este punto</button>
+        <p class="muted" id="pick-note">Tarda unos minutos: descargamos lluvia satelital de NASA para tu punto. Si el punto ya se analizó, verá el resultado guardado.</p>
+        <p class="error" id="pick-error" hidden></p>
+      </div>
+
+      <div id="progress" hidden>
+        <p class="eyebrow" id="prog-estado">En cola</p>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="prog-msg" id="meter"><span id="meter-fill"></span></div>
+        <p id="prog-msg"></p>
+        <p class="muted">La barra muestra en qué paso va, no cuánto falta. Puede cerrar la página: el análisis sigue en el servidor y queda en "Análisis hechos".</p>
+      </div>
+
+      <div id="result" hidden></div>
+    </section>
+
+    <section id="view-lista" role="tabpanel" aria-labelledby="tab-lista" class="view" hidden>
+      <h2>Análisis hechos</h2>
+      <p class="muted">Cada punto analizado queda en el mapa. Toque uno para ver su resultado.</p>
+      <ul class="jobs" id="jobs"></ul>
+    </section>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="app.js"></script>
+</body>
+</html>
