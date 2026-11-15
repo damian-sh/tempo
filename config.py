@@ -32,6 +32,18 @@ import os as _os
 # Cache lives outside the repo (plan rule). Override with TEMPO_CACHE.
 CACHE_DIR = _os.environ.get("TEMPO_CACHE", _os.path.expanduser("~/.cache/tempo"))
 
-# Years with documented drought losses in the Dry Corridor's primera season, used as an
-# external check of the water-balance model (FEWS NET / WFP / FAO-GIEWS / Oxfam reports).
-DOCUMENTED_DROUGHT_YEARS = [2014, 2015, 2018, 2026]
+# Season Tempo forecasts. Never part of the validation set (D1).
+TARGET_YEAR = 2026
+
+# Years with documented primera drought losses in El Salvador's Dry Corridor, used as an
+# external check of the water-balance model (CHECK 1). Only years <= 2025 with a cited
+# source (D1, D6). 2026 is a reported event, not used for validation.
+VALIDATION_DROUGHT_YEARS = {
+    # 2015 removed: its ReliefWeb GLIDE URL returned 404 and no verified 2015-specific source
+    # was found (D6). Add back only with a verifiable citation.
+    2014: "FAO, 29 Jun 2016, ReliefWeb GLIDE DR-2014-000132-HND "
+          "(https://reliefweb.int/disaster/dr-2014-000132-hnd): loss of staple grain crops in "
+          "El Salvador since mid-2014.",
+    2018: "ReliefWeb GLIDE DR-2018-000106-SLV (https://reliefweb.int/disaster/dr-2018-000106-slv): "
+          "over 90,000 metric tons of corn lost, red alert.",
+}

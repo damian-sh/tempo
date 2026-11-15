@@ -96,6 +96,8 @@ def traffic_light(maize_failure_rate: float) -> str:
 def validate(hcdf: pd.DataFrame, indic: pd.DataFrame, complete_years: list[int]) -> dict:
     """Leave-one-out: pick the strategy with the best analog mean score (climate only)
     and compare its real outcome with always planting maize alone (A)."""
+    assert max(config.VALIDATION_DROUGHT_YEARS) < config.TARGET_YEAR, \
+        "validation years overlap the target year (D1)"
     rows = []
     for y in complete_years:
         cls, analogs = hc.analog_years(y, indic, complete_years)
@@ -161,10 +163,10 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
 
     # External check: does the model see the documented primera droughts?
     pm = hc.primera_maize_check(df, indic, crops, whc)
-    doc = [y for y in config.DOCUMENTED_DROUGHT_YEARS if not pm.empty and y in set(pm["year"])]
+    doc = [y for y in sorted(config.VALIDATION_DROUGHT_YEARS) if not pm.empty and y in set(pm["year"])]
     third = max(1, round(len(pm) / 3)) if not pm.empty else 0
     primera_check = {
-        "years": pm.assign(documented=pm["year"].isin(config.DOCUMENTED_DROUGHT_YEARS)).to_dict(orient="records") if not pm.empty else [],
+        "years": pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))).to_dict(orient="records") if not pm.empty else [],
         "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
         "documented_in_worst_third": [int(y) for y in doc if int(pm.set_index("year").loc[y, "rank_driest"]) <= third],
     }
@@ -267,9 +269,11 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
         "chart": chart,
         "heat": heat,
         "postrera_planting": {"date": plant_cur.date().isoformat(), "late_default": bool(late_cur)},
+        "warnings": info["warnings"],
         "inputs": {"texture_class": texture, "whc_mm": whc, "slope_pct": slope_pct,
                    "weights": weights, "seeds": sorted(seeds) if seeds else None,
                    "temp_correction_c": info["temp_correction_c"],
+                   "et0_change_vs_t2m_pct": info["et0_change_vs_t2m_pct"],
                    "share_days_imerg": info["share_days_imerg"], "soil": info["soil"],
                    "terrain": info["terrain"], "sources": info["meta"].get("sources")},
     }
@@ -294,7 +298,10 @@ def print_summary(out: dict) -> None:
     z, v, c = out["zone"], out["validation"], out["current"]
     print(f"\n=== {z['key']} — {z['name']}")
     print(f"  Rain days from IMERG: {100 * out['inputs']['share_days_imerg']:.0f}%  |  "
-          f"temp correction {out['inputs']['temp_correction_c']} C  |  WHC {out['inputs']['whc_mm']} mm")
+          f"temp correction {out['inputs']['temp_correction_c']} C  |  WHC {out['inputs']['whc_mm']} mm  |  "
+          f"ET0 vs T2M {out['inputs']['et0_change_vs_t2m_pct']} %")
+    for w in out["warnings"]:
+        print(f"  WARNING: {w}")
     pc, sk = out["primera_check"], out["skill"]
     print(f"  CHECK 1 - documented droughts: {len(pc['documented_in_worst_third'])} of {len(pc['documented'])} "
           f"documented years fall in the model's worst {pc['worst_third_size']} of {pc['n_years']} primera years "

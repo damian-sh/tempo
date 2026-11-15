@@ -45,3 +45,17 @@ def test_check3_hindcast_vs_practice(z):
     print(f"\n{z} CHECK 3: Tempo {v['mean_score_tempo']} | A {v['mean_score_current']} | "
           f"misma estrategia {v['mean_score_same_every_year']} | picks {v['picks']}")
     assert v["mean_score_tempo"] >= v["mean_score_current"]
+
+
+def test_no_circularity(monkeypatch):
+    import config
+    import engine
+
+    years = config.VALIDATION_DROUGHT_YEARS
+    assert config.TARGET_YEAR not in years
+    assert all(y <= 2025 for y in years), years
+    assert all(isinstance(c, str) and c.strip() for c in years.values()), "every year needs a citation"
+
+    monkeypatch.setattr(config, "VALIDATION_DROUGHT_YEARS", {**years, config.TARGET_YEAR: "x"})
+    with pytest.raises(AssertionError):
+        engine.validate(None, None, [])
