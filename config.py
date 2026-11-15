@@ -15,8 +15,7 @@ class Zone:
 
 # Demo zones in the Central American Dry Corridor (approximate coordinates).
 ZONES = [
-    Zone("morazan", "San Francisco Gotera, Morazan, El Salvador", 13.70, -88.13),
-    Zone("choluteca", "Choluteca, Honduras", 13.30, -87.19),
+    Zone("parcela", "Parcela del usuario, El Salvador", 13.796406, -89.801031),
 ]
 
 START_DATE = "2001-01-01"   # IMERG daily record starts mid-2000; use full years

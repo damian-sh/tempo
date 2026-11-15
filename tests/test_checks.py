@@ -9,7 +9,7 @@ import os
 import pytest
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ZONES = ["morazan", "choluteca"]
+ZONES = ["parcela"]
 
 
 def load(z):

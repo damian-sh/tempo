@@ -32,9 +32,8 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 
 - **SUPUESTO:** umbral de 150 mm de lluvia tardía para frijol (`crops.json`, `excess_rain_late_mm`). Placeholder; requiere validación local.
 - **SUPUESTO:** parámetros de cultivo (Kc, duración de etapas, `p` de agotamiento uniforme = 0.5). Base FAO-56 sin ajustar a la región.
-- **Suelo Morazán:** SoilGrids v2 real (arcilla 37.5 %, arena 26.7 %) → clase `clayey`, WHC 130 mm (`soil_whc_mm`, valor de tabla = SUPUESTO).
-- **Suelo Choluteca:** SoilGrids devuelve nulos en ese punto → WHC por defecto 90 mm (SUPUESTO).
-- **SUPUESTO:** elevación de la parcela = celda de POWER/SRTM. Zonas demo: Morazán y Choluteca (`config.py`), coordenadas aproximadas.
+- **Suelo parcela:** SoilGrids v2 real (arcilla 42.6 %, arena 25.6 %) → clase `clayey`, WHC 130 mm (`soil_whc_mm`, valor de tabla = SUPUESTO).
+- **SUPUESTO:** elevación de la parcela = celda de POWER/SRTM. Punto: 13.796406, -89.801031 (convertido de 13°47'47.06"N 89°48'03.71"W).
 
 ## Límites conocidos
 
