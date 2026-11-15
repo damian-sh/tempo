@@ -11,8 +11,10 @@ Usage
     python fetch.py                 # all zones in config.ZONES
     python fetch.py --lat 13.7 --lon -88.13 --key myparcel
     python fetch.py --no-gee        # POWER + SoilGrids only
+    python fetch.py --sites parcelas.json --ids somoto   # points from a registry file
 
-Output: cache/<zone>/power.csv, imerg.csv, soil.json, terrain.json, meta.json
+Output: ~/.cache/tempo/<zone>/power.csv, precip_power.json, imerg.csv, soil.json, terrain.json,
+meta.json (outside the repo; override with TEMPO_CACHE)
 """
 from __future__ import annotations
 
@@ -30,6 +32,8 @@ import config
 POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
 POWER_PARAMS = ["T2M", "T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN", "PRECTOTCORR"]
 POWER_FILL = -999.0
+POWER_RAIN = "PRECTOTCORR"
+assert POWER_RAIN in POWER_PARAMS
 
 SOILGRIDS_URL = "https://rest.isric.org/soilgrids/v2.0/properties/query"
 SOIL_PROPS = ["clay", "sand", "silt", "soc"]
@@ -93,6 +97,16 @@ def fetch_power(lat: float, lon: float, start: str, end: str) -> tuple[pd.DataFr
     out = out[~out.index.duplicated()]
     out.index.name = "date"
     return out, cell_elev
+
+
+def power_precip_json(power: pd.DataFrame) -> dict:
+    """Compact daily POWER rain cache: start date plus one value (mm, as served) per day, null = missing."""
+    p = power[POWER_RAIN]
+    idx = pd.date_range(p.index.min(), p.index.max(), freq="D")
+    p = p.reindex(idx)
+    return {"source": f"NASA POWER daily, community AG, {POWER_RAIN}", "units": "mm/day",
+            "start": idx[0].date().isoformat(), "end": idx[-1].date().isoformat(),
+            "values": [None if pd.isna(v) else float(v) for v in p.values]}
 
 
 # --------------------------------------------------------------------------- SoilGrids
@@ -238,6 +252,8 @@ def run_zone(zone: config.Zone, use_gee: bool) -> None:
     print("  POWER ...")
     power, cell_elev = fetch_power(zone.lat, zone.lon, config.START_DATE, end)
     power.to_csv(os.path.join(out_dir, "power.csv"))
+    with open(os.path.join(out_dir, "precip_power.json"), "w") as f:
+        json.dump(power_precip_json(power), f, separators=(",", ":"))
     meta["power_cell_elevation_m"] = cell_elev
     meta["sources"]["power"] = f"NASA POWER daily, community AG, params {POWER_PARAMS}"
     print(f"    {len(power)} days, cell elevation {cell_elev} m")
@@ -279,9 +295,17 @@ def main() -> None:
     ap.add_argument("--lon", type=float)
     ap.add_argument("--key", default="custom")
     ap.add_argument("--no-gee", action="store_true")
+    ap.add_argument("--sites", help="JSON file with a list of points (e.g. parcelas.json); "
+                                    "fetches every entry with estado 'activo'")
+    ap.add_argument("--ids", help="with --sites: comma-separated ids to fetch (default: all active)")
     args = ap.parse_args()
 
     zones = config.ZONES
+    if args.sites:
+        zones = config.site_zones(config.load_sites(args.sites))
+        if args.ids:
+            wanted = set(args.ids.split(","))
+            zones = [z for z in zones if z.key in wanted]
     if args.lat is not None and args.lon is not None:
         zones = [config.Zone(args.key, args.key, args.lat, args.lon)]
 

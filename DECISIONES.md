@@ -13,3 +13,15 @@ Registro de decisiones. Cada una la respondió el usuario en el chat. Fecha: 202
 | D7 | Umbral 150 mm frijol | Queda como SUPUESTO, salvo fuente encontrada en T3.1 | Aprobada |
 | D8 | Proporciones 0.6/0.4 y SW inicial 0.5·WHC | SUPUESTO declarado | Aprobada |
 | D9 | Publicación y push | Pendiente. Ninguna acción de publicación sin tu aprobación explícita | Pendiente |
+
+## Cambios de validez (rama feat/validez-honestidad)
+
+Correcciones de errores, no decisiones nuevas de parámetros. Ningún valor por defecto cambió.
+
+| Cambio | Motivo |
+|---|---|
+| Empates de CHECK 1 con rango máximo; D6 `no_evaluable` si CHECK 1 no discrimina | Un empate en WRSI 100 no es un acierto (aplica D6) |
+| Semáforo eliminado | Usaba la estrategia A (frijol) como si fuera maíz y no tenía base validada |
+| TARGET_YEAR fuera de validación, rangos, skill y comparación de lluvia | Aplica D1 |
+| Empate entre estrategias: se mantiene la práctica actual | Sin margen no se recomienda cambiar |
+| Umbral de lectura del veredicto del sitio 0.05 | SUPUESTO; no es una medida del error |

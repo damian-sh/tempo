@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sources · Tempo</title>
+<meta name="description" content="Tempo data sources.">
+<link rel="alternate" hreflang="es" href="fuentes.html"><link rel="alternate" hreflang="en" href="fuentes-en.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index-en.html">Tempo</a>
+  <nav aria-label="Main"><a href="index-en.html">Verdict</a><a href="hindcast-en.html">Hindcast</a><a href="metodo-en.html">Method</a><a href="fuentes-en.html" aria-current="page">Sources</a><a href="limites-en.html">Limits</a></nav>
+  <div class="langs" role="group" aria-label="Language"><span class="lang lang--on">EN</span><a class="lang" href="fuentes.html" hreflang="es" lang="es">Español</a></div>
+</div></header>
+<main id="main" class="wrap" tabindex="-1">
+<section class="hero hero--sm"><p class="eyebrow">Sources</p><h1>Where each number comes from</h1></section>
+<section class="block"><div class="table-wrap"><table class="stack"><caption>Data sources</caption><thead><tr><th scope="col">Source</th><th scope="col">What it provides</th><th scope="col">How it is used</th></tr></thead><tbody><tr><td data-label="Source">GPM IMERG V07 (NASA/GPM_L3/IMERG_V07, GEE)</td><td data-label="What it provides">Rain every 30 min</td><td data-label="How it is used">Daily total at the point, reduced server-side</td></tr><tr><td data-label="Source">NASA POWER Daily AG</td><td data-label="What it provides">Temperature, radiation, humidity, rain (backup)</td><td data-label="How it is used">Daily series at the point</td></tr><tr><td data-label="Source">SRTM GL1 (USGS/SRTMGL1_003, GEE)</td><td data-label="What it provides">Elevation and slope</td><td data-label="How it is used">Temperature correction and soil weight</td></tr><tr><td data-label="Source">ISRIC SoilGrids v2</td><td data-label="What it provides">Sand, silt, clay and carbon 0–30 cm</td><td data-label="How it is used">Texture and water capacity</td></tr><tr><td data-label="Source">FAO-56 (Allen et al., 1998)</td><td data-label="What it provides">Crop coefficients and stages</td><td data-label="How it is used">Defaults, not validated locally</td></tr><tr><td data-label="Source">FEWS NET / FAO-GIEWS / ReliefWeb</td><td data-label="What it provides">Years with documented drought</td><td data-label="How it is used">Only years with a verifiable citation</td></tr></tbody></table></div></section></main>
+<footer class="foot wrap"><p>Decision support for the postrera season. It does not replace local agronomic judgement. Data: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Site built locally; not published.</p></footer>
+</body></html>

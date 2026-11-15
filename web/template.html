@@ -1495,8 +1495,9 @@ function render() {
   const isAlwaysC = !v.n_years || (v.mean_score_tempo <= v.mean_score_same_every_year) || ((v.picks && (v.picks["C"] || 0) >= (v.n_years - 1)));
 
   // Traffic light pill
-  const lightClass = cur.traffic_light || "green";
-  const pillLabel = lightClass === "green" ? t("pillGood") : lightClass === "yellow" ? t("pillWarn") : t("pillRisk");
+  // Semáforo retirado: no tiene base validada (ver DECISIONES/README). Pill neutra.
+  const lightClass = "neutral";
+  const pillLabel = "Sin semáforo: no validado";
   $("verdictPill").className = "status-pill " + lightClass;
   $("verdictPillText").textContent = pillLabel;
   $("verdictReadingPill").textContent = isAlwaysC ? t("readingSeasonal") : t("readingDynamic");
