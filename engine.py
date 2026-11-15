@@ -280,6 +280,10 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
         "years": pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))).to_dict(orient="records") if not pm.empty else [],
         "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
         "documented_in_worst_third": [int(y) for y in doc if int(pm.set_index("year").loc[y, "rank_driest"]) <= third],
+        # CHECK 1 is only informative if the WRSI actually varies. Ties at 100 put every
+        # unstressed year at the same rank, so the check is vacuous when most years tie.
+        "n_at_max_wrsi": int((pm["wrsi"] >= 100.0).sum()) if not pm.empty else 0,
+        "discriminative": bool(not pm.empty and (pm["wrsi"] < 100.0).sum() >= len(pm) / 2),
     }
     hindcast = {
         "method": "leave-one-out by canicula tercile; hit/fallo only for cited drought years (D6), "
@@ -423,6 +427,8 @@ def print_summary(out: dict) -> None:
     for w in out["warnings"]:
         print(f"  WARNING: {w}")
     pc, sk = out["primera_check"], out["skill"]
+    if not pc.get("discriminative", True):
+        print(f"  CHECK 1 NO DISCRIMINANTE: {pc['n_at_max_wrsi']} of {pc['n_years']} years tie at WRSI 100")
     print(f"  CHECK 1 - documented droughts: {len(pc['documented_in_worst_third'])} of {len(pc['documented'])} "
           f"documented years fall in the model's worst {pc['worst_third_size']} of {pc['n_years']} primera years "
           f"({pc['documented_in_worst_third']} of {pc['documented']})")

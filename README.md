@@ -54,6 +54,7 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 ## Límites conocidos
 
 - **Circularidad (D1):** `VALIDATION_DROUGHT_YEARS` solo contiene años <= 2025 con cita; `TARGET_YEAR` = 2026 queda fuera (aserción en `engine.validate`, test `test_no_circularity`).
+- **CHECK 1 no discriminante:** en la parcela, 24 de 26 años dan WRSI de maíz de primera = 100. La lluvia de la ventana de primera (730–1600 mm) supera la ET0 (~480 mm) incluso en 2014 y 2018, así que el modelo no ve estrés en esos años. Esto es un resultado de los datos de este punto, no un error de la ecuación. Con ese empate, el ranking no separa años y el CHECK 1 se marca "NO DISCRIMINANTE" en la salida. No se ajustó el balance para forzar estrés.
 - **Señal débil:** la canícula no correlaciona con la lluvia Sep-Nov (Spearman 0.04 Morazán, −0.18 Choluteca).
 - **Estrategia dominante:** Tempo elige C (segunda maíz) en 24 de 25 años en Morazán y 25 de 25 en Choluteca. Igualar "misma estrategia siempre" le gana o empata. Si las estrategias no se distinguen, la lectura es de temporada, no una recomendación fuerte.
 - **Balance hídrico:** zona radicular fija y `p` uniforme, no sigue FAO-56 completo (Zr dinámica, `p` por cultivo, Ky). Ver hallazgos de auditoría AGY.
