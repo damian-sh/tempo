@@ -39,10 +39,11 @@ TARGET_YEAR = 2026
 # external check of the water-balance model (CHECK 1). Only years <= 2025 with a cited
 # source (D1, D6). 2026 is a reported event, not used for validation.
 VALIDATION_DROUGHT_YEARS = {
-    2014: "OCHA, 10 Dec 2014, via ReliefWeb GLIDE DR-2014-000132-HND "
-          "(https://reliefweb.int/disaster/dr-2014-000132-hnd): staple grain losses in El Salvador.",
-    2015: "FAO, 29 Jun 2016, via ReliefWeb GLIDE DR-2015-000114-SLV "
-          "(https://reliefweb.int/disaster/dr-2014-000132-hnd): drought 2014-2017, El Salvador.",
-    2018: "Gobierno de El Salvador, alerta roja por sequía (UN DPI, 26 Jul 2018), ReliefWeb GLIDE "
-          "DR-2018-000106-SLV (https://reliefweb.int/disaster/dr-2018-000106-slv): >90,000 t maize lost.",
+    # 2015 removed: its ReliefWeb GLIDE URL returned 404 and no verified 2015-specific source
+    # was found (D6). Add back only with a verifiable citation.
+    2014: "FAO, 29 Jun 2016, ReliefWeb GLIDE DR-2014-000132-HND "
+          "(https://reliefweb.int/disaster/dr-2014-000132-hnd): loss of staple grain crops in "
+          "El Salvador since mid-2014.",
+    2018: "ReliefWeb GLIDE DR-2018-000106-SLV (https://reliefweb.int/disaster/dr-2018-000106-slv): "
+          "over 90,000 metric tons of corn lost, red alert.",
 }
