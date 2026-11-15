@@ -5,6 +5,11 @@
     uv run --no-project --with playwright python tests/e2e/e2e_web.py http://127.0.0.1:8830 ["lat, lon"]
 
 El segundo argumento opcional lanza un análisis nuevo real (necesita Earth Engine y red).
+
+Modo demo estático (sin servidor; la app lee web/app/demo/):
+
+    cd web/app && python -m http.server 8831 &
+    TEMPO_E2E_APP=/ uv run --no-project --with playwright python tests/e2e/e2e_web.py http://127.0.0.1:8831
 """
 import os
 import re
@@ -17,6 +22,7 @@ from playwright.sync_api import sync_playwright, expect
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8830"
 NEW_POINT = sys.argv[2] if len(sys.argv) > 2 else None   # "lat, lon" para un análisis nuevo real
 OUT = os.environ.get("TEMPO_E2E_OUT", tempfile.gettempdir())  # capturas de la prueba
+APP = os.environ.get("TEMPO_E2E_APP", "/app/")  # "/" si se sirve web/app directamente (demo estático)
 results, errors = [], []
 
 
@@ -38,7 +44,7 @@ with sync_playwright() as p:
     expect.set_options(timeout=20000)
 
     def t01():
-        page.goto(f"{BASE}/app/")
+        page.goto(f"{BASE}{APP}")
         expect(page.locator("#intro")).to_be_visible()
         expect(page.locator("#intro h1")).to_contain_text("postrera")
         assert page.locator("link[rel=icon]").get_attribute("href") == "icon.svg"
@@ -74,7 +80,7 @@ with sync_playwright() as p:
         expect(page.locator("#result .rain-unc")).to_contain_text("IMERG")
         expect(page.locator("#result .val")).to_contain_text("sin la regla")
         assert "CHECK 1" not in page.locator("#result").inner_text()
-        page.locator("#panel").screenshot(path="/tmp/claude-1000/-home-damian-Proyectos-tempo/fcf678ef-b378-4ffb-8e04-074f11385536/scratchpad/e2e-nacaome-panel.png")
+        page.locator("#panel").screenshot(path=f"{OUT}/e2e-nacaome-panel.png")
         assert "job=63e1cac4e49c6a6c" in page.url
     check("05 chip Nacaome: confianza media, aviso 2027, incertidumbre, prueba histórica, sin jerga", t05)
 
@@ -153,7 +159,7 @@ with sync_playwright() as p:
     check("13 buscador de lugares registrados", t13)
 
     def t14():
-        page.goto(f"{BASE}/app/?job=noexiste000000")
+        page.goto(f"{BASE}{APP}?job=noexiste000000")
         expect(page.locator(".toast")).to_be_visible()
         expect(page.locator("#intro")).to_be_visible()
     check("14 enlace a un análisis inexistente vuelve al inicio con aviso", t14)
@@ -162,7 +168,7 @@ with sync_playwright() as p:
         m = b.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
         mp = m.new_page()
         mp.on("pageerror", lambda e: errors.append(f"mobile pageerror: {e}"))
-        mp.goto(f"{BASE}/app/?job=44c5015f05bd7873")
+        mp.goto(f"{BASE}{APP}?job=44c5015f05bd7873")
         expect(mp.locator("#result .verdict h1")).to_be_visible()
         assert mp.locator("#panel").get_attribute("data-size") == "full"
         sw = mp.evaluate("document.documentElement.scrollWidth")
@@ -172,9 +178,27 @@ with sync_playwright() as p:
         m.close()
     check("15 móvil: resultado a pantalla completa, sin scroll horizontal", t15)
 
+    def t16():
+        page.goto(f"{BASE}{APP}")
+        expect(page.locator("#intro")).to_be_visible()
+        page.wait_for_timeout(500)
+        if page.evaluate("document.documentElement.classList.contains('is-demo')"):
+            expect(page.locator("#demo-note")).to_be_visible()
+            page.fill("#coords-in", "13.2, -88.5")
+            page.click("#coords-form button[type=submit]")
+            expect(page.locator("#pick-demo")).to_be_visible()
+            expect(page.locator("#pick-demo")).to_contain_text("servidor")
+            page.click("#go")
+            expect(page.locator("#pick-error")).to_contain_text("servidor")
+            page.click("#pick-demo [data-near]")
+            expect(page.locator("#result .verdict h1")).to_be_visible()
+        else:
+            expect(page.locator("#demo-note")).to_be_hidden()
+    check("16 modo demo: punto nuevo explica que necesita el servidor y ofrece el más cercano", t16)
+
     if NEW_POINT:
-        def t16():
-            page.goto(f"{BASE}/app/")
+        def t17():
+            page.goto(f"{BASE}{APP}")
             page.fill("#coords-in", NEW_POINT)
             page.click("#coords-form button[type=submit]")
             page.fill("#pick-name", "Prueba E2E")
@@ -183,7 +207,7 @@ with sync_playwright() as p:
             expect(page.locator("#result .verdict h1")).to_be_visible(timeout=900_000)
             expect(page.locator("#result .conf-badge")).to_be_visible()
             page.screenshot(path=f"{OUT}/e2e-new.png", full_page=True)
-        check(f"16 análisis NUEVO real de punta a punta ({NEW_POINT})", t16)
+        check(f"17 análisis NUEVO real de punta a punta ({NEW_POINT})", t17)
 
     b.close()
 
