@@ -37,7 +37,7 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 
 ## Límites conocidos
 
-- **Circularidad:** 2026 está en `DOCUMENTED_DROUGHT_YEARS` y en el año a predecir. CHECK 1 no es una validación independiente hasta que se quite o se confirme con reportes posteriores.
+- **Circularidad (D1):** `VALIDATION_DROUGHT_YEARS` solo contiene años <= 2025 con cita; `TARGET_YEAR` = 2026 queda fuera (aserción en `engine.validate`, test `test_no_circularity`).
 - **Señal débil:** la canícula no correlaciona con la lluvia Sep-Nov (Spearman 0.04 Morazán, −0.18 Choluteca).
 - **Estrategia dominante:** Tempo elige C (segunda maíz) en 24 de 25 años en Morazán y 25 de 25 en Choluteca. Igualar "misma estrategia siempre" le gana o empata. Si las estrategias no se distinguen, la lectura es de temporada, no una recomendación fuerte.
 - **Balance hídrico:** zona radicular fija y `p` uniforme, no sigue FAO-56 completo (Zr dinámica, `p` por cultivo, Ky). Ver hallazgos de auditoría AGY.

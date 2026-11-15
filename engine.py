@@ -96,6 +96,8 @@ def traffic_light(maize_failure_rate: float) -> str:
 def validate(hcdf: pd.DataFrame, indic: pd.DataFrame, complete_years: list[int]) -> dict:
     """Leave-one-out: pick the strategy with the best analog mean score (climate only)
     and compare its real outcome with always planting maize alone (A)."""
+    assert max(config.VALIDATION_DROUGHT_YEARS) < config.TARGET_YEAR, \
+        "validation years overlap the target year (D1)"
     rows = []
     for y in complete_years:
         cls, analogs = hc.analog_years(y, indic, complete_years)
@@ -161,10 +163,10 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
 
     # External check: does the model see the documented primera droughts?
     pm = hc.primera_maize_check(df, indic, crops, whc)
-    doc = [y for y in config.DOCUMENTED_DROUGHT_YEARS if not pm.empty and y in set(pm["year"])]
+    doc = [y for y in sorted(config.VALIDATION_DROUGHT_YEARS) if not pm.empty and y in set(pm["year"])]
     third = max(1, round(len(pm) / 3)) if not pm.empty else 0
     primera_check = {
-        "years": pm.assign(documented=pm["year"].isin(config.DOCUMENTED_DROUGHT_YEARS)).to_dict(orient="records") if not pm.empty else [],
+        "years": pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))).to_dict(orient="records") if not pm.empty else [],
         "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
         "documented_in_worst_third": [int(y) for y in doc if int(pm.set_index("year").loc[y, "rank_driest"]) <= third],
     }
