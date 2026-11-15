@@ -210,6 +210,11 @@ const I18N = {
     modal_title: "Cómo funciona Tempo",
     unit_days: "días",
     nodata: "s/d",
+    demo_note: (n) => `Demo sin servidor: ${n} análisis reales ya calculados. Puedes abrirlos todos; analizar un punto nuevo necesita el servidor de Tempo.`,
+    demo_new_title: "Esta demo no puede analizar puntos nuevos",
+    demo_new: "Analizar un punto nuevo descarga datos de NASA y tarda minutos: necesita el servidor de Tempo (python server.py) con acceso a Earth Engine. Aquí solo se pueden abrir los análisis ya calculados.",
+    demo_near: (name, km) => `Abrir el análisis guardado más cercano: ${name} (a ${km} km)`,
+    demo_missing: "Ese análisis no está en la demo.",
   },
   en: {
     brand_badge: "NASA data",
@@ -403,6 +408,11 @@ const I18N = {
     modal_title: "How Tempo works",
     unit_days: "days",
     nodata: "n/a",
+    demo_note: (n) => `Serverless demo: ${n} real analyses already computed. You can open all of them; analyzing a new point needs the Tempo server.`,
+    demo_new_title: "This demo cannot analyze new points",
+    demo_new: "Analyzing a new point downloads NASA data and takes minutes: it needs the Tempo server (python server.py) with Earth Engine access. Here you can only open the analyses already computed.",
+    demo_near: (name, km) => `Open the nearest saved analysis: ${name} (${km} km away)`,
+    demo_missing: "That analysis is not in the demo.",
   },
 };
 
@@ -588,6 +598,7 @@ function choosePoint(lat, lon, nombre) {
   err.textContent = ok ? "" : t().out_of_bounds;
   err.hidden = ok;
   $("go").disabled = !ok;
+  renderPickDemo();
   setPanel("half");
   setTimeout(() => (ok ? $("go") : $("pick-name")).focus({ preventScroll: true }), 80);
 }
@@ -627,16 +638,91 @@ $("coords-form").addEventListener("submit", (e) => {
 });
 
 // ------------------------------------------------------------------ API
+// Con servidor (server.py) se usa /api/*. Si /api no responde o devuelve algo que no es JSON (página
+// estática: python -m http.server, hosting sin backend), la app pasa a modo demo y lee la instantánea
+// real de demo/ (export_demo.py). En demo no se pueden analizar puntos nuevos y se dice.
+const DEMO = { on: false, jobs: null, files: new Map() };
+
 async function api(path, opts) {
-  const r = await fetch(path, opts);
-  let body = null;
+  if (DEMO.on) return demoApi(path, opts);
+  let r, body = null;
+  try { r = await fetch(path, opts); } catch (_) { return enterDemo(path, opts); }
   try { body = await r.json(); } catch (_) { /* respuesta no JSON */ }
+  if (body === null && path.startsWith("/api/")) return enterDemo(path, opts);
   if (!r.ok && r.status !== 202) {
     const e = new Error((body && body.error) || `HTTP ${r.status}`);
     e.status = r.status;
     throw e;
   }
   return body;
+}
+
+function enterDemo(path, opts) {
+  if (!DEMO.on) { DEMO.on = true; document.documentElement.classList.add("is-demo"); renderDemoUi(); }
+  return demoApi(path, opts);
+}
+
+async function demoFile(name) {
+  if (!DEMO.files.has(name)) {
+    DEMO.files.set(name, fetch(`demo/${name}`).then((r) => {
+      if (!r.ok) throw Object.assign(new Error(`HTTP ${r.status}`), { status: r.status });
+      return r.json();
+    }));
+  }
+  try { return await DEMO.files.get(name); } catch (e) { DEMO.files.delete(name); throw e; }
+}
+
+const round6 = (x) => Math.round(Number(x) * 1e6) / 1e6;
+async function demoJobs() { return (await demoFile("jobs.json")).jobs || []; }
+
+async function demoApi(path, opts) {
+  const method = (opts && opts.method) || "GET";
+  if (path === "/api/jobs" && method === "POST") {
+    const p = JSON.parse(opts.body || "{}");
+    const hit = (await demoJobs()).find((j) => round6(j.lat) === round6(p.lat) && round6(j.lon) === round6(p.lon));
+    if (hit) return { ...hit, cache: true };
+    throw Object.assign(new Error("demo"), { demo: true, status: 503 });
+  }
+  if (path === "/api/jobs") return { jobs: await demoJobs() };
+  if (path === "/api/sitios") { try { return await demoFile("sitios.json"); } catch (_) { return { sitios: [] }; } }
+  const m = path.match(/^\/api\/jobs\/([0-9a-f]{16})(\/result)?$/);
+  const job = m ? (await demoJobs()).find((j) => j.id === m[1]) : null;
+  if (!job) throw Object.assign(new Error(t().demo_missing), { status: 404 });
+  return m[2] ? (await demoFile(`${job.id}.json`)).result : job;
+}
+
+const resultUrl = (id) => (DEMO.on ? `demo/${encodeURIComponent(id)}.json` : `/api/jobs/${encodeURIComponent(id)}/result`);
+
+// Análisis guardado más cercano (para ofrecerlo cuando en demo se elige un punto nuevo)
+function nearestJob(lat, lon) {
+  let best = null, bestD = Infinity;
+  for (const j of state.jobs) {
+    if (j.estado !== "listo" && j.estado !== "parcial") continue;
+    const d = Math.hypot((j.lat - lat) * 111, (j.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180));
+    if (d < bestD) { bestD = d; best = j; }
+  }
+  return best ? { job: best, km: bestD } : null;
+}
+
+function renderDemoUi() {
+  const cur = t();
+  const on = DEMO.on;
+  $("demo-note").hidden = !on;
+  if (on) $("demo-note").textContent = cur.demo_note(state.jobs.length || "");
+  renderPickDemo();
+}
+
+function renderPickDemo() {
+  const box = $("pick-demo");
+  if (!DEMO.on || !state.pick || state.view !== "pick") { box.hidden = true; return; }
+  const cur = t();
+  const known = state.jobs.some((j) => round6(j.lat) === state.pick.lat && round6(j.lon) === state.pick.lon);
+  box.hidden = known;
+  if (known) return;
+  const near = nearestJob(state.pick.lat, state.pick.lon);
+  box.innerHTML = `<p><strong>${esc(cur.demo_new_title)}</strong></p><p>${esc(cur.demo_new)}</p>
+    ${near ? `<button type="button" class="secondary" data-near>${esc(cur.demo_near(displayName(near.job), num(near.km)))}</button>` : ""}`;
+  box.querySelector("[data-near]")?.addEventListener("click", () => openJob(near.job));
 }
 
 $("go").addEventListener("click", async () => {
@@ -656,8 +742,9 @@ $("go").addEventListener("click", async () => {
     if (rec.cache) await openResult(rec.id, { note: t().from_cache, push: false });
     else { renderProgress(rec); startPolling(rec.id); }
   } catch (e) {
-    $("pick-error").textContent = humanError(e.message);
+    $("pick-error").textContent = e.demo ? t().demo_new : humanError(e.message);
     $("pick-error").hidden = false;
+    if (e.demo) renderPickDemo();
   } finally {
     btn.disabled = false;
   }
@@ -1000,7 +1087,7 @@ function resultHtml(rec, r, an, note) {
           <tr><td>NASA SRTM GL1</td><td>${esc(cur.v_srtm)}</td><td class="n">30 m</td></tr>
           <tr><td>ISRIC SoilGrids v2</td><td>${esc(cur.v_soil)}</td><td class="n">250 m</td></tr>
         </tbody></table></div>
-      <p><a href="/api/jobs/${encodeURIComponent(rec.id)}/result" target="_blank" rel="noopener">${esc(cur.t_json)}</a></p>
+      <p><a href="${resultUrl(rec.id)}" target="_blank" rel="noopener">${esc(cur.t_json)}</a></p>
     </details>
 
     <div class="result-actions">
@@ -1121,6 +1208,7 @@ async function share(rec, r) {
 async function refreshJobs() {
   try { state.jobs = (await api("/api/jobs")).jobs || []; } catch (_) { return; }
   renderJobs();
+  if (DEMO.on) renderDemoUi();
 }
 
 function renderJobs() {
@@ -1342,6 +1430,7 @@ $("btn-lang").addEventListener("click", () => {
   try { localStorage.setItem("tempo_lang", state.lang); } catch (_) { /* sin almacenamiento */ }
   applyI18n();
   renderJobs();
+  renderDemoUi();
   if (state.view === "result" && state.lastResult) renderResult();
   if (!$("compare").hidden) $("btn-compare").click();
 });

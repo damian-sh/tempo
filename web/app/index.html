@@ -13,7 +13,7 @@
 </head>
 <body>
 <header class="bar">
-  <a class="brand" href="/app/" aria-label="Tempo, inicio"><img class="brand-icon" src="icon.svg" alt="" width="30" height="30">Tempo</a>
+  <a class="brand" href="./" aria-label="Tempo, inicio"><img class="brand-icon" src="icon.svg" alt="" width="30" height="30">Tempo</a>
   <span class="brand-badge" data-i18n="brand_badge">Datos NASA</span>
   <span class="brand-tagline" data-i18n="tagline">Qué sembrar en la postrera, con 25 años de lluvia satelital</span>
 
@@ -89,6 +89,7 @@
           <p class="error" id="coords-error" hidden></p>
         </form>
 
+        <p class="demo-note" id="demo-note" role="note" hidden></p>
         <p class="fineprint" data-i18n="intro_date">En noviembre la postrera del año ya está sembrada: Tempo muestra cómo responde cada opción en una temporada como la de este año, para planificar la próxima siembra.</p>
         <p class="fineprint" data-i18n="coverage">Zona cubierta: El Salvador, sur de Honduras y norte de Nicaragua (latitud 12 a 15, longitud −90,5 a −87).</p>
       </div>
@@ -108,6 +109,7 @@
         <button class="primary" id="go" type="button" data-i18n="go">Analizar esta parcela</button>
         <p class="muted" data-i18n="pick_note">Si este punto ya se analizó, el resultado aparece al instante. Si es nuevo, tarda unos minutos y puedes cerrar la página.</p>
         <p class="error" id="pick-error" hidden></p>
+        <div class="notice" id="pick-demo" role="note" hidden></div>
         <button type="button" class="link-btn" data-cancel-pick data-i18n="back_home">← Volver al inicio</button>
       </div>
 
