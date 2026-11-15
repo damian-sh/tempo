@@ -14,7 +14,8 @@ export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # solo por variable de entorno
 ~/.venvs/tempo/bin/python hindcast_md.py     # hindcast.md desde out/<zona>.json
 ~/.venvs/tempo/bin/python engine.py          # out/<zona>.json (lluvia IMERG + relleno POWER)
 ~/.venvs/tempo/bin/python engine.py --rain-source power   # solo lluvia NASA POWER
-~/.venvs/tempo/bin/python build_page.py      # web/index.html (sin --demo)
+~/.venvs/tempo/bin/python build_page.py      # web/index.html (página única heredada)
+~/.venvs/tempo/bin/python build_site.py      # web/site/*.html (ES) y web/site/*-en.html (EN)
 ~/.venvs/tempo/bin/python -m pytest tests -q
 ```
 
@@ -32,6 +33,25 @@ fuentes, sea cual sea `--rain-source`:
 - `verdict_changes`: años en que la estrategia elegida por el hindcast leave-one-out (`validate`)
   cambia entre la corrida con IMERG y la corrida con POWER.
 - Sin `imerg.csv` (sin GEE) el bloque queda `available: false`.
+
+## Sensibilidad a supuestos
+
+`out/<zona>.json` incluye `sensitivity`: el hindcast leave-one-out se repite con capacidad de agua
+(WHC) 60, 90 y 130 mm y sin la regla de 150 mm del frijol. Los valores por defecto no cambian.
+Por variante: `pick_changes` (años cuya elección difiere de la corrida base), medias de puntaje,
+margen frente a la práctica actual, prueba de signos y el estado de CHECK 1.
+
+Resultado en la parcela (base WHC 130 mm): WHC 60 cambia 3 de 25 años (2007, 2011, 2018) y con ella
+CHECK 1 sí discrimina; WHC 90 y 130 no cambian nada; **sin la regla de 150 mm cambian 25 de 25 años**
+y la ventaja de Tempo sobre la práctica actual pasa de 0.18 a 0.00. Toda la ventaja viene de ese
+umbral, que es un SUPUESTO.
+
+## Cómo se lee el veredicto del sitio
+
+El sitio solo nombra una opción cuando se cumplen cuatro condiciones: margen entre las dos mejores
+>= 0.05 (umbral de lectura, SUPUESTO), ninguna elección cambia en `sensitivity`, ninguna cambia con
+POWER en lugar de IMERG, y CHECK 1 es evaluable. Si falla alguna, el titular dice que ninguna
+opción es claramente mejor. En la parcela hoy no se cumple ninguna (margen 2026: 0.003).
 
 ## Fuentes
 
@@ -54,9 +74,12 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 ## Límites conocidos
 
 - **Circularidad (D1):** `VALIDATION_DROUGHT_YEARS` solo contiene años <= 2025 con cita; `TARGET_YEAR` = 2026 queda fuera (aserción en `engine.validate`, test `test_no_circularity`).
-- **CHECK 1 no discriminante:** en la parcela, 24 de 26 años dan WRSI de maíz de primera = 100. La lluvia de la ventana de primera (730–1600 mm) supera la ET0 (~480 mm) incluso en 2014 y 2018, así que el modelo no ve estrés en esos años. Esto es un resultado de los datos de este punto, no un error de la ecuación. Con ese empate, el ranking no separa años y el CHECK 1 se marca "NO DISCRIMINANTE" en la salida. No se ajustó el balance para forzar estrés.
-- **Señal débil:** la canícula no correlaciona con la lluvia Sep-Nov (Spearman 0.04 Morazán, −0.18 Choluteca).
-- **Estrategia dominante:** Tempo elige C (segunda maíz) en 24 de 25 años en Morazán y 25 de 25 en Choluteca. Igualar "misma estrategia siempre" le gana o empata. Si las estrategias no se distinguen, la lectura es de temporada, no una recomendación fuerte.
+- **TARGET_YEAR fuera de todo cálculo de validación:** 2026 no entra en `validate`, en el ranking de CHECK 1, en `skill` ni en la comparación de fuentes de lluvia; los años análogos de 2026 salen solo de 2001-2025.
+- **CHECK 1 no evaluable:** en la parcela, 23 de 25 años (2001-2025) dan WRSI de maíz de primera = 100. La lluvia de la ventana de primera (730–1600 mm) supera la ET0 (~480 mm) incluso en 2014 y 2018, así que el modelo no ve estrés en esos años. Esto es un resultado de los datos de este punto, no un error de la ecuación. Los empates toman el rango más alto (`method="max"`): antes, con `method="min"`, los años empatados contaban como "entre los peores" y 2014 y 2018 salían como "hit" por empate. Ahora CHECK 1 queda `status: no_evaluable` y D6 marca esos años `no_evaluable` (JSON, `hindcast.md` y sitio). No se ajustó el balance para forzar estrés.
+- **Sin semáforo:** se quitó `traffic_light`. Leía `stats["A"]` (frijol en relevo) como si fuera maíz y solo contaba fallo con puntaje 0; no hay rendimientos ni una prueba de sequías que respalde un umbral.
+- **Señal débil:** la canícula no correlaciona con la lluvia Sep-Nov (Spearman −0.21, 25 años).
+- **Estrategia dominante:** Tempo elige C (segunda maíz) en 25 de 25 años; "misma estrategia siempre" empata (margen 0.00). Frente a la práctica actual el margen es 0.18 (9 años mejor, 0 peor, prueba de signos p = 0.0039), pero desaparece sin la regla de 150 mm.
+- **Empates entre estrategias:** si dos estrategias empatan en los años análogos, se mantiene la práctica actual (A) y el año se marca `pick_tied`.
 - **Balance hídrico:** zona radicular fija y `p` uniforme, no sigue FAO-56 completo (Zr dinámica, `p` por cultivo, Ky). Ver hallazgos de auditoría AGY.
 - **Hargreaves:** usa (Tmax+Tmin)/2, forma original FAO-56 eq. 52 (D4). El cambio de ET0 medio anual frente a la versión con T2M se reporta en `inputs.et0_change_vs_t2m_pct`.
 - **Temperatura sin elevación:** si falta `elevation_m`, no se corrige (`inputs.temp_correction_c = null`) y `warnings[]` lo indica (D3).
@@ -64,7 +87,7 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 
 ## Hindcast
 
-Ver [hindcast.md](hindcast.md): año por año, 2001-2025, leave-one-out. La tabla vive en `out/<zona>.json` (`hindcast.years`: estrategia elegida, WRSI y clase por cultivo, `documented`, `result` hit/fallo según D6, `source`); `hindcast.md` lo genera `hindcast_md.py`, no se edita a mano.
+Ver [hindcast.md](hindcast.md): año por año, 2001-2025, leave-one-out. La tabla vive en `out/<zona>.json` (`hindcast.years`: estrategia elegida, WRSI y clase por cultivo, `documented`, `result` hit/fallo/no_evaluable según D6, `source`); `hindcast.md` lo genera `hindcast_md.py`, no se edita a mano.
 
 ## Uso de IA
 
@@ -77,5 +100,6 @@ Todo resultado fue revisado contra los tests. Los hallazgos no confirmados no se
 ## Pendiente
 
 - Decisiones del equipo: quitar 2026 de la lista de sequías; `p` por cultivo; corrección de temperatura cuando falta elevación.
+- `web/template.html` (página única heredada) usa `cur.traffic_light || "green"`: sin el campo muestra verde. Hay que quitar ese indicador del template.
 - Validación agronómica local (CENTA).
 - Página publicada: no. Solo generada localmente.
