@@ -44,8 +44,13 @@ def _read_json(path: str) -> dict:
 
 
 def power_precip(d: str, index: pd.DatetimeIndex, power: pd.DataFrame) -> pd.Series:
-    """POWER PRECTOTCORR from the small JSON cache written by fetch.py, else from power.csv."""
-    js = _read_json(os.path.join(d, "precip_power.json"))
+    """POWER PRECTOTCORR from the small JSON cache written by fetch.py, else from power.csv.
+
+    The JSON is used only if it is not older than power.csv (a stale cache never masks new data).
+    """
+    path, csv = os.path.join(d, "precip_power.json"), os.path.join(d, "power.csv")
+    fresh = os.path.exists(path) and os.path.getmtime(path) >= os.path.getmtime(csv)
+    js = _read_json(path) if fresh else {}
     if js.get("values"):
         s = pd.Series(js["values"], index=pd.date_range(js["start"], periods=len(js["values"])), dtype=float)
         return s.reindex(index)

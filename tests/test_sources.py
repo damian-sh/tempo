@@ -50,6 +50,11 @@ def test_power_precip_json_roundtrip(tmp_path, monkeypatch):
     with pytest.raises(ValueError):
         ind.load_zone("z", "chirps")
 
+    t = os.path.getmtime(zone / "precip_power.json")
+    os.utime(zone / "power.csv", (t + 10, t + 10))  # power.csv updated after the JSON -> JSON is stale
+    df_s, _ = ind.load_zone("z", "power")
+    assert (df_s["P"] == -1.0).all()
+
 
 def test_cache_dir_outside_repo():
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
