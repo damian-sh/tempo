@@ -10,12 +10,26 @@ Apoyo para la **postrera** en el Corredor Seco. Tempo usa lluvia y temperatura d
 python -m venv ~/.venvs/tempo && ~/.venvs/tempo/bin/pip install -r requirements.txt
 export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # solo por variable de entorno
 ~/.venvs/tempo/bin/python fetch.py           # POWER + SoilGrids + IMERG/SRTM (GEE)
-~/.venvs/tempo/bin/python engine.py          # out/<zona>.json
+~/.venvs/tempo/bin/python engine.py          # out/<zona>.json (lluvia IMERG + relleno POWER)
+~/.venvs/tempo/bin/python engine.py --rain-source power   # solo lluvia NASA POWER
 ~/.venvs/tempo/bin/python build_page.py      # web/index.html (sin --demo)
 ~/.venvs/tempo/bin/python -m pytest tests -q
 ```
 
-Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`).
+Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`). La lluvia POWER
+(`PRECTOTCORR`) se guarda además en `~/.cache/tempo/<zona>/precip_power.json` (JSON compacto, ~50 KB).
+
+## Sensibilidad a la fuente de lluvia
+
+`out/<zona>.json` incluye `rain_source_sensitivity` (IMERG vs POWER), calculado siempre con ambas
+fuentes, sea cual sea `--rain-source`:
+
+- `windows.{primera,canicula,sep_nov}` (May-Ago, Jul-Ago, Sep-Nov): `bias_mm` (media anual de
+  POWER − IMERG), `bias_pct` (relativo al total IMERG), `spearman` (totales anuales), `n_years`
+  (solo años con IMERG completo en la ventana) y `by_year`.
+- `verdict_changes`: años en que la estrategia elegida por el hindcast leave-one-out (`validate`)
+  cambia entre la corrida con IMERG y la corrida con POWER.
+- Sin `imerg.csv` (sin GEE) el bloque queda `available: false`.
 
 ## Fuentes
 

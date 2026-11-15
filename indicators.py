@@ -1,8 +1,9 @@
 """Daily series and yearly season indicators for one zone.
 
 Inputs come from cache/<zone>/ (written by fetch.py).
-Precipitation: GPM IMERG local-day totals when available, otherwise NASA POWER
-PRECTOTCORR (each day is flagged with its source).
+Precipitation (rain_source="imerg", default): GPM IMERG local-day totals when available,
+otherwise NASA POWER PRECTOTCORR (each day is flagged with its source).
+rain_source="power": NASA POWER PRECTOTCORR only, from precip_power.json (or power.csv).
 Temperature: NASA POWER, corrected for elevation with a 6.5 C/km lapse rate
 when the parcel elevation (SRTM or manual) and the POWER cell elevation are known.
 Without elevation no correction is applied and a warning is reported (D3).
@@ -22,6 +23,7 @@ import config
 
 LAPSE_C_PER_M = 0.0065
 RAIN_DAY_MM = 1.0          # a day with >= 1 mm counts as rainy
+RAIN_SOURCES = ("imerg", "power")
 
 
 @dataclass
@@ -41,7 +43,18 @@ def _read_json(path: str) -> dict:
         return json.load(f)
 
 
-def load_zone(zone_key: str) -> tuple[pd.DataFrame, dict]:
+def power_precip(d: str, index: pd.DatetimeIndex, power: pd.DataFrame) -> pd.Series:
+    """POWER PRECTOTCORR from the small JSON cache written by fetch.py, else from power.csv."""
+    js = _read_json(os.path.join(d, "precip_power.json"))
+    if js.get("values"):
+        s = pd.Series(js["values"], index=pd.date_range(js["start"], periods=len(js["values"])), dtype=float)
+        return s.reindex(index)
+    return power["PRECTOTCORR"].reindex(index)
+
+
+def load_zone(zone_key: str, rain_source: str = "imerg") -> tuple[pd.DataFrame, dict]:
+    if rain_source not in RAIN_SOURCES:
+        raise ValueError(f"rain_source must be one of {RAIN_SOURCES}, got {rain_source!r}")
     d = os.path.join(config.CACHE_DIR, zone_key)
     meta = _read_json(os.path.join(d, "meta.json"))
     soil = _read_json(os.path.join(d, "soil.json"))
@@ -50,11 +63,12 @@ def load_zone(zone_key: str) -> tuple[pd.DataFrame, dict]:
     power = pd.read_csv(os.path.join(d, "power.csv"), parse_dates=["date"], index_col="date")
     df = pd.DataFrame(index=power.index)
 
-    # Precipitation: IMERG first, POWER as gap filler.
-    df["P"] = power["PRECTOTCORR"]
+    # Precipitation: IMERG first, POWER as gap filler (or POWER only).
+    df["P"] = power_precip(d, df.index, power)
     df["P_src"] = "POWER"
     imerg_path = os.path.join(d, "imerg.csv")
-    if os.path.exists(imerg_path):
+    has_imerg = os.path.exists(imerg_path)
+    if rain_source == "imerg" and has_imerg:
         im = pd.read_csv(imerg_path, parse_dates=["date"], index_col="date")["imerg_mm"]
         im = im.reindex(df.index)
         has = im.notna()
@@ -63,6 +77,8 @@ def load_zone(zone_key: str) -> tuple[pd.DataFrame, dict]:
 
     # Temperature with elevation correction (D3: no silent 0 when elevation is missing).
     dT, warnings = elevation_correction(meta.get("power_cell_elevation_m"), terrain.get("elevation_m"))
+    if rain_source == "imerg" and not has_imerg:
+        warnings.append("rain_source=imerg pero falta imerg.csv: lluvia 100 % NASA POWER PRECTOTCORR")
     dT_applied = dT if dT is not None else 0.0
     df["Tmax"] = power["T2M_MAX"] + dT_applied
     df["Tmin"] = power["T2M_MIN"] + dT_applied
@@ -73,7 +89,8 @@ def load_zone(zone_key: str) -> tuple[pd.DataFrame, dict]:
     df["ET0"] = hargreaves_et0(df["Tmax"], df["Tmin"], lat)
     et0_t2m = hargreaves_et0(df["Tmax"], df["Tmin"], lat, tmean=power["T2M"] + dT_applied)
 
-    info = {"meta": meta, "soil": soil, "terrain": terrain,
+    info = {"meta": meta, "soil": soil, "terrain": terrain, "rain_source": rain_source,
+            "has_imerg": has_imerg,
             "temp_correction_c": round(dT, 2) if dT is not None else None,
             "warnings": warnings,
             "et0_change_vs_t2m_pct": et0_change_pct(df["ET0"], et0_t2m),

@@ -12,7 +12,8 @@ Usage
     python fetch.py --lat 13.7 --lon -88.13 --key myparcel
     python fetch.py --no-gee        # POWER + SoilGrids only
 
-Output: cache/<zone>/power.csv, imerg.csv, soil.json, terrain.json, meta.json
+Output: ~/.cache/tempo/<zone>/power.csv, precip_power.json, imerg.csv, soil.json, terrain.json,
+meta.json (outside the repo; override with TEMPO_CACHE)
 """
 from __future__ import annotations
 
@@ -30,6 +31,8 @@ import config
 POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
 POWER_PARAMS = ["T2M", "T2M_MAX", "T2M_MIN", "RH2M", "ALLSKY_SFC_SW_DWN", "PRECTOTCORR"]
 POWER_FILL = -999.0
+POWER_RAIN = "PRECTOTCORR"
+assert POWER_RAIN in POWER_PARAMS
 
 SOILGRIDS_URL = "https://rest.isric.org/soilgrids/v2.0/properties/query"
 SOIL_PROPS = ["clay", "sand", "silt", "soc"]
@@ -93,6 +96,16 @@ def fetch_power(lat: float, lon: float, start: str, end: str) -> tuple[pd.DataFr
     out = out[~out.index.duplicated()]
     out.index.name = "date"
     return out, cell_elev
+
+
+def power_precip_json(power: pd.DataFrame) -> dict:
+    """Compact daily POWER rain cache: start date plus one value (mm, 0.01) per day, null = missing."""
+    p = power[POWER_RAIN]
+    idx = pd.date_range(p.index.min(), p.index.max(), freq="D")
+    p = p.reindex(idx)
+    return {"source": f"NASA POWER daily, community AG, {POWER_RAIN}", "units": "mm/day",
+            "start": idx[0].date().isoformat(), "end": idx[-1].date().isoformat(),
+            "values": [None if pd.isna(v) else round(float(v), 2) for v in p.values]}
 
 
 # --------------------------------------------------------------------------- SoilGrids
@@ -238,6 +251,8 @@ def run_zone(zone: config.Zone, use_gee: bool) -> None:
     print("  POWER ...")
     power, cell_elev = fetch_power(zone.lat, zone.lon, config.START_DATE, end)
     power.to_csv(os.path.join(out_dir, "power.csv"))
+    with open(os.path.join(out_dir, "precip_power.json"), "w") as f:
+        json.dump(power_precip_json(power), f, separators=(",", ":"))
     meta["power_cell_elevation_m"] = cell_elev
     meta["sources"]["power"] = f"NASA POWER daily, community AG, params {POWER_PARAMS}"
     print(f"    {len(power)} days, cell elevation {cell_elev} m")
