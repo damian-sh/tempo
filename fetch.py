@@ -99,13 +99,13 @@ def fetch_power(lat: float, lon: float, start: str, end: str) -> tuple[pd.DataFr
 
 
 def power_precip_json(power: pd.DataFrame) -> dict:
-    """Compact daily POWER rain cache: start date plus one value (mm, 0.01) per day, null = missing."""
+    """Compact daily POWER rain cache: start date plus one value (mm, as served) per day, null = missing."""
     p = power[POWER_RAIN]
     idx = pd.date_range(p.index.min(), p.index.max(), freq="D")
     p = p.reindex(idx)
     return {"source": f"NASA POWER daily, community AG, {POWER_RAIN}", "units": "mm/day",
             "start": idx[0].date().isoformat(), "end": idx[-1].date().isoformat(),
-            "values": [None if pd.isna(v) else round(float(v), 2) for v in p.values]}
+            "values": [None if pd.isna(v) else float(v) for v in p.values]}
 
 
 # --------------------------------------------------------------------------- SoilGrids

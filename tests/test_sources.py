@@ -26,11 +26,11 @@ def synthetic(years=range(2001, 2013), seed=0):
 
 def test_power_precip_json_roundtrip(tmp_path, monkeypatch):
     idx = pd.date_range("2001-01-01", periods=5)
-    power = pd.DataFrame({"PRECTOTCORR": [0.0, 1.234, np.nan, 10.0, 2.5],
+    power = pd.DataFrame({"PRECTOTCORR": [0.0, 0.996, np.nan, 10.0, 2.5],
                           "T2M": 25.0, "T2M_MAX": 30.0, "T2M_MIN": 20.0, "RH2M": 80.0}, index=idx)
     js = fetch.power_precip_json(power)
     assert js["start"] == "2001-01-01" and js["end"] == "2001-01-05"
-    assert js["values"] == [0.0, 1.23, None, 10.0, 2.5]
+    assert js["values"] == [0.0, 0.996, None, 10.0, 2.5]
     assert "PRECTOTCORR" in fetch.POWER_PARAMS
 
     zone = tmp_path / "z"
@@ -44,7 +44,7 @@ def test_power_precip_json_roundtrip(tmp_path, monkeypatch):
 
     df_p, info_p = ind.load_zone("z", "power")
     assert info_p["rain_source"] == "power" and (df_p["P_src"] == "POWER").all()
-    assert df_p["P"].tolist()[:2] == [0.0, 1.23] and np.isnan(df_p["P"].iloc[2])
+    assert df_p["P"].tolist()[:2] == [0.0, 0.996] and np.isnan(df_p["P"].iloc[2])
     df_i, info_i = ind.load_zone("z", "imerg")
     assert (df_i["P"] == 5.0).all() and info_i["share_days_imerg"] == 1.0
     with pytest.raises(ValueError):
