@@ -1,6 +1,6 @@
 # Hindcast real 2001-2025 (leave-one-out)
 
-Generado por engine.py con IMERG V07 + POWER. Sin --demo.
+Generado por engine.py con IMERG V07 + POWER + SoilGrids. Sin --demo.
 
 ## morazan
 
@@ -34,7 +34,9 @@ Generado por engine.py con IMERG V07 + POWER. Sin --demo.
 
 Media Tempo 0.98 · práctica A 0.78 · misma estrategia siempre 1.0 · mejor posible 1.0 · fallos Tempo 0 vs A 0 · Tempo mejor en 10, peor en 0 · elecciones {'C': 24, 'A': 1}
 
-Señal canícula: Spearman vs lluvia Sep-Nov 0.04; vs score {'A': -0.28, 'B': -0.41, 'C': None}
+Señal canícula: Spearman vs lluvia Sep-Nov 0.04; vs score {'A': -0.28, 'B': -0.27, 'C': None}
+
+Suelo: textura clayey, WHC 130 mm.
 
 ## choluteca
 
@@ -69,3 +71,5 @@ Señal canícula: Spearman vs lluvia Sep-Nov 0.04; vs score {'A': -0.28, 'B': -0
 Media Tempo 0.98 · práctica A 0.7 · misma estrategia siempre 0.98 · mejor posible 1.0 · fallos Tempo 0 vs A 0 · Tempo mejor en 15, peor en 1 · elecciones {'C': 25}
 
 Señal canícula: Spearman vs lluvia Sep-Nov -0.18; vs score {'A': -0.08, 'B': -0.37, 'C': -0.34}
+
+Suelo: textura default, WHC 90 mm.
