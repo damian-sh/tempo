@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parcelas · Tempo</title>
+<meta name="description" content="Sitios de Tempo en El Salvador y el Corredor Seco: mapa, búsqueda, parcela más cercana y comparación.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#lista">Saltar a la lista</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../site/index.html">Tempo</a>
+    <span class="sub">Parcelas</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Parcelas y sitios</h1>
+  <p class="lead">Elige un sitio en el mapa o en la lista. Escribe un nombre o unas coordenadas para buscar el sitio más cercano. Puedes comparar dos sitios.</p>
+
+  <section class="controls" aria-label="Buscar y filtrar">
+    <form id="buscar" class="search" role="search">
+      <label for="q">Nombre o coordenadas</label>
+      <div class="row">
+        <input id="q" name="q" type="search" autocomplete="off" placeholder="Ej.: Somoto, o 13.70, -88.10" aria-describedby="q-ayuda">
+        <button type="submit">Buscar</button>
+      </div>
+      <p id="q-ayuda" class="hint">Coordenadas en grados decimales (lat, lon) o en grados, minutos y segundos (13°47'47"N 89°48'03"W).</p>
+    </form>
+    <div class="filters">
+      <div>
+        <label for="f-depto">Departamento</label>
+        <select id="f-depto"><option value="">Todos</option></select>
+      </div>
+      <div>
+        <label for="f-estado">Estado de datos</label>
+        <select id="f-estado">
+          <option value="">Todos</option>
+          <option value="completo">Completo</option>
+          <option value="parcial">Parcial (faltan fuentes)</option>
+          <option value="pendiente">Pendiente (sin resultado)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <p id="aviso" class="notice" role="status" aria-live="polite" hidden></p>
+
+  <div class="layout">
+    <section class="mapbox" aria-label="Mapa">
+      <div id="mapa" role="application" aria-label="Mapa de sitios. Haz clic en el mapa para buscar el sitio más cercano."></div>
+      <p id="mapa-vacio" class="empty" hidden>El mapa no cargó (sin conexión o sin acceso a los mosaicos). La lista, la búsqueda y la comparación siguen funcionando.</p>
+      <p class="hint">Clic en el mapa: sitio con datos más cercano. Mosaicos © colaboradores de OpenStreetMap.</p>
+    </section>
+
+    <section id="lista" class="listbox" aria-labelledby="lista-h">
+      <h2 id="lista-h">Sitios <span id="cuenta" class="count"></span></h2>
+      <ul id="sitios" class="sites"></ul>
+      <p id="lista-vacia" class="empty" hidden></p>
+    </section>
+  </div>
+
+  <section id="detalle" class="panel" aria-labelledby="detalle-h" tabindex="-1">
+    <h2 id="detalle-h">Detalle</h2>
+    <div id="detalle-body"><p class="empty">Ningún sitio elegido. Elige uno en la lista o en el mapa.</p></div>
+  </section>
+
+  <section id="comparar" class="panel" aria-labelledby="comparar-h" tabindex="-1">
+    <h2 id="comparar-h">Comparar dos sitios</h2>
+    <div id="comparar-body"><p class="empty">Marca «Comparar» en dos sitios de la lista para verlos lado a lado.</p></div>
+  </section>
+</main>
+
+<footer class="foot wrap">
+  <p>Apoyo para decisiones de la postrera. No reemplaza el criterio agronómico local. Datos: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Cada número viene de <code>out/&lt;id&gt;.json</code>. Página generada localmente; no publicada.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="app.js"></script>
+</body>
+</html>

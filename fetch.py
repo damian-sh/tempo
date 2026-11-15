@@ -11,6 +11,7 @@ Usage
     python fetch.py                 # all zones in config.ZONES
     python fetch.py --lat 13.7 --lon -88.13 --key myparcel
     python fetch.py --no-gee        # POWER + SoilGrids only
+    python fetch.py --sites parcelas.json --ids somoto   # points from a registry file
 
 Output: ~/.cache/tempo/<zone>/power.csv, precip_power.json, imerg.csv, soil.json, terrain.json,
 meta.json (outside the repo; override with TEMPO_CACHE)
@@ -294,9 +295,17 @@ def main() -> None:
     ap.add_argument("--lon", type=float)
     ap.add_argument("--key", default="custom")
     ap.add_argument("--no-gee", action="store_true")
+    ap.add_argument("--sites", help="JSON file with a list of points (e.g. parcelas.json); "
+                                    "fetches every entry with estado 'activo'")
+    ap.add_argument("--ids", help="with --sites: comma-separated ids to fetch (default: all active)")
     args = ap.parse_args()
 
     zones = config.ZONES
+    if args.sites:
+        zones = config.site_zones(config.load_sites(args.sites))
+        if args.ids:
+            wanted = set(args.ids.split(","))
+            zones = [z for z in zones if z.key in wanted]
     if args.lat is not None and args.lon is not None:
         zones = [config.Zone(args.key, args.key, args.lat, args.lon)]
 

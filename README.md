@@ -18,6 +18,29 @@ export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # solo por variable de entorno
 ~/.venvs/tempo/bin/python -m pytest tests -q
 ```
 
+### Varios sitios (parcelas)
+
+```bash
+~/.venvs/tempo/bin/python build_parcels.py --run          # por sitio de parcelas.json: fetch (si falta caché) + engine
+~/.venvs/tempo/bin/python build_parcels.py --run --ids somoto --refresh   # un sitio, descarga de nuevo
+~/.venvs/tempo/bin/python build_parcels.py                # solo web/parcelas/data.json desde out/<id>.json
+~/.venvs/tempo/bin/python fetch.py --sites parcelas.json --ids somoto     # solo descarga
+python -m http.server 8000                                # desde la raíz del repo
+# abrir http://localhost:8000/web/parcelas/
+```
+
+- `parcelas.json`: id, nombre, municipio, departamento, país, lat, lon, `fuente_coordenadas`,
+  `fuente_admin` y `estado` (`activo` se procesa). Coordenada sin verificar = fuente que empieza con `SUPUESTO`.
+- Cada sitio usa su propia caché `~/.cache/tempo/<id>/` y escribe `out/<id>.json`. Si la caché es de otro
+  punto o quedó incompleta, se mueve a `<id>.anterior-<fecha>` (no se borra) y se descarga de nuevo.
+  El resultado de cada corrida queda en `~/.cache/tempo/<id>/pipeline.json`; un fallo no detiene a los demás sitios.
+- Sin `TEMPO_GEE_PROJECT`, IMERG y SRTM no se descargan: el sitio queda "parcial" (lluvia 100 % POWER,
+  sin corrección de temperatura por elevación). Nada se rellena con valores inventados.
+- `web/parcelas/data.json` lista los sitios con `out/<id>.json` y los pendientes (con motivo). Es un archivo generado.
+- "Lectura de temporada": misma regla que `build_site.py` (la mejor estrategia supera a la segunda por menos de 0,05)
+  o, en la validación, elegir siempre la misma estrategia empata o supera a Tempo.
+- `config.ZONES` sigue con la parcela del usuario; `engine.py`, `hindcast_md.py` y `build_site.py` no cambian.
+
 Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`). La lluvia POWER
 (`PRECTOTCORR`) se guarda además en `~/.cache/tempo/<zona>/precip_power.json` (JSON compacto, ~50 KB).
 
