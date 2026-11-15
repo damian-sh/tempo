@@ -1,0 +1,65 @@
+{
+  "descripcion": "Registro de sitios de Tempo. Cada coordenada lleva su fuente; si no se verificó, la fuente empieza con SUPUESTO. estado: activo = se procesa con build_parcels.py --run; pausado = se lista pero no se procesa.",
+  "sitios": [
+    {
+      "id": "parcela",
+      "nombre": "Parcela del usuario",
+      "municipio": null,
+      "departamento": null,
+      "pais": "El Salvador",
+      "lat": 13.796406,
+      "lon": -89.801031,
+      "fuente_coordenadas": "Usuario: 13°47'47.06\"N 89°48'03.71\"W convertido a decimal (README, Supuestos).",
+      "fuente_admin": "SUPUESTO: municipio y departamento sin verificar; no se consultó geocodificación inversa para no enviar la coordenada a terceros.",
+      "estado": "activo"
+    },
+    {
+      "id": "morazan",
+      "nombre": "Cerca de San Francisco Gotera",
+      "municipio": "San Francisco Gotera",
+      "departamento": "Morazán",
+      "pais": "El Salvador",
+      "lat": 13.70,
+      "lon": -88.13,
+      "fuente_coordenadas": "SUPUESTO: punto aproximado de demo del proyecto (config.py anterior, 'approximate coordinates'). Queda a ~2,6 km del centro de San Francisco Gotera según Wikipedia (13°41'43\"N 88°06'22\"W, https://es.wikipedia.org/wiki/San_Francisco_Gotera). Se conserva para reutilizar la caché ya descargada en este punto.",
+      "fuente_admin": "Wikipedia: San Francisco Gotera es cabecera de Morazán (https://es.wikipedia.org/wiki/San_Francisco_Gotera). Que el punto caiga dentro del municipio es SUPUESTO.",
+      "estado": "activo"
+    },
+    {
+      "id": "choluteca",
+      "nombre": "Cerca de Choluteca",
+      "municipio": "Choluteca",
+      "departamento": "Choluteca",
+      "pais": "Honduras",
+      "lat": 13.30,
+      "lon": -87.19,
+      "fuente_coordenadas": "SUPUESTO: punto aproximado de demo del proyecto (config.py anterior, 'approximate coordinates'). Queda a ~0,7 km del centro de Choluteca según Wikipedia (13°18'22\"N 87°11'44\"W, https://es.wikipedia.org/wiki/Choluteca). Se conserva para reutilizar la caché ya descargada en este punto.",
+      "fuente_admin": "Wikipedia: Choluteca, departamento de Choluteca, Honduras (https://es.wikipedia.org/wiki/Choluteca).",
+      "estado": "activo"
+    },
+    {
+      "id": "santa-rosa-de-lima",
+      "nombre": "Santa Rosa de Lima (centro)",
+      "municipio": "Santa Rosa de Lima",
+      "departamento": "La Unión",
+      "pais": "El Salvador",
+      "lat": 13.625886,
+      "lon": -87.891133,
+      "fuente_coordenadas": "Wikipedia: 13°37'33\"N 87°53'28\"W (https://es.wikipedia.org/wiki/Santa_Rosa_de_Lima_(El_Salvador)). Es el centro urbano, no una parcela.",
+      "fuente_admin": "Wikipedia (misma página): departamento de La Unión.",
+      "estado": "activo"
+    },
+    {
+      "id": "somoto",
+      "nombre": "Somoto (centro)",
+      "municipio": "Somoto",
+      "departamento": "Madriz",
+      "pais": "Nicaragua",
+      "lat": 13.48371,
+      "lon": -86.582623,
+      "fuente_coordenadas": "Wikipedia: 13°29'01\"N 86°34'57\"W (https://es.wikipedia.org/wiki/Somoto). Es el centro urbano, no una parcela.",
+      "fuente_admin": "Wikipedia (misma página): departamento de Madriz, Nicaragua.",
+      "estado": "activo"
+    }
+  ]
+}

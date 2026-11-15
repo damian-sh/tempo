@@ -59,3 +59,18 @@ def test_no_circularity(monkeypatch):
     monkeypatch.setattr(config, "VALIDATION_DROUGHT_YEARS", {**years, config.TARGET_YEAR: "x"})
     with pytest.raises(AssertionError):
         engine.validate(None, None, [])
+
+
+@pytest.mark.parametrize("z", ZONES)
+def test_rain_source_sensitivity_in_output(z):
+    d = load(z)
+    rs = d["rain_source_sensitivity"]
+    assert d["inputs"]["rain_source"] in ("imerg", "power")
+    if not rs["available"]:
+        pytest.skip(f"rain_source_sensitivity unavailable: {rs['reason']}")
+    for name in ("primera", "canicula", "sep_nov"):
+        w = rs["windows"][name]
+        print(f"\n{z} {name}: n={w['n_years']} bias {w['bias_mm']} mm ({w['bias_pct']} %), rho {w['spearman']}")
+        assert {"bias_mm", "bias_pct", "spearman"} <= set(w)
+    print(f"{z} verdict changes: {[c['year'] for c in rs['verdict_changes']]}")
+    assert isinstance(rs["verdict_changes"], list)

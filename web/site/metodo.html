@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Método · Tempo</title>
+<meta name="description" content="Cómo se calcula el balance hídrico y el puntaje.">
+<link rel="alternate" hreflang="es" href="metodo.html"><link rel="alternate" hreflang="en" href="metodo-en.html">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">Tempo</a>
+  <nav aria-label="Principal"><a href="index.html">Veredicto</a><a href="hindcast.html">Hindcast</a><a href="metodo.html" aria-current="page">Método</a><a href="fuentes.html">Fuentes</a><a href="limites.html">Límites</a></nav>
+  <div class="langs" role="group" aria-label="Idioma"><span class="lang lang--on">ES</span><a class="lang" href="metodo-en.html" hreflang="en" lang="en">English</a></div>
+</div></header>
+<main id="main" class="wrap" tabindex="-1">
+<section class="hero hero--sm"><p class="eyebrow">Método</p><h1>Cómo se calcula</h1>
+<p class="lead">Un balance hídrico diario sencillo sobre la parcela, con lluvia de satélite y temperatura de reanálisis.</p></section>
+<section class="block" aria-labelledby="steps"><h2 id="steps">Pasos</h2><ol class="steps">
+<li><strong>Lluvia:</strong> IMERG V07 sumado por día local (UTC−6) en el punto. Si faltan días, NASA POWER como respaldo.</li><li><strong>Temperatura:</strong> NASA POWER, corregida por elevación con SRTM (-0,96 °C en esta parcela, −0,0065 °C/m).</li><li><strong>Evapotranspiración:</strong> Hargreaves con (Tmax+Tmin)/2, según FAO-56 ec. 52.</li><li><strong>Suelo:</strong> capacidad de agua de 130 mm según la textura clayey (SoilGrids). El valor por textura es un SUPUESTO.</li><li><strong>Balance:</strong> cubeta diaria con tope de capacidad; el estrés empieza bajo la mitad de la capacidad. Índice tipo WRSI simplificado, no FAO-56 completo. Clases: ≥ 80 bueno, 60–80 parcial, &lt; 60 fallo; baja una clase si hay estrés en floración o, en frijol, más de 150 mm de lluvia al final del ciclo.</li><li><strong>Años parecidos:</strong> los años se agrupan en tercios por la duración de la canícula; para cada año se usan los otros años del mismo tercio. Nunca el año evaluado ni la temporada actual.</li><li><strong>Empates:</strong> si dos opciones empatan en el clima, se mantiene la práctica actual. En la prueba de sequías, los años empatados toman el rango más alto, y si la mayoría empata la prueba se marca «no evaluable».</li><li><strong>Puntaje final:</strong> 60 % clima y 40 % prioridades. Con pendiente sobre 15 % (aquí 19,9 %), el peso del suelo se multiplica por 1,5.</li><li><strong>Margen y prueba de signos:</strong> el margen es la diferencia media de puntaje frente a la práctica actual. La prueba de signos cuenta años mejores y peores e ignora empates; no corrige por supuestos compartidos entre años.</li>
+</ol></section>
+<section class="block" aria-labelledby="w"><h2 id="w">Pesos de prioridad</h2>
+<div class="table-wrap"><table class=""><caption>Pesos usados en el puntaje final</caption><thead><tr><th scope="col">Prioridad</th><th scope="col">Peso</th></tr></thead><tbody><tr><td data-label="Prioridad">Comida</td><td data-label="Peso">1,0</td></tr><tr><td data-label="Prioridad">Ingreso</td><td data-label="Peso">0,5</td></tr><tr><td data-label="Prioridad">Suelo</td><td data-label="Peso">0,5</td></tr><tr><td data-label="Prioridad">Agua</td><td data-label="Peso">0,5</td></tr><tr><td data-label="Prioridad">Mano de obra</td><td data-label="Peso">0,3</td></tr></tbody></table></div>
+<p class="muted">Pesos definidos por el equipo; son SUPUESTOS, no datos medidos.</p></section></main>
+<footer class="foot wrap"><p>Apoyo para decisiones de la postrera. No reemplaza el criterio agronómico local. Datos: NASA POWER, GPM IMERG V07, SRTM, ISRIC SoilGrids. Sitio generado localmente; no publicado.</p></footer>
+</body></html>

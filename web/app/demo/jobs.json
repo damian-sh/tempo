@@ -1,0 +1,212 @@
+{
+ "jobs": [
+  {
+   "id": "c994b1f9c85a940e",
+   "lat": 13.796406,
+   "lon": -89.801031,
+   "nombre": "Parcela del usuario",
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T02:04:03+00:00",
+   "actualizado": "2026-11-15T08:28:48+00:00",
+   "iniciado": "2026-11-15T08:28:31+00:00",
+   "terminado": "2026-11-15T08:28:48+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "bce2e06a94669951",
+   "lat": 14.141902,
+   "lon": -88.676147,
+   "nombre": null,
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T02:08:24+00:00",
+   "actualizado": "2026-11-15T08:29:03+00:00",
+   "iniciado": "2026-11-15T08:28:48+00:00",
+   "terminado": "2026-11-15T08:29:03+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "e13cf775bd25dd04",
+   "lat": 13.9,
+   "lon": -88.9,
+   "nombre": null,
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T02:17:05+00:00",
+   "actualizado": "2026-11-15T08:29:18+00:00",
+   "iniciado": "2026-11-15T08:29:03+00:00",
+   "terminado": "2026-11-15T08:29:18+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "44c5015f05bd7873",
+   "lat": 13.3,
+   "lon": -87.19,
+   "nombre": "Cerca de Choluteca (Honduras)",
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T02:56:54+00:00",
+   "actualizado": "2026-11-15T08:29:34+00:00",
+   "iniciado": "2026-11-15T08:29:18+00:00",
+   "terminado": "2026-11-15T08:29:34+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: segunda maíz, confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "C",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "40a16dd9708f0c9a",
+   "lat": 13.866747,
+   "lon": -89.549561,
+   "nombre": null,
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T03:09:58+00:00",
+   "actualizado": "2026-11-15T08:29:49+00:00",
+   "iniciado": "2026-11-15T08:29:34+00:00",
+   "terminado": "2026-11-15T08:29:49+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "3fbc891a8f31ac90",
+   "lat": 13.7,
+   "lon": -88.13,
+   "nombre": "San Francisco Gotera",
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T04:26:53+00:00",
+   "actualizado": "2026-11-15T08:30:05+00:00",
+   "iniciado": "2026-11-15T08:29:49+00:00",
+   "terminado": "2026-11-15T08:30:05+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: segunda maíz, confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "C",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "97714e378d6e443d",
+   "lat": 13.392292,
+   "lon": -87.028198,
+   "nombre": null,
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T06:29:36+00:00",
+   "actualizado": "2026-11-15T08:30:21+00:00",
+   "iniciado": "2026-11-15T08:30:05+00:00",
+   "terminado": "2026-11-15T08:30:21+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza baja",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "baja"
+    }
+   }
+  },
+  {
+   "id": "63e1cac4e49c6a6c",
+   "lat": 13.5306,
+   "lon": -87.487,
+   "nombre": "Cerca de Nacaome (Valle, Honduras)",
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T07:34:19+00:00",
+   "actualizado": "2026-11-15T08:30:37+00:00",
+   "iniciado": "2026-11-15T08:30:21+00:00",
+   "terminado": "2026-11-15T08:30:37+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza media",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "media"
+    }
+   }
+  },
+  {
+   "id": "1cf264e9bcba7eca",
+   "lat": 12.629,
+   "lon": -87.131,
+   "nombre": "Cerca de Chinandega (Nicaragua)",
+   "estado": "listo",
+   "mensaje": "Análisis listo con todas las fuentes.",
+   "faltantes": [],
+   "progreso": 1.0,
+   "creado": "2026-11-15T07:37:11+00:00",
+   "actualizado": "2026-11-15T08:30:53+00:00",
+   "iniciado": "2026-11-15T08:30:37+00:00",
+   "terminado": "2026-11-15T08:30:53+00:00",
+   "veredicto": {
+    "claro": false,
+    "titulo": "Lectura de la postrera 2026 para planificar 2027: frijol en relevo tras maíz (práctica actual), confianza media",
+    "anio": 2026,
+    "recomendacion": {
+     "clave": "A",
+     "confianza": "media"
+    }
+   }
+  }
+ ],
+ "exportado_utc": "2026-11-15T08:41:10+00:00"
+}
