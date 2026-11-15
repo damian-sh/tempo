@@ -132,6 +132,40 @@ def validate(hcdf: pd.DataFrame, indic: pd.DataFrame, complete_years: list[int])
     }
 
 
+def hindcast_years(validation: dict, hcdf: pd.DataFrame, pm: pd.DataFrame, worst_third: int,
+                   years: list[int]) -> list[dict]:
+    """One row per year: leave-one-out pick, per-crop WRSI/class, and the D6 hit/fallo.
+
+    hit/fallo only for years in config.VALIDATION_DROUGHT_YEARS (cited source, D6): "hit" when the
+    primera maize WRSI ranks in the worst third of the record (same rule as CHECK 1), else "fallo".
+    """
+    picks = {int(r["year"]): r for r in validation.get("by_year", [])}
+    pmi = pm.set_index("year") if not pm.empty else pd.DataFrame()
+    rows = []
+    for y in years:
+        crops_y = {}
+        for parts in hcdf.loc[hcdf["year"] == y, "crops"]:
+            for c, r in parts.items():
+                crops_y.setdefault(c, {"wrsi": r["wrsi"], "class": r["class"]})
+        pk = picks.get(y)
+        prim = None
+        if y in pmi.index:
+            pr = pmi.loc[y]
+            prim = {"wrsi": float(pr["wrsi"]), "class": pr["class"], "rank_driest": int(pr["rank_driest"])}
+        source = config.VALIDATION_DROUGHT_YEARS.get(y)
+        result = None
+        if source is not None:
+            result = "hit" if prim is not None and prim["rank_driest"] <= worst_third else "fallo"
+        rows.append({"year": int(y),
+                     "strategy": pk["pick"] if pk else None,
+                     "canicula_class": pk["canicula_class"] if pk else None,
+                     "score_strategy": pk["score_pick"] if pk else None,
+                     "score_current": pk["score_A"] if pk else None,
+                     "crops": crops_y, "primera_maize": prim,
+                     "documented": source is not None, "result": result, "source": source})
+    return rows
+
+
 # ---------------------------------------------------------------- per zone
 def _ts(x):
     return None if x is None or (isinstance(x, float) and np.isnan(x)) or pd.isna(x) else pd.Timestamp(x).date().isoformat()
@@ -169,6 +203,13 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
         "years": pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))).to_dict(orient="records") if not pm.empty else [],
         "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
         "documented_in_worst_third": [int(y) for y in doc if int(pm.set_index("year").loc[y, "rank_driest"]) <= third],
+    }
+    hindcast = {
+        "method": "leave-one-out by canicula tercile; hit/fallo only for cited drought years (D6), "
+                  "primera maize WRSI in the worst third",
+        "worst_third_size": int(third),
+        "years": hindcast_years(validation, hcdf, pm, third,
+                                list(range(int(config.START_DATE[:4]), config.TARGET_YEAR))),
     }
 
     # Current season = latest year with a canicula reading.
@@ -265,6 +306,7 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
         "validation": validation,
         "skill": skill,
         "primera_check": primera_check,
+        "hindcast": hindcast,
         "yearly": yearly,
         "chart": chart,
         "heat": heat,
