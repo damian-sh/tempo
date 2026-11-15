@@ -41,7 +41,8 @@ No se usan GLDAS, GAEZ, SMAP, ERA5, Sentinel-2, Landsat, ECOSTRESS ni GEDI.
 - **Señal débil:** la canícula no correlaciona con la lluvia Sep-Nov (Spearman 0.04 Morazán, −0.18 Choluteca).
 - **Estrategia dominante:** Tempo elige C (segunda maíz) en 24 de 25 años en Morazán y 25 de 25 en Choluteca. Igualar "misma estrategia siempre" le gana o empata. Si las estrategias no se distinguen, la lectura es de temporada, no una recomendación fuerte.
 - **Balance hídrico:** zona radicular fija y `p` uniforme, no sigue FAO-56 completo (Zr dinámica, `p` por cultivo, Ky). Ver hallazgos de auditoría AGY.
-- **Hargreaves:** usa T2M en vez de (Tmax+Tmin)/2 (FAO-56 eq. 52).
+- **Hargreaves:** usa (Tmax+Tmin)/2, forma original FAO-56 eq. 52 (D4). El cambio de ET0 medio anual frente a la versión con T2M se reporta en `inputs.et0_change_vs_t2m_pct`.
+- **Temperatura sin elevación:** si falta `elevation_m`, no se corrige (`inputs.temp_correction_c = null`) y `warnings[]` lo indica (D3).
 - **Sin verificación de campo:** no hay datos de cosecha locales.
 
 ## Hindcast
