@@ -47,6 +47,10 @@ Caché fuera del repo: `~/.cache/tempo` (sobrescribible con `TEMPO_CACHE`). La l
 
 ### Mapa: elegir la parcela con un clic
 
+Demo sin servidor (para el jurado, ver [docs/jurado.md](docs/jurado.md)): `cd web/app && python -m http.server 8000`.
+Si `/api` no responde, la app lee la instantánea de `web/app/demo/` (`python export_demo.py`) y avisa
+de que analizar puntos nuevos necesita el servidor.
+
 ```bash
 export TEMPO_GEE_PROJECT=<tu-proyecto-gee>   # opcional; sin él, IMERG y SRTM quedan como faltantes
 ~/.venvs/tempo/bin/python server.py          # o: python server.py (con pandas/requests instalados)
