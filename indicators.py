@@ -5,7 +5,8 @@ Precipitation: GPM IMERG local-day totals when available, otherwise NASA POWER
 PRECTOTCORR (each day is flagged with its source).
 Temperature: NASA POWER, corrected for elevation with a 6.5 C/km lapse rate
 when the parcel elevation (SRTM or manual) and the POWER cell elevation are known.
-Reference evapotranspiration: Hargreaves (FAO-56 eq. 52).
+Without elevation no correction is applied and a warning is reported (D3).
+Reference evapotranspiration: Hargreaves (FAO-56 eq. 52) with Tmean = (Tmax+Tmin)/2 (D4).
 """
 from __future__ import annotations
 
@@ -60,23 +61,34 @@ def load_zone(zone_key: str) -> tuple[pd.DataFrame, dict]:
         df.loc[has, "P"] = im[has]
         df.loc[has, "P_src"] = "IMERG"
 
-    # Temperature with elevation correction.
-    cell_elev = meta.get("power_cell_elevation_m")
-    parcel_elev = terrain.get("elevation_m")
-    dT = 0.0
-    if cell_elev is not None and parcel_elev is not None:
-        dT = -LAPSE_C_PER_M * (parcel_elev - cell_elev)
-    df["Tmax"] = power["T2M_MAX"] + dT
-    df["Tmin"] = power["T2M_MIN"] + dT
-    df["Tmean"] = power["T2M"] + dT
+    # Temperature with elevation correction (D3: no silent 0 when elevation is missing).
+    dT, warnings = elevation_correction(meta.get("power_cell_elevation_m"), terrain.get("elevation_m"))
+    dT_applied = dT if dT is not None else 0.0
+    df["Tmax"] = power["T2M_MAX"] + dT_applied
+    df["Tmin"] = power["T2M_MIN"] + dT_applied
+    df["Tmean"] = (df["Tmax"] + df["Tmin"]) / 2
     df["RH"] = power.get("RH2M")
 
     lat = meta.get("zone", {}).get("lat")
-    df["ET0"] = hargreaves_et0(df["Tmax"], df["Tmin"], df["Tmean"], lat)
+    df["ET0"] = hargreaves_et0(df["Tmax"], df["Tmin"], lat)
+    et0_t2m = hargreaves_et0(df["Tmax"], df["Tmin"], lat, tmean=power["T2M"] + dT_applied)
 
-    info = {"meta": meta, "soil": soil, "terrain": terrain, "temp_correction_c": round(dT, 2),
+    info = {"meta": meta, "soil": soil, "terrain": terrain,
+            "temp_correction_c": round(dT, 2) if dT is not None else None,
+            "warnings": warnings,
+            "et0_change_vs_t2m_pct": et0_change_pct(df["ET0"], et0_t2m),
             "share_days_imerg": round(float((df["P_src"] == "IMERG").mean()), 3)}
     return df, info
+
+
+def elevation_correction(cell_elev_m: float | None, parcel_elev_m: float | None
+                         ) -> tuple[float | None, list[str]]:
+    """Lapse-rate correction dT = -0.0065 * (parcel - cell). None plus a warning if either is missing."""
+    if parcel_elev_m is None or cell_elev_m is None:
+        missing = "parcela" if parcel_elev_m is None else "celda POWER"
+        return None, [f"sin corrección por elevación: falta elevation_m ({missing}); "
+                      "temperatura de NASA POWER sin ajustar"]
+    return -LAPSE_C_PER_M * (parcel_elev_m - cell_elev_m), []
 
 
 # ---------------------------------------------------------------- ET0
@@ -91,11 +103,27 @@ def extraterrestrial_radiation_mm(lat_deg: float, doy: np.ndarray) -> np.ndarray
     return 0.408 * ra_mj
 
 
-def hargreaves_et0(tmax: pd.Series, tmin: pd.Series, tmean: pd.Series, lat: float) -> pd.Series:
+def hargreaves_et0(tmax: pd.Series, tmin: pd.Series, lat: float,
+                   tmean: pd.Series | None = None) -> pd.Series:
+    """FAO-56 eq. 52. Tmean defaults to (Tmax+Tmin)/2 (D4); pass T2M only for comparison."""
+    if tmean is None:
+        tmean = (tmax + tmin) / 2
     doy = tmax.index.dayofyear.values
     ra = extraterrestrial_radiation_mm(lat, doy)
     tr = (tmax - tmin).clip(lower=0)
     return (0.0023 * (tmean + 17.8) * np.sqrt(tr) * ra).clip(lower=0)
+
+
+def et0_change_pct(et0: pd.Series, et0_ref: pd.Series) -> float | None:
+    """Percent change of mean annual ET0 vs a reference series, over complete years only."""
+    both = pd.DataFrame({"new": et0, "ref": et0_ref}).dropna()
+    days = both.groupby(both.index.year).size()
+    full = [y for y, n in days.items() if n >= (366 if pd.Timestamp(f"{y}-12-31").dayofyear == 366 else 365)]
+    if not full:
+        return None
+    annual = both[both.index.year.isin(full)].groupby(lambda d: d.year).sum()
+    ref = annual["ref"].mean()
+    return round(float(100 * (annual["new"].mean() - ref) / ref), 2) if ref else None
 
 
 # ---------------------------------------------------------------- season tools

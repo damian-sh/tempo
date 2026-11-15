@@ -269,9 +269,11 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None) -> dict
         "chart": chart,
         "heat": heat,
         "postrera_planting": {"date": plant_cur.date().isoformat(), "late_default": bool(late_cur)},
+        "warnings": info["warnings"],
         "inputs": {"texture_class": texture, "whc_mm": whc, "slope_pct": slope_pct,
                    "weights": weights, "seeds": sorted(seeds) if seeds else None,
                    "temp_correction_c": info["temp_correction_c"],
+                   "et0_change_vs_t2m_pct": info["et0_change_vs_t2m_pct"],
                    "share_days_imerg": info["share_days_imerg"], "soil": info["soil"],
                    "terrain": info["terrain"], "sources": info["meta"].get("sources")},
     }
@@ -296,7 +298,10 @@ def print_summary(out: dict) -> None:
     z, v, c = out["zone"], out["validation"], out["current"]
     print(f"\n=== {z['key']} — {z['name']}")
     print(f"  Rain days from IMERG: {100 * out['inputs']['share_days_imerg']:.0f}%  |  "
-          f"temp correction {out['inputs']['temp_correction_c']} C  |  WHC {out['inputs']['whc_mm']} mm")
+          f"temp correction {out['inputs']['temp_correction_c']} C  |  WHC {out['inputs']['whc_mm']} mm  |  "
+          f"ET0 vs T2M {out['inputs']['et0_change_vs_t2m_pct']} %")
+    for w in out["warnings"]:
+        print(f"  WARNING: {w}")
     pc, sk = out["primera_check"], out["skill"]
     print(f"  CHECK 1 - documented droughts: {len(pc['documented_in_worst_third'])} of {len(pc['documented'])} "
           f"documented years fall in the model's worst {pc['worst_third_size']} of {pc['n_years']} primera years "

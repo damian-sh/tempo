@@ -1686,8 +1686,8 @@ function render() {
     : `Canícula length explains little of the postrera by itself (rank correlation with September–November rain: ${sk.canicula_vs_sep_nov_rain}, ${sk.n_years} years). `) : "") +
     (lang === "es" ? GAPS_ES.join(" ") : z.strategies[0].gaps.join(" ")) +
     (lang === "es"
-      ? ` Lluvia de IMERG en ${pct(z.inputs.share_days_imerg)} de los días; temperatura corregida por ${z.inputs.temp_correction_c} °C; suelo tratado como ${z.inputs.texture_class} (${z.inputs.whc_mm} mm de agua disponible)${z.inputs.slope_pct != null ? `; pendiente ${z.inputs.slope_pct}%` : ""}.`
-      : ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; temperature corrected by ${z.inputs.temp_correction_c} °C; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`);
+      ? ` Lluvia de IMERG en ${pct(z.inputs.share_days_imerg)} de los días; ${z.inputs.temp_correction_c != null ? `temperatura corregida por ${z.inputs.temp_correction_c} °C` : "temperatura sin corrección por elevación (falta la elevación de la parcela o de la celda POWER)"}; suelo tratado como ${z.inputs.texture_class} (${z.inputs.whc_mm} mm de agua disponible)${z.inputs.slope_pct != null ? `; pendiente ${z.inputs.slope_pct}%` : ""}.`
+      : ` Rain from IMERG on ${pct(z.inputs.share_days_imerg)} of days; ${z.inputs.temp_correction_c != null ? `temperature corrected by ${z.inputs.temp_correction_c} °C` : "temperature not corrected for elevation (parcel or POWER cell elevation missing)"}; soil treated as ${z.inputs.texture_class} (${z.inputs.whc_mm} mm of plant-available water)${z.inputs.slope_pct != null ? `; slope ${z.inputs.slope_pct}%` : ""}.`);
 
   $("methodGrid").innerHTML = methodsList.map((m, idx) => `
     <div class="method-item">
