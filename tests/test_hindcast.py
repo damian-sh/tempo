@@ -47,14 +47,16 @@ def test_missing_year_still_gets_a_row(monkeypatch):
 
 @pytest.mark.parametrize("z", ZONES)
 def test_hindcast_years_table(z):
-    rows = load(z)["hindcast"]["years"]
+    d = load(z)
+    rows = d["hindcast"]["years"]
+    marks = ("hit", "fallo") if d["primera_check"]["discriminative"] else ("no_evaluable",)
     assert [r["year"] for r in rows] == YEARS
     for r in rows:
         assert ROW_KEYS <= set(r)
         cited = config.VALIDATION_DROUGHT_YEARS.get(r["year"])
         assert r["documented"] == (cited is not None)
         assert r["source"] == cited
-        assert (r["result"] in ("hit", "fallo")) if cited else r["result"] is None
+        assert (r["result"] in marks) if cited else r["result"] is None
         for c in r["crops"].values():
             assert c["class"] in ("good", "partial", "failure") and 0 <= c["wrsi"] <= 100
 

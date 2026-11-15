@@ -172,5 +172,7 @@ def primera_maize_check(df: pd.DataFrame, ind: pd.DataFrame, crops: dict, whc: f
             rows.append({"year": int(year), "wrsi": r["wrsi"], "wrsi_flowering": r["wrsi_flowering"], "class": r["class"]})
     out = pd.DataFrame(rows)
     if not out.empty:
-        out["rank_driest"] = out["wrsi"].rank(method="min").astype(int)  # 1 = worst year
+        # 1 = worst year. Ties take the highest rank (method="max"): years tied at WRSI 100 are
+        # not "among the driest" just because they share a rank with the driest tied year.
+        out["rank_driest"] = out["wrsi"].rank(method="max").astype(int)
     return out

@@ -10,6 +10,9 @@ import config
 HERE = os.path.dirname(os.path.abspath(__file__))
 CROPS = ["maize", "bean", "sorghum"]
 CROP_ES = {"maize": "Maíz", "bean": "Frijol", "sorghum": "Sorgo"}
+RESULT_ES = {"hit": "hit", "fallo": "fallo", "no_evaluable": "no evaluable"}
+RUN_ES = {"whc_60": "WHC 60 mm", "whc_90": "WHC 90 mm", "whc_130": "WHC 130 mm",
+          "no_bean_excess_rule": "sin regla 150 mm de frijol"}
 
 
 def _f(x, fmt="{:.2f}"):
@@ -44,17 +47,37 @@ def render_zone(d: dict) -> str:
         out.append(f"| {r['year']} | {r['canicula_class'] or '—'} | {r['strategy'] or '—'} | "
                    f"{_f(r['score_strategy'])} | {_f(r['score_current'])} | "
                    + " | ".join(_crop(r["crops"].get(c)) for c in CROPS)
-                   + f" | {prim} | {'sí' if r['documented'] else 'no'} | {r['result'] or '—'} | {ref} |")
+                   + f" | {prim} | {'sí' if r['documented'] else 'no'} | {RESULT_ES.get(r['result'], '—')} | {ref} |")
     doc = [r for r in rows if r["documented"]]
     hits = [r["year"] for r in doc if r["result"] == "hit"]
-    out += ["", f"D6: {len(hits)} hit de {len(doc)} años documentados "
-            f"(hit = WRSI de maíz de primera entre los {h['worst_third_size']} peores del registro). "
-            f"Hits: {hits or 'ninguno'}; fallos: {[r['year'] for r in doc if r['result'] == 'fallo'] or 'ninguno'}."]
+    pc = d["primera_check"]
+    if not pc["discriminative"]:
+        out += ["", f"D6: no evaluable. {pc['n_at_max_wrsi']} de {pc['n_years']} años empatan en WRSI 100 "
+                f"en maíz de primera, así que el ranking no separa años secos; los años documentados "
+                f"({[r['year'] for r in doc]}) no cuentan como hit ni como fallo. Empates con rango máximo."]
+    else:
+        out += ["", f"D6: {len(hits)} hit de {len(doc)} años documentados "
+                f"(hit = WRSI de maíz de primera entre los {h['worst_third_size']} peores del registro; "
+                f"empates con rango máximo). Hits: {hits or 'ninguno'}; "
+                f"fallos: {[r['year'] for r in doc if r['result'] == 'fallo'] or 'ninguno'}."]
     if v.get("n_years"):
         out.append(f"\nMedia ({v['n_years']} años): Tempo {v['mean_score_tempo']} · práctica A {v['mean_score_current']} · "
                    f"misma estrategia siempre {v['mean_score_same_every_year']} · mejor posible "
                    f"{v['mean_score_best_possible']} · Tempo mejor en {v['years_tempo_better']}, peor en "
-                   f"{v['years_tempo_worse']} · elecciones {v['picks']}")
+                   f"{v['years_tempo_worse']} · margen medio frente a A {v['mean_margin_vs_current']} "
+                   f"(prueba de signos p = {v['sign_test_p']}) · elecciones {v['picks']}")
+    sens = d.get("sensitivity")
+    if sens:
+        out += ["", f"Sensibilidad (base: WHC {sens['baseline']['whc_mm']} mm, regla de frijol "
+                f"{sens['baseline']['bean_excess_rain_late_mm']} mm). Años cuya elección LOO cambia frente a la base:", "",
+                "| Variante | Años que cambian | Tempo | Práctica A | Margen | Elecciones | CHECK 1 discrimina |",
+                "|---|---|---|---|---|---|---|"]
+        for k, r in sens["runs"].items():
+            yrs = ", ".join(str(c["year"]) for c in r["pick_changes"]) or "—"
+            out.append(f"| {RUN_ES.get(k, k)} | {r['n_pick_changes']} de {r['n_years_compared']} ({yrs}) | "
+                       f"{_f(r['mean_score_tempo'])} | {_f(r['mean_score_current'])} | "
+                       f"{_f(r['mean_margin_vs_current'])} | {r['picks']} | "
+                       f"{'sí' if r['check1']['discriminative'] else 'no'} |")
     if notes:
         out += ["", "Fuentes (D6):", ""] + [f"{i}. {n}" for i, n in enumerate(notes, 1)]
     return "\n".join(out) + "\n"

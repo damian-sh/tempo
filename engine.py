@@ -12,7 +12,9 @@ validation that decides whether the recommendation is worth showing.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
+import math
 import os
 
 import numpy as np
@@ -25,7 +27,9 @@ import indicators as ind
 DEFAULT_WEIGHTS = {"food": 1.0, "income": 0.5, "soil": 0.5, "water": 0.5, "labor": 0.3}
 CLIMATE_WEIGHT = 0.6        # share of the final score that comes from the hindcast
 STEEP_SLOPE_PCT = 15        # above this, soil protection weighs 1.5x
-OUT_DIR = "out"
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
+SENSITIVITY_WHC_MM = (60, 90, 130)   # sandy / default / clayey in crops.json
+CURRENT_PRACTICE = "A"                # relay bean after maize; kept on ties (no change without margin)
 
 RISKS = {
     "A": ["Beans are hit by both drought at flowering and heavy rain at maturity.",
@@ -65,15 +69,30 @@ def strategy_attributes(skey: str, crops: dict, water_demand: dict[str, float]) 
 
 
 def mean_water_demand(hcdf: pd.DataFrame, years: list[int]) -> dict[str, float]:
+    """Mean seasonal crop water demand per strategy, weighted by land share (0.6 / 0.4).
+
+    The crops dict keeps the strategy's crop order (main crop first), as built by run_hindcast.
+    """
     out = {}
     sub = hcdf[hcdf["year"].isin(years) & hcdf["complete"]]
     for skey, g in sub.groupby("strategy"):
-        shares_by_crop = None
         vals = []
         for parts in g["crops"]:
-            vals.append(np.mean([p["water_demand_mm"] for p in parts.values()]))
+            shares = hc.LAND_SHARE[len(parts)]
+            vals.append(sum(s * p["water_demand_mm"] for s, p in zip(shares, parts.values())))
         out[skey] = float(np.mean(vals)) if vals else None
     return out
+
+
+def bare_days(segments: list[dict], year_len: int = 365) -> int:
+    """Days of the year with no crop, for a rotation that repeats every year.
+
+    Segments are [start, end) in day-of-year; days past the year end wrap into January.
+    """
+    covered = set()
+    for sg in segments:
+        covered.update((d - 1) % year_len + 1 for d in range(sg["start"], sg["end"]))
+    return year_len - len(covered)
 
 
 def final_score(climate: float, attrs: dict, weights: dict, slope_pct: float | None) -> float:
@@ -85,60 +104,94 @@ def final_score(climate: float, attrs: dict, weights: dict, slope_pct: float | N
     return round(CLIMATE_WEIGHT * climate + (1 - CLIMATE_WEIGHT) * pref, 3)
 
 
-def traffic_light(maize_failure_rate: float) -> str:
-    if maize_failure_rate >= 0.5:
-        return "red"
-    if maize_failure_rate >= 0.25:
-        return "yellow"
-    return "green"
+# The former traffic light (stats["A"] failure rate, failure = score 0) was removed: it read
+# the bean relay as if it were maize, and no observed yields or discriminating drought check
+# back any risk threshold. See DECISIONES.md.
 
 
 # ---------------------------------------------------------------- validation
+def history_years(years) -> list[int]:
+    """Years usable for validation, ranks and reference statistics: before TARGET_YEAR (D1)."""
+    return sorted(int(y) for y in years if int(y) < config.TARGET_YEAR)
+
+
+def _best(stats: dict) -> tuple[str, bool]:
+    """Best strategy by (mean score, -failure rate). On a tie keep the current practice if it is
+    tied, else the first key: a tie is not a reason to change. Returns (key, tied)."""
+    key = lambda k: (stats[k]["mean_score"], -stats[k]["failure_rate"])
+    top = max(key(k) for k in stats)
+    tied = sorted(k for k in stats if key(k) == top)
+    pick = CURRENT_PRACTICE if CURRENT_PRACTICE in tied else tied[0]
+    return pick, len(tied) > 1
+
+
+def sign_test_p(n_better: int, n_worse: int) -> float | None:
+    """Two-sided exact sign test (ties dropped). None when there is nothing to test."""
+    n = n_better + n_worse
+    if n == 0:
+        return None
+    k = min(n_better, n_worse)
+    return round(min(1.0, 2 * sum(math.comb(n, i) for i in range(k + 1)) / 2 ** n), 4)
+
+
 def validate(hcdf: pd.DataFrame, indic: pd.DataFrame, complete_years: list[int]) -> dict:
     """Leave-one-out: pick the strategy with the best analog mean score (climate only)
-    and compare its real outcome with always planting maize alone (A)."""
+    and compare its real outcome with the current practice (A, relay bean after maize).
+
+    TARGET_YEAR (and later) is dropped from both the evaluated years and the analogs (D1).
+    """
     assert max(config.VALIDATION_DROUGHT_YEARS) < config.TARGET_YEAR, \
         "validation years overlap the target year (D1)"
+    complete_years = history_years(complete_years)
     rows = []
     for y in complete_years:
         cls, analogs = hc.analog_years(y, indic, complete_years)
         stats = hc.strategy_stats(hcdf, analogs)
         if not stats:
             continue
-        pick = max(stats, key=lambda k: (stats[k]["mean_score"], -stats[k]["failure_rate"]))
+        pick, tied = _best(stats)
         real = hcdf[(hcdf["year"] == y) & hcdf["complete"]].set_index("strategy")["score"]
-        if pick not in real or "A" not in real:
+        if pick not in real or CURRENT_PRACTICE not in real:
             continue
         others = hc.strategy_stats(hcdf, [o for o in complete_years if o != y])
-        clim = max(others, key=lambda k: (others[k]["mean_score"], -others[k]["failure_rate"]))
-        rows.append({"year": y, "canicula_class": cls, "pick": pick,
-                     "score_pick": float(real[pick]), "score_A": float(real["A"]),
+        clim, _ = _best(others)
+        rows.append({"year": y, "canicula_class": cls, "pick": pick, "pick_tied": tied,
+                     "score_pick": float(real[pick]), "score_A": float(real[CURRENT_PRACTICE]),
                      "clim_pick": clim, "score_clim": float(real[clim]),
                      "best_possible": float(real.max())})
     v = pd.DataFrame(rows)
     if v.empty:
         return {"n_years": 0}
+    better = int((v["score_pick"] > v["score_A"]).sum())
+    worse = int((v["score_pick"] < v["score_A"]).sum())
     return {
         "n_years": int(len(v)),
+        "years": [int(y) for y in v["year"]],
+        "mean_margin_vs_current": round(float((v["score_pick"] - v["score_A"]).mean()), 3),
+        "mean_margin_vs_same_every_year": round(float((v["score_pick"] - v["score_clim"]).mean()), 3),
+        "sign_test_p": sign_test_p(better, worse),
+        "n_years_pick_tied": int(v["pick_tied"].sum()),
         "mean_score_tempo": round(float(v["score_pick"].mean()), 2),
         "mean_score_current": round(float(v["score_A"].mean()), 2),
         "mean_score_same_every_year": round(float(v["score_clim"].mean()), 2),
         "mean_score_best_possible": round(float(v["best_possible"].mean()), 2),
         "failure_years_tempo": int((v["score_pick"] == 0).sum()),
         "failure_years_current": int((v["score_A"] == 0).sum()),
-        "years_tempo_better": int((v["score_pick"] > v["score_A"]).sum()),
-        "years_tempo_worse": int((v["score_pick"] < v["score_A"]).sum()),
+        "years_tempo_better": better,
+        "years_tempo_worse": worse,
         "picks": v["pick"].value_counts().to_dict(),
         "by_year": v.to_dict(orient="records"),
     }
 
 
 def hindcast_years(validation: dict, hcdf: pd.DataFrame, pm: pd.DataFrame, worst_third: int,
-                   years: list[int]) -> list[dict]:
+                   years: list[int], evaluable: bool = True) -> list[dict]:
     """One row per year: leave-one-out pick, per-crop WRSI/class, and the D6 hit/fallo.
 
     hit/fallo only for years in config.VALIDATION_DROUGHT_YEARS (cited source, D6): "hit" when the
     primera maize WRSI ranks in the worst third of the record (same rule as CHECK 1), else "fallo".
+    When CHECK 1 is not discriminative (most years tie at WRSI 100) every documented year is
+    "no_evaluable": a tie cannot be a hit.
     """
     picks = {int(r["year"]): r for r in validation.get("by_year", [])}
     pmi = pm.set_index("year") if not pm.empty else pd.DataFrame()
@@ -155,7 +208,9 @@ def hindcast_years(validation: dict, hcdf: pd.DataFrame, pm: pd.DataFrame, worst
             prim = {"wrsi": float(pr["wrsi"]), "class": pr["class"], "rank_driest": int(pr["rank_driest"])}
         source = config.VALIDATION_DROUGHT_YEARS.get(y)
         result = None
-        if source is not None:
+        if source is not None and not evaluable:
+            result = "no_evaluable"
+        elif source is not None:
             result = "hit" if prim is not None and prim["rank_driest"] <= worst_third else "fallo"
         rows.append({"year": int(y),
                      "strategy": pk["pick"] if pk else None,
@@ -171,11 +226,89 @@ RAIN_WINDOWS = {"primera": ("05-01", "08-31"), "canicula": ("07-01", "08-31"),
                 "sep_nov": ("09-01", "11-30")}
 
 
+def _complete_years(hcdf: pd.DataFrame) -> list[int]:
+    return sorted(hcdf.groupby("year")["complete"].all().loc[lambda s: s].index.tolist())
+
+
 def _hindcast_picks(df: pd.DataFrame, crops: dict, whc: float) -> dict:
     indic = ind.yearly_indicators(df)
     hcdf = hc.run_hindcast(df, indic, crops, whc)
-    complete = sorted(hcdf.groupby("year")["complete"].all().loc[lambda s: s].index.tolist())
-    return validate(hcdf, indic, complete)
+    return validate(hcdf, indic, _complete_years(hcdf))
+
+
+def _primera_check(df: pd.DataFrame, indic: pd.DataFrame, crops: dict, whc: float) -> tuple[pd.DataFrame, dict]:
+    """CHECK 1 on years before TARGET_YEAR: documented droughts in the worst third of primera maize WRSI."""
+    pm = hc.primera_maize_check(df, indic.loc[history_years(indic.index)], crops, whc)
+    doc = [y for y in sorted(config.VALIDATION_DROUGHT_YEARS) if not pm.empty and y in set(pm["year"])]
+    third = max(1, round(len(pm) / 3)) if not pm.empty else 0
+    ranks = pm.set_index("year")["rank_driest"] if not pm.empty else pd.Series(dtype=int)
+    # CHECK 1 is only informative if the WRSI actually varies. Ties at 100 share the highest
+    # rank, and the check is marked not evaluable when most years tie.
+    discriminative = bool(not pm.empty and (pm["wrsi"] < 100.0).sum() >= len(pm) / 2)
+    return pm, {
+        "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
+        "documented_in_worst_third": [int(y) for y in doc if int(ranks.loc[y]) <= third],
+        "documented_rank": {str(y): int(ranks.loc[y]) for y in doc},
+        "n_at_max_wrsi": int((pm["wrsi"] >= 100.0).sum()) if not pm.empty else 0,
+        "discriminative": discriminative,
+        "status": "evaluable" if discriminative else "no_evaluable",
+        "rank_method": "max (ties take the highest rank; 1 = driest)",
+    }
+
+
+def _crops_without_bean_rule(crops: dict) -> dict:
+    out = copy.deepcopy(crops)
+    for c in out["crops"].values():
+        c.pop("excess_rain_late_mm", None)
+    return out
+
+
+def parameter_sensitivity(df: pd.DataFrame, crops: dict, whc: float) -> dict:
+    """Re-run the leave-one-out hindcast with other soil water capacities and without the bean
+    excess-rain rule. Defaults are never changed here; this only reports how much the verdict
+    depends on them. A "pick change" is a year whose LOO pick differs from the baseline run.
+    """
+    indic = ind.yearly_indicators(df)
+
+    def run(c, w):
+        hcdf = hc.run_hindcast(df, indic, c, w)
+        v = validate(hcdf, indic, _complete_years(hcdf))
+        _, pc = _primera_check(df, indic, c, w)
+        return v, pc
+
+    base_v, _ = run(crops, whc)
+    base = {r["year"]: r for r in base_v.get("by_year", [])}
+    variants = {f"whc_{w}": (crops, w) for w in SENSITIVITY_WHC_MM}
+    variants["no_bean_excess_rule"] = (_crops_without_bean_rule(crops), whc)
+    runs = {}
+    for name, (c, w) in variants.items():
+        v, pc = run(c, w)
+        by = {r["year"]: r for r in v.get("by_year", [])}
+        common = sorted(set(base) & set(by))
+        changes = [{"year": int(y), "pick_baseline": base[y]["pick"], "pick": by[y]["pick"]}
+                   for y in common if by[y]["pick"] != base[y]["pick"]]
+        runs[name] = {
+            "whc_mm": w, "bean_excess_rule": name != "no_bean_excess_rule",
+            "n_years": v.get("n_years", 0), "n_years_compared": len(common),
+            "pick_changes": changes, "n_pick_changes": len(changes),
+            "picks": v.get("picks", {}), "n_years_pick_tied": v.get("n_years_pick_tied"),
+            "mean_score_tempo": v.get("mean_score_tempo"),
+            "mean_score_current": v.get("mean_score_current"),
+            "mean_score_same_every_year": v.get("mean_score_same_every_year"),
+            "mean_margin_vs_current": v.get("mean_margin_vs_current"),
+            "years_tempo_better": v.get("years_tempo_better"),
+            "years_tempo_worse": v.get("years_tempo_worse"),
+            "sign_test_p": v.get("sign_test_p"),
+            "check1": {k: pc[k] for k in ("n_at_max_wrsi", "n_years", "discriminative",
+                                          "documented_rank", "documented_in_worst_third")},
+        }
+    return {
+        "method": "leave-one-out hindcast re-run per variant; pick changes vs the baseline run",
+        "baseline": {"whc_mm": whc,
+                     "bean_excess_rain_late_mm": crops["crops"]["bean"].get("excess_rain_late_mm")},
+        "runs": runs,
+        "max_pick_changes": max(r["n_pick_changes"] for r in runs.values()),
+    }
 
 
 def rain_source_sensitivity(df_imerg: pd.DataFrame, df_power: pd.DataFrame,
@@ -192,7 +325,7 @@ def rain_source_sensitivity(df_imerg: pd.DataFrame, df_power: pd.DataFrame,
     windows = {}
     for name, (a, b) in RAIN_WINDOWS.items():
         rows = []
-        for y in sorted(set(df_imerg.index.year) & set(df_power.index.year)):
+        for y in history_years(set(df_imerg.index.year) & set(df_power.index.year)):
             wi = df_imerg.loc[f"{y}-{a}":f"{y}-{b}"]
             wp = df_power["P"].loc[f"{y}-{a}":f"{y}-{b}"]
             n_days = (pd.Timestamp(f"{y}-{b}") - pd.Timestamp(f"{y}-{a}")).days + 1
@@ -258,45 +391,41 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
     sensitivity = rain_source_sensitivity(by_src["imerg"], by_src["power"], crops, whc)
 
     hcdf = hc.run_hindcast(df, indic, crops, whc)
-    complete_years = sorted(hcdf.groupby("year")["complete"].all().loc[lambda s: s].index.tolist())
+    complete_years = history_years(_complete_years(hcdf))   # never TARGET_YEAR (D1)
     validation = validate(hcdf, indic, complete_years)
+    sensitivity_params = parameter_sensitivity(df, crops, whc)
 
     # Does canicula length say anything about the postrera? (Spearman rank correlation)
-    piv = hcdf[hcdf["complete"]].pivot(index="year", columns="strategy", values="score").astype(float)
+    hist = hcdf[hcdf["complete"] & hcdf["year"].isin(history_years(hcdf["year"].unique()))]
+    piv = hist.pivot(index="year", columns="strategy", values="score").astype(float)
     can = indic.loc[piv.index, "canicula_days"].astype(float)
     rain = indic.loc[piv.index, "rain_sep_nov_mm"].astype(float)
     def _sp(a, b):
         r = a.corr(b, method="spearman")
         return None if pd.isna(r) else round(float(r), 2)
-    skill = {"n_years": int(len(piv)),
+    skill = {"n_years": int(len(piv)), "years": [int(y) for y in piv.index],
              "canicula_vs_sep_nov_rain": _sp(can, rain),
              "canicula_vs_score": {k: _sp(can, piv[k]) for k in piv.columns}}
 
     # External check: does the model see the documented primera droughts?
-    pm = hc.primera_maize_check(df, indic, crops, whc)
-    doc = [y for y in sorted(config.VALIDATION_DROUGHT_YEARS) if not pm.empty and y in set(pm["year"])]
-    third = max(1, round(len(pm) / 3)) if not pm.empty else 0
-    primera_check = {
-        "years": pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))).to_dict(orient="records") if not pm.empty else [],
-        "n_years": int(len(pm)), "worst_third_size": int(third), "documented": doc,
-        "documented_in_worst_third": [int(y) for y in doc if int(pm.set_index("year").loc[y, "rank_driest"]) <= third],
-        # CHECK 1 is only informative if the WRSI actually varies. Ties at 100 put every
-        # unstressed year at the same rank, so the check is vacuous when most years tie.
-        "n_at_max_wrsi": int((pm["wrsi"] >= 100.0).sum()) if not pm.empty else 0,
-        "discriminative": bool(not pm.empty and (pm["wrsi"] < 100.0).sum() >= len(pm) / 2),
-    }
+    pm, primera_check = _primera_check(df, indic, crops, whc)
+    primera_check["years"] = pm.assign(documented=pm["year"].isin(list(config.VALIDATION_DROUGHT_YEARS))
+                                       ).to_dict(orient="records") if not pm.empty else []
+    third = primera_check["worst_third_size"]
     hindcast = {
         "method": "leave-one-out by canicula tercile; hit/fallo only for cited drought years (D6), "
-                  "primera maize WRSI in the worst third",
+                  "primera maize WRSI in the worst third (ties ranked max); no_evaluable when "
+                  "CHECK 1 is not discriminative",
         "worst_third_size": int(third),
+        "check1_status": primera_check["status"],
         "years": hindcast_years(validation, hcdf, pm, third,
-                                list(range(int(config.START_DATE[:4]), config.TARGET_YEAR))),
+                                list(range(int(config.START_DATE[:4]), config.TARGET_YEAR)),
+                                evaluable=primera_check["discriminative"]),
     }
 
-    # Current season = latest year with a canicula reading.
+    # Current season = latest year with a canicula reading. Analogs come from history only.
     cur = int(indic.index.max())
-    cls, analogs = hc.analog_years(cur, indic, [y for y in complete_years if y != cur] + [cur]) \
-        if cur not in complete_years else hc.analog_years(cur, indic, complete_years)
+    cls, analogs = hc.analog_years(cur, indic, [y for y in complete_years if y != cur] + [cur])
     stats = hc.strategy_stats(hcdf, analogs)
     all_stats = hc.strategy_stats(hcdf, complete_years)
     wd = mean_water_demand(hcdf, analogs or complete_years)
@@ -330,7 +459,7 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
         })
     ranked = sorted([c for c in cards if c["score"] is not None], key=lambda c: -c["score"])
     recommended = ranked[0]["key"] if ranked else None
-    maize_fail = stats.get("A", {}).get("failure_rate")
+    margin = round(ranked[0]["score"] - ranked[1]["score"], 3) if len(ranked) > 1 else None
 
     # Chart: 10-day rain of the current year vs the 2001-(cur-1) normal band.
     clim = ind.climatology(df, [y for y in complete_years if y != cur])
@@ -361,11 +490,8 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
     prim_seg = [seg("maize", prim, "primera")] if prim is not None and pd.notna(prim) else []
     for card in cards:
         segs = prim_seg + [seg(c, plant_cur, "postrera") for c in card["crops"]]
-        covered = set()
-        for sg in segs:
-            covered.update(range(sg["start"], min(sg["end"], 366)))
         card["rotation"] = segs
-        card["bare_days"] = 365 - len(covered)
+        card["bare_days"] = bare_days(segs)
 
     yearly = []
     for y, r in indic.iterrows():
@@ -381,10 +507,10 @@ def build_zone(zone: config.Zone, weights: dict, seeds: set[str] | None,
         "current": {"canicula_days": int(indic.loc[cur, "canicula_days"]), "canicula_class": cls,
                     "postrera_onset": _ts(indic.loc[cur, "postrera_onset"]),
                     "analog_years": analogs,
-                    "traffic_light": traffic_light(maize_fail) if maize_fail is not None else None,
-                    "recommended": recommended},
+                    "recommended": recommended, "margin_over_second": margin},
         "strategies": cards,
         "validation": validation,
+        "sensitivity": sensitivity_params,
         "skill": skill,
         "primera_check": primera_check,
         "hindcast": hindcast,
@@ -428,10 +554,10 @@ def print_summary(out: dict) -> None:
         print(f"  WARNING: {w}")
     pc, sk = out["primera_check"], out["skill"]
     if not pc.get("discriminative", True):
-        print(f"  CHECK 1 NO DISCRIMINANTE: {pc['n_at_max_wrsi']} of {pc['n_years']} years tie at WRSI 100")
+        print(f"  CHECK 1 NO DISCRIMINANTE (no evaluable): {pc['n_at_max_wrsi']} of {pc['n_years']} years tie at WRSI 100")
     print(f"  CHECK 1 - documented droughts: {len(pc['documented_in_worst_third'])} of {len(pc['documented'])} "
           f"documented years fall in the model's worst {pc['worst_third_size']} of {pc['n_years']} primera years "
-          f"({pc['documented_in_worst_third']} of {pc['documented']})")
+          f"({pc['documented_in_worst_third']} of {pc['documented']}; ranks {pc['documented_rank']}, ties = max)")
     print(f"  CHECK 2 - canicula as a signal (Spearman, n={sk['n_years']}): vs Sep-Nov rain {sk['canicula_vs_sep_nov_rain']}, "
           f"vs strategy score {sk['canicula_vs_score']}")
     if v.get("n_years"):
@@ -440,6 +566,12 @@ def print_summary(out: dict) -> None:
               f"same strategy every year {v['mean_score_same_every_year']} | perfect hindsight {v['mean_score_best_possible']}")
         print(f"    failure years: Tempo {v['failure_years_tempo']} vs current {v['failure_years_current']}; "
               f"Tempo better in {v['years_tempo_better']}, worse in {v['years_tempo_worse']}; picks {v['picks']}")
+        print(f"    margin vs current {v['mean_margin_vs_current']} (sign test p {v['sign_test_p']}); "
+              f"tied picks {v['n_years_pick_tied']}")
+    for name, r in out["sensitivity"]["runs"].items():
+        print(f"  SENSITIVITY {name}: pick changes {r['n_pick_changes']} of {r['n_years_compared']} "
+              f"{[c['year'] for c in r['pick_changes']]}; Tempo {r['mean_score_tempo']} vs A "
+              f"{r['mean_score_current']}; picks {r['picks']}; CHECK 1 discriminative {r['check1']['discriminative']}")
     rs = out["rain_source_sensitivity"]
     if rs.get("available"):
         for name, w in rs["windows"].items():
@@ -450,7 +582,7 @@ def print_summary(out: dict) -> None:
     else:
         print(f"  RAIN SOURCE sensitivity not available: {rs.get('reason')}")
     print(f"  {out['current_year']}: canícula {c['canicula_days']} days ({c['canicula_class']}), "
-          f"light {c['traffic_light']}, recommended {c['recommended']}, analogs {c['analog_years']}")
+          f"recommended {c['recommended']} (margin over second {c['margin_over_second']}), analogs {c['analog_years']}")
     for s in out["strategies"]:
         print(f"    [{s['key']}] {s['label']:<26} score {s['score']}  analog {s['analog_stats']}")
 
